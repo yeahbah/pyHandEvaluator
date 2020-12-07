@@ -14,7 +14,7 @@ class HandEvaluatorTest(unittest.TestCase):
         self.assertFalse(HoldemHand.ValidateHand("AA"))
         self.assertFalse(HoldemHand.ValidateHand("5s5c", "1h 3"))
         self.assertFalse(HoldemHand.ValidateHand("KcKc"))
-        self.assertFalse(HoldemHand.ValidateHand("AcAd", "AcAdAcAd"))
+        self.assertFalse(HoldemHand.ValidateHand("AcAd", "AcAdAcAd"))    
 
 if __name__ == '__main__':
     unittest.main()

@@ -1,12 +1,11 @@
 import numpy
-from enum import Enum
+# from enum import Enum
 from multipledispatch import dispatch
-from numpy.lib.stride_tricks import _broadcast_to_dispatcher
 
 class HoldemHand:
 
     # Possible types of hands in a texas holdem game
-    class HandTypes(Enum):
+    class HandTypes:
         HIGH_CARD = 0
         PAIR = 1
         TWO_PAIR = 2
@@ -64,29 +63,36 @@ class HoldemHand:
 
     __handVal: numpy.uint32
 
-    def set_PocketHand(self, pocketHand: str):
-        if not pocketHand: raise Exception("Pocket Hand must have a value")
-        if len(pocketHand.strip()) <= 0 or not HoldemHand.ValidateHand(pocketHand):
-            raise Exception("Invalid pocket hand")
+    def set_PocketCards(self, pocketHand: str):
+        if __debug__:
+            if not pocketHand: 
+                raise Exception("Pocket Hand must have a value")            
+            if len(pocketHand.strip()) <= 0 or not HoldemHand.ValidateHand(pocketHand):
+                raise Exception("Invalid pocket hand")
 
         HoldemHand.__pocket = pocketHand.strip()
         HoldemHand.UpdateHandMask()
     
-    def get_PocketHand(self):
+    def get_PocketCards(self):
         return HoldemHand.__pocket
 
     def set_Board(self, board: str):
-        if not board or len(board.strip()) <= 0 or not HoldemHand.ValidateHand(board):
-            raise Exception("Invalid board")
+        if __debug__:
+            if not board or len(board.strip()) <= 0 or not HoldemHand.ValidateHand(board):
+                raise Exception("Invalid board")
+
         HoldemHand.__board = board
         HoldemHand.UpdateHandMask()
     
     def get_Board(self):
         return HoldemHand.__board
 
+    # TODO
     @staticmethod
     def UpdateHandMask():
-        pass
+        handMaskTuple = HoldemHand.ParseHand(HoldemHand.get_PocketCards, HoldemHand.get_Board)
+        HoldemHand.__handMask = handMaskTuple[0]
+        HoldemHand.__handVal = HoldemHand.Evaluate(handMaskTuple[0], handMaskTuple[1])
 
     # default constructor
     @dispatch()
@@ -95,8 +101,10 @@ class HoldemHand:
     
     @dispatch(str, str)
     def __init__(self, pocket: str, board: str):
-        if not pocket: raise Exception("Pocket hand is not defined")
-        HoldemHand.set_PocketHand(self, pocket)
+        if __debug__:
+            if not pocket: raise Exception("Pocket hand is not defined")
+
+        HoldemHand.set_PocketCards(self, pocket)
         HoldemHand.set_Board(self, board)
     
     # This function takes a string representing a full or partial holdem mask 
@@ -107,7 +115,8 @@ class HoldemHand:
     @staticmethod
     @dispatch(str)
     def ValidateHand(hand: str):
-        if not hand: return False
+        if __debug__:
+            if not hand: return False
 
         handmask: numpy.uint64 = 0        
         cards = 0
@@ -132,8 +141,9 @@ class HoldemHand:
     @staticmethod
     @dispatch(str, str)
     def ValidateHand(pocket: str, board: str):
-        if not pocket or len(pocket.strip()) == 0: 
-            raise Exception("Pocket hand is not defined")
+        if __debug__:
+            if not pocket or len(pocket.strip()) == 0: 
+                raise Exception("Pocket hand is not defined")
 
         return HoldemHand.ValidateHand(pocket + " " + board)
 
@@ -227,14 +237,16 @@ class HoldemHand:
     def ParseHand(hand: str):
         handmask: numpy.uint64 = 0
 
-        if not hand: 
-            raise Exception("Hand is not defined")
+        if __debug__:
+            if not hand: 
+                raise Exception("Hand is not defined")
 
         if len(hand.strip()) == 0:
             return (0, 0)
         
-        if not HoldemHand.ValidateHand(hand):
-            raise Exception("Bad hand definition")
+        if __debug__:
+            if not HoldemHand.ValidateHand(hand):
+                raise Exception("Bad hand definition")
     
         # Parse the mask
         cards = 0
@@ -260,7 +272,8 @@ class HoldemHand:
     # card - card string
     @staticmethod
     def ParseCard(card: str):
-        if not card: raise Exception("Card is not defined")
+        if __debug__:
+            if not card: raise Exception("Card is not defined")
 
         return HoldemHand.__NextCard(card, 0)[0]
 
@@ -282,7 +295,11 @@ class HoldemHand:
             if card < 0 or card > 52:
                 raise Exception("Invalid card value")
             
-        return card / 13      
+        return card / 13    
+
+    @staticmethod
+    def HandType(handValue: numpy.uint32):
+        return handValue >> HoldemHand.HANDTYPE_SHIFT
 
     @staticmethod
     def DescriptionFromMask(cards: numpy.uint64):
@@ -300,11 +317,45 @@ class HoldemHand:
         ss = numpy.uint32(cards >> HoldemHand.__SpadeOffset()) & numpy.uint64(0x1FFF)
 
         handValue = HoldemHand.Evaluate(cards, numberOfCards)
+        handType = HoldemHand.HandType(handValue)
+        if handType == HoldemHand.HandTypes.HIGH_CARD or \
+            handType == HoldemHand.HandTypes.PAIR or \
+            handType == HoldemHand.HandTypes.TWO_PAIR or \
+            handType == HoldemHand.HandTypes.TRIPS or \
+            handType == HoldemHand.HandTypes.STRAIGHT or \
+            handType == HoldemHand.HandTypes.FULLHOUSE or \
+            handType == HoldemHand.HandTypes.FOUR_OF_A_KIND:
+            return HoldemHand.__DescriptionFromHandValueInternal(handValue)
+        
+        if handType == HoldemHand.HandTypes.FLUSH:
+            flushDescription = "Flush ({0}) with {1} high"
+            if HoldemHand.__nBitsTable[ss] >= 5:
+                return flushDescription.format("Spades", HoldemHand.__RankTable[HoldemHand.TopCard(handValue)])
+            elif HoldemHand.__nBitsTable[sc] >= 5:
+                return flushDescription.format("Clubs", HoldemHand.__RankTable[HoldemHand.TopCard(handValue)])
+            elif HoldemHand.__nBitsTable[sd] >= 5:
+                return flushDescription.format("Diamonds", HoldemHand.__RankTable[HoldemHand.TopCard(handValue)])
+            elif HoldemHand.__nBitsTable[sh] >= 5:
+                return flushDescription.format("Hearts", HoldemHand.__RankTable[HoldemHand.TopCard(handValue)])
+        
+        if handType == HoldemHand.HandTypes.STRAIGHT_FLUSH:
+            flushDescription = "Straight Flush ({0}) with {1} high"
+            if HoldemHand.__nBitsTable[ss] >= 5:
+                return flushDescription.format("Spades", HoldemHand.__RankTable[HoldemHand.TopCard(handValue)])
+            elif HoldemHand.__nBitsTable[sc] >= 5:
+                return flushDescription.format("Clubs", HoldemHand.__RankTable[HoldemHand.TopCard(handValue)])
+            elif HoldemHand.__nBitsTable[sd] >= 5:
+                return flushDescription.format("Diamonds", HoldemHand.__RankTable[HoldemHand.TopCard(handValue)])
+            elif HoldemHand.__nBitsTable[sh] >= 5:
+                return flushDescription.format("Hearts", HoldemHand.__RankTable[HoldemHand.TopCard(handValue)])
 
+        raise Exception("Invalid hand type") # should never get here
+        
     #end DescriptionFromMask
-
+    
     @staticmethod
-    def Evaluate(cards: numpy.uint64, numberOfCards: int):
+    @dispatch(int, int)
+    def Evaluate(cards: int, numberOfCards: int):
         retval: numpy.uint32 = 0
         four_mask: numpy.uint32
         three_mask: numpy.uint32
@@ -313,7 +364,6 @@ class HoldemHand:
         if __debug__:
             if numberOfCards < 1 or numberOfCards > 7:
                 raise Exception("Invalid number of cards")
-        
 
         # separate out by suit
         sc = numpy.uint32(cards >> HoldemHand.__ClubOffset()) & numpy.uint64(0x1FFF)
@@ -330,33 +380,32 @@ class HoldemHand:
         if n_ranks >= 5:
             if HoldemHand.__nBitsTable[ss] >= 5:
                 if HoldemHand.__StraightTable[ss] != 0:
-                    return HoldemHand.__HandTypeValueStraightFlush + numpy.uint32(HoldemHand.__StraightTable[ss]) << HoldemHand.TOP_CARD_SHIFT
+                    return HoldemHand.__HandTypeValueStraightFlush() + (HoldemHand.__StraightTable[ss] << HoldemHand.TOP_CARD_SHIFT)
                 else:
-                    retval = HoldemHand.__HandTypeValueFlush + HoldemHand.__TopFiveCardsTable[ss]
+                    retval = HoldemHand.__HandTypeValueFlush() + HoldemHand.__TopFiveCardsTable[ss]
             
             elif HoldemHand.__nBitsTable[sc] >= 5:
                 if (HoldemHand.__StraightTable[sc] != 0):
-                    return HoldemHand.__HandTypeValueStraightFlush + numpy.uint32(HoldemHand.__StraightTable[sc]) << HoldemHand.TOP_CARD_SHIFT
+                    return HoldemHand.__HandTypeValueStraightFlush() + (HoldemHand.__StraightTable[sc] << HoldemHand.TOP_CARD_SHIFT)
                 else:
-                    retval = HoldemHand.__HandTypeValueFlush + HoldemHand.__TopFiveCardsTable[sc]
+                    retval = HoldemHand.__HandTypeValueFlush() + HoldemHand.__TopFiveCardsTable[sc]
 
             elif HoldemHand.__nBitsTable[sd] >= 5:
                 if (HoldemHand.__StraightTable[sd] != 0):
-                    return HoldemHand.__HandTypeValueStraightFlush + numpy.uint32(HoldemHand.__StraightTable[sd]) << HoldemHand.TOP_CARD_SHIFT
+                    return HoldemHand.__HandTypeValueStraightFlush() + (HoldemHand.__StraightTable[sd] << HoldemHand.TOP_CARD_SHIFT)
                 else:
-                    retval = HoldemHand.__HandTypeValueFlush + HoldemHand.__TopFiveCardsTable[sd]
+                    retval = HoldemHand.__HandTypeValueFlush() + HoldemHand.__TopFiveCardsTable[sd]
                     
             elif HoldemHand.__nBitsTable[sh] >= 5:
                 if (HoldemHand.__StraightTable[sh] != 0):
-                    return HoldemHand.__HandTypeValueStraightFlush + numpy.uint32(HoldemHand.__StraightTable[sh]) << HoldemHand.TOP_CARD_SHIFT
+                    return HoldemHand.__HandTypeValueStraightFlush() + (HoldemHand.__StraightTable[sh] << HoldemHand.TOP_CARD_SHIFT)
                 else:
-                    retval = HoldemHand.__HandTypeValueFlush + HoldemHand.__TopFiveCardsTable[sh]
+                    retval = HoldemHand.__HandTypeValueFlush() + HoldemHand.__TopFiveCardsTable[sh]
 
             else:
                 st: numpy.uint32 = HoldemHand.__StraightTable[ranks]
                 if st != 0:
-                    retval = HoldemHand.__HandTypeValueStraight + (st << HoldemHand.TOP_CARD_SHIFT)
-
+                    retval = HoldemHand.__HandTypeValueStraight() + (st << HoldemHand.TOP_CARD_SHIFT)
 
              
             # Another win -- if there can't be a FH/Quads (n_dups < 3), 
@@ -456,59 +505,66 @@ class HoldemHand:
     #end Evaluate()
     
     @staticmethod
+    @dispatch(str)
+    def Evaluate(hand: str):
+        handMask = HoldemHand.ParseHand(hand)
+        return HoldemHand.Evaluate(handMask[0], handMask[1])
+    
+    @staticmethod
     def __DescriptionFromHandValueInternal(handValue: numpy.uint32):
         result = []
-        if handValue == HoldemHand.HandTypes.HIGH_CARD:
+        handType = HoldemHand.HandType(handValue)
+        if handType == HoldemHand.HandTypes.HIGH_CARD:
             result.append("High card: ")
-            result.append(HoldemHand.RankTable[HoldemHand.TopCard(handValue)])
+            result.append(HoldemHand.__RankTable[HoldemHand.TopCard(handValue)])
             return "".join(result)
 
-        if handValue == HoldemHand.HandTypes.PAIR:
+        if handType == HoldemHand.HandTypes.PAIR:
             result.append("One pair, ")
-            result.append(HoldemHand.RankTable[HoldemHand.TopCard(handValue)])
+            result.append(HoldemHand.__RankTable[HoldemHand.TopCard(handValue)])
             return "".join(result)
         
-        if handValue == HoldemHand.HandTypes.TWO_PAIR:
+        if handType == HoldemHand.HandTypes.TWO_PAIR:
             result.append("Two pair, ")
-            result.append(HoldemHand.RankTable[HoldemHand.TopCard(handValue)])
+            result.append(HoldemHand.__RankTable[HoldemHand.TopCard(handValue)])
             result.append("'s and ")
-            result.append(HoldemHand.RankTable[HoldemHand.SecondCard(handValue)])
+            result.append(HoldemHand.__RankTable[HoldemHand.SecondCard(handValue)])
             result.append("'s with a")
-            result.append(HoldemHand.RankTable[HoldemHand.ThirdCard(handValue)])
+            result.append(HoldemHand.__RankTable[HoldemHand.ThirdCard(handValue)])
             result.append(" for a kicker")
             return "".join(result)
         
-        if handValue == HoldemHand.HandTypes.TRIPS:
+        if handType == HoldemHand.HandTypes.TRIPS:
             result.append("Three of a kind, ")
-            result.append(HoldemHand.RankTable[HoldemHand.TopCard(handValue)])
+            result.append(HoldemHand.__RankTable[HoldemHand.TopCard(handValue)])
             result.append("'s")
             return "".join(result)
 
-        if handValue == HoldemHand.HandTypes.STRAIGHT:
+        if handType == HoldemHand.HandTypes.STRAIGHT:
             result.append("A straight, ")
-            result.append(HoldemHand.RankTable[HoldemHand.TopCard(handValue)])
+            result.append(HoldemHand.__RankTable[HoldemHand.TopCard(handValue)])
             result.append(" high")
             return "".join(result)
         
-        if handValue == HoldemHand.HandTypes.FLUSH:
+        if handType == HoldemHand.HandTypes.FLUSH:
             result.append("A flush")
             return "".join(result)
         
-        if handValue == HoldemHand.HandTypes.FULLHOUSE:
+        if handType == HoldemHand.HandTypes.FULLHOUSE:
             result.append("A fullhouse, ")
-            result.append(HoldemHand.RankTable[HoldemHand.TopCard(handValue)])
+            result.append(HoldemHand.__RankTable[HoldemHand.TopCard(handValue)])
             result.append("'s and ")
-            result.append(HoldemHand.RankTable[HoldemHand.SecondCard(handValue)])
+            result.append(HoldemHand.__RankTable[HoldemHand.SecondCard(handValue)])
             result.append("'s")
             return "".join(result)
 
-        if handValue == HoldemHand.HandTypes.FOUR_OF_A_KIND:
+        if handType == HoldemHand.HandTypes.FOUR_OF_A_KIND:
             result.append("Four of a kind, ")
-            result.append(HoldemHand.RankTable[HoldemHand.TopCard(handValue)])
+            result.append(HoldemHand.__RankTable[HoldemHand.TopCard(handValue)])
             result.append("'s")
             return "".join(result)
 
-        if handValue == HoldemHand.HandTypes.STRAIGHT_FLUSH:
+        if handType == HoldemHand.HandTypes.STRAIGHT_FLUSH:
             result.append("A straight flush")
             return "".join(result)
         
@@ -518,10 +574,10 @@ class HoldemHand:
     # Count bits. Optimized for cards so only works with 52 bits
     @staticmethod
     def BitCount(bitField: numpy.uint64):
-        return HoldemHand.nBitsTable[bitField & 0x1FFF] + \
-            HoldemHand.nBitsTable[(bitField >> 13) & 0x1FFF] + \
-            HoldemHand.nBitsTable[(bitField >> 26) & 0x1FFF] + \
-            HoldemHand.nBitsTable[(bitField >> 39) & 0x1FFF]
+        return HoldemHand.__nBitsTable[bitField & 0x1FFF] + \
+            HoldemHand.__nBitsTable[(bitField >> 13) & 0x1FFF] + \
+            HoldemHand.__nBitsTable[(bitField >> 26) & 0x1FFF] + \
+            HoldemHand.__nBitsTable[(bitField >> 39) & 0x1FFF]
 
     
     # returns uint32
@@ -549,10 +605,8 @@ class HoldemHand:
     def HandTypeValue(handType: int):
         return numpy.uint32(handType) << HoldemHand.HANDTYPE_SHIFT
 
-    # Converts card number into the card rank text string
-    @staticmethod
-    def RankTable():
-        return ["Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Jack", "Queen", "King", "Ace",
+    # Converts card number into the card rank text string    
+    __RankTable = ["Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Jack", "Queen", "King", "Ace",
                 "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Jack", "Queen", "King", "Ace",
                 "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Jack", "Queen", "King", "Ace",
                 "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Jack", "Queen", "King", "Ace"]
@@ -563,31 +617,31 @@ class HoldemHand:
     
     @staticmethod
     def __HandTypeValueStraight():
-        return numpy.uint32(HoldemHand.HandTypes.Straight) << HoldemHand.HANDTYPE_SHIFT
+        return numpy.uint32(HoldemHand.HandTypes.STRAIGHT) << HoldemHand.HANDTYPE_SHIFT
 
     @staticmethod
     def __HandTypeValueFlush():
-        return numpy.uint32(HoldemHand.HandTypes.Flush) << HoldemHand.HANDTYPE_SHIFT
+        return numpy.uint32(HoldemHand.HandTypes.FLUSH) << HoldemHand.HANDTYPE_SHIFT
 
     @staticmethod
     def __HandTypeValueFullhouse():
-        return numpy.uint32(HoldemHand.HandTypes.FullHouse) << HoldemHand.HANDTYPE_SHIFT
+        return numpy.uint32(HoldemHand.HandTypes.FULLHOUSE) << HoldemHand.HANDTYPE_SHIFT
 
     @staticmethod
     def __HandTypeValueFourOfAKind():
-        return numpy.uint32(HoldemHand.HandTypes.FourOfAKind) << HoldemHand.HANDTYPE_SHIFT
+        return numpy.uint32(HoldemHand.HandTypes.FOUR_OF_A_KIND) << HoldemHand.HANDTYPE_SHIFT
 
     @staticmethod
     def __HandTypeValueTrips():
-        return numpy.uint32(HoldemHand.HandTypes.Trips) << HoldemHand.HANDTYPE_SHIFT
+        return numpy.uint32(HoldemHand.HandTypes.TRIPS) << HoldemHand.HANDTYPE_SHIFT
 
     @staticmethod
     def __HandTypeValueTwoPair():
-        return numpy.uint32(HoldemHand.HandTypes.TwoPair) << HoldemHand.HANDTYPE_SHIFT
+        return numpy.uint32(HoldemHand.HandTypes.TWO_PAIR) << HoldemHand.HANDTYPE_SHIFT
     
     @staticmethod
     def __HandTypeValuePair():
-        return numpy.uint32(HoldemHand.HandTypes.Pair) << HoldemHand.HANDTYPE_SHIFT
+        return numpy.uint32(HoldemHand.HandTypes.PAIR) << HoldemHand.HANDTYPE_SHIFT
     
 
     @staticmethod
@@ -609,12 +663,10 @@ class HoldemHand:
     @staticmethod
     def __HeartOffset():
         return 13 * HoldemHand.HEARTS    
-                
 
     # A table representing the bit count for a 13 bit integer
-    @staticmethod
-    def __nBitsTable():
-        return [0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3,
+    
+    __nBitsTable = [0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3,
             4, 1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4,
             4, 5, 1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3,
             4, 4, 5, 2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5,
@@ -1163,9 +1215,7 @@ class HoldemHand:
             12, 13]
     
     # This method returns a straights starting card (0 if not a straight)
-    @staticmethod
-    def __StraightTable():
-        return [0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 
+    __StraightTable = [0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 
             0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x4, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 
             0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 
             0x0, 0x0, 0x5, 0x5, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 
@@ -1576,9 +1626,7 @@ class HoldemHand:
             0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 
             0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc]
         
-    @staticmethod
-    def __TopFiveCardsTable():
-        return [0x0, 0x0, 0x10000, 0x10000, 0x20000, 0x20000, 0x21000, 0x21000, 0x30000, 0x30000, 
+    __TopFiveCardsTable = [0x0, 0x0, 0x10000, 0x10000, 0x20000, 0x20000, 0x21000, 0x21000, 0x30000, 0x30000, 
             0x31000, 0x31000, 0x32000, 0x32000, 0x32100, 0x32100, 0x40000, 0x40000, 0x41000, 0x41000, 
             0x42000, 0x42000, 0x42100, 0x42100, 0x43000, 0x43000, 0x43100, 0x43100, 0x43200, 0x43200, 
             0x43210, 0x43210, 0x50000, 0x50000, 0x51000, 0x51000, 0x52000, 0x52000, 0x52100, 0x52100, 
@@ -2399,9 +2447,7 @@ class HoldemHand:
             0xcba98, 0xcba98, 0xcba98, 0xcba98, 0xcba98, 0xcba98, 0xcba98, 0xcba98, 0xcba98, 0xcba98, 
             0xcba98, 0xcba98]
     
-    @staticmethod
-    def __TopCardTable():
-        return [0x0, 0x0, 0x1, 0x1, 0x2, 0x2, 0x2, 0x2, 0x3, 0x3, 
+    __TopCardTable = [0x0, 0x0, 0x1, 0x1, 0x2, 0x2, 0x2, 0x2, 0x3, 0x3, 
             0x3, 0x3, 0x3, 0x3, 0x3, 0x3, 0x4, 0x4, 0x4, 0x4, 
             0x4, 0x4, 0x4, 0x4, 0x4, 0x4, 0x4, 0x4, 0x4, 0x4, 
             0x4, 0x4, 0x5, 0x5, 0x5, 0x5, 0x5, 0x5, 0x5, 0x5, 
@@ -3224,9 +3270,7 @@ class HoldemHand:
     
     # This table is equivalent to 1UL left shifted by the index
     # The lookup is faster than the left shift operator
-    @staticmethod
-    def __CardMasksTable():
-        return [0x1,
+    __CardMasksTable = [0x1,
 			0x2,
 			0x4,
 			0x8,
@@ -3282,36 +3326,28 @@ class HoldemHand:
     CARD_MASKS_TABLE_SIZE = 52
 
     # converts card number into the equivalent text string
-    @staticmethod
-    def __CardTable():
-        return [
+    __CardTable = [
             "2c", "3c", "4c", "5c", "6c", "7c", "8c", "9c", "Tc", "Jc", "Qc", "Kc", "Ac",
 			"2d", "3d", "4d", "5d", "6d", "7d", "8d", "9d", "Td", "Jd", "Qd", "Kd", "Ad",
 			"2h", "3h", "4h", "5h", "6h", "7h", "8h", "9h", "Th", "Jh", "Qh", "Kh", "Ah",
 			"2s", "3s", "4s", "5s", "6s", "7s", "8s", "9s", "Ts", "Js", "Qs", "Ks", "As"]
 
     # Converts card number into the card suit text string
-    @staticmethod
-    def __SuitTable():
-        return [
+    __SuitTable = [
             "Clubs", "Clubs", "Clubs", "Clubs", "Clubs", "Clubs", "Clubs", "Clubs", "Clubs", "Clubs", "Clubs", "Clubs", "Clubs",
 			"Diamonds", "Diamonds", "Diamonds", "Diamonds", "Diamonds", "Diamonds", "Diamonds", "Diamonds", "Diamonds", "Diamonds", "Diamonds", "Diamonds", "Diamonds",
 			"Hearts", "Hearts", "Hearts", "Hearts", "Hearts", "Hearts", "Hearts", "Hearts", "Hearts", "Hearts", "Hearts", "Hearts", "Hearts",
 			"Spades", "Spades", "Spades", "Spades", "Spades", "Spades", "Spades", "Spades", "Spades", "Spades", "Spades", "Spades", "Spades"]
     
     # Converts card number into the card rank char
-    @staticmethod
-    def __RankTable():
-        return [
+    __RankCharTable = [
             '2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A',
 			'2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A',
 			'2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A',
 			'2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A',
         ]
     
-    @staticmethod
-    def __SuitChar():
-        return [
+    __SuitChar = [
             'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c',
 			'd', 'd', 'd', 'd', 'd', 'd', 'd', 'd', 'd', 'd', 'd', 'd', 'd',
 			'h', 'h', 'h', 'h', 'h', 'h', 'h', 'h', 'h', 'h', 'h', 'h', 'h',
