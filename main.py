@@ -7,11 +7,13 @@ mask = HoldemHand.ParseHand("As Ks Ts Js Qs")
 print(mask)
 description = HoldemHand.DescriptionFromMask(mask[0])
 print(description)
+print(HoldemHand.EvaluateType(mask[0]))
 
 mask = HoldemHand.ParseHand("As Ks Ts Js 9s")
 print(mask)
 description = HoldemHand.DescriptionFromMask(mask[0])
 print(description)
+print(HoldemHand.EvaluateType(mask[0]))
 
 
 handValue = HoldemHand.Evaluate("As Ks Ts Js Qs")
