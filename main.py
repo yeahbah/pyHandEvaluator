@@ -20,6 +20,21 @@ print(handValue)
 handValue = HoldemHand.Evaluate("As Ks Ts Js 9s")
 print(handValue)
 
+print(HoldemHand.DescriptionFromHand("Jd Qd"))
+
+hand = HoldemHand("3s 3c", "Ad Th 7s")
+print(hand.ToString())
+print(hand.HandTypeDescription())
+print(hand.Description())
+print(hand.HandValue())
+
+
+for s in HoldemHand.Cards(mask[0]):
+    print(s)
+
+print(HoldemHand.MaskToString(mask[0]))
+
+
 # handValue = HoldemHand.Evaluate(mask[0], 5)
 # print(handValue)
 

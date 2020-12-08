@@ -1,11 +1,10 @@
 import numpy
-# from enum import Enum
 from multipledispatch import dispatch
 
 class HoldemHand:
 
     # Possible types of hands in a texas holdem game
-    class HandTypes:
+    class HandTypes():
         HIGH_CARD = 0
         PAIR = 1
         TWO_PAIR = 2
@@ -57,9 +56,9 @@ class HoldemHand:
     # Hand mask for the current card set
     __handMask: numpy.uint64
 
-    __pocket: str
+    __pocket: str = ""
 
-    __board: str
+    __board: str = ""
 
     __handVal: numpy.uint32
 
@@ -70,29 +69,26 @@ class HoldemHand:
             if len(pocketHand.strip()) <= 0 or not HoldemHand.ValidateHand(pocketHand):
                 raise Exception("Invalid pocket hand")
 
-        HoldemHand.__pocket = pocketHand.strip()
-        HoldemHand.UpdateHandMask()
+        self.__pocket = pocketHand.strip()
+        self.UpdateHandMask()
     
     def get_PocketCards(self):
-        return HoldemHand.__pocket
+        return self.__pocket
 
     def set_Board(self, board: str):
         if __debug__:
             if not board or len(board.strip()) <= 0 or not HoldemHand.ValidateHand(board):
                 raise Exception("Invalid board")
-
-        HoldemHand.__board = board
-        HoldemHand.UpdateHandMask()
+        self.__board = board
+        self.UpdateHandMask()
     
     def get_Board(self):
-        return HoldemHand.__board
+        return self.__board
 
-    # TODO
-    @staticmethod
-    def UpdateHandMask():
-        handMaskTuple = HoldemHand.ParseHand(HoldemHand.get_PocketCards, HoldemHand.get_Board)
-        HoldemHand.__handMask = handMaskTuple[0]
-        HoldemHand.__handVal = HoldemHand.Evaluate(handMaskTuple[0], handMaskTuple[1])
+    def UpdateHandMask(self):
+        handMaskTuple = HoldemHand.ParseHand(self.get_PocketCards(), self.get_Board())
+        self.__handMask = handMaskTuple[0]
+        self.__handVal = HoldemHand.Evaluate(handMaskTuple[0], handMaskTuple[1])
 
     # default constructor
     @dispatch()
@@ -298,7 +294,7 @@ class HoldemHand:
         return card / 13    
 
     @staticmethod
-    def HandType(handValue: numpy.uint32):
+    def HandType(handValue: int):
         return handValue >> HoldemHand.HANDTYPE_SHIFT
 
     @staticmethod
@@ -352,7 +348,104 @@ class HoldemHand:
         raise Exception("Invalid hand type") # should never get here
         
     #end DescriptionFromMask
+
+    # Takes a string describing a mask and returns the description
+    @staticmethod
+    def DescriptionFromHand(hand: str):
+        if __debug__:
+            if not hand:
+                raise Exception("Hand is not defined")
+        mask = HoldemHand.ParseHand(hand)
+        return HoldemHand.DescriptionFromMask(mask[0])
     
+    # Returns the string representing the mask
+    def ToString(self):
+        return self.get_PocketCards() +" "+ self.get_Board()
+    
+    # Returns the hand mask value
+    def MaskValue(self):
+        return self.__handMask
+    
+    def set_PocketMask(self, value: str):
+        self.set_PocketCards(self.MaskToString(value))
+    
+    def get_PocketMask(self):
+        mask = HoldemHand.ParseHand(self.get_PocketCards())
+        return mask[0]
+    
+    @staticmethod
+    def MaskToString(mask: int):
+        result = []
+        count = 0
+        for s in HoldemHand.Cards(mask):
+            if count != 0:
+                result.append(" ")
+            result.append(s)
+            count += 1
+
+        return "".join(result)
+    
+    # Represents the mask of the Board cards for this instance
+    def get_BoardMask(self):
+        mask = HoldemHand.ParseHand(self.get_Board())
+        return mask[0]
+
+    def set_BoardMask(self, value: str):
+        self.__board = HoldemHand.MaskToString(value)
+    
+    # Returns the mask value. This value may be used
+    # to compare one mask to another using standard numeric
+    # compares
+    def HandValue(self):
+        return self.__handVal
+    
+    # Returns a textual description of the current mask
+    def Description(self):
+        return HoldemHand.DescriptionFromMask(self.MaskValue())
+    
+    # Returns the current mask type    
+    def HandTypeDescription(self):
+        handType = HoldemHand.HandType(self.HandValue())
+        if handType == HoldemHand.HandTypes.HIGH_CARD:
+            return "High Card"
+        elif handType == HoldemHand.HandTypes.FLUSH:
+            return "Flush"
+        elif handType == HoldemHand.HandTypes.FOUR_OF_A_KIND:
+            return "Four Of a Kind"
+        elif handType == HoldemHand.HandTypes.FULLHOUSE:
+            return "Fullhouse"
+        elif handType == HoldemHand.HandTypes.PAIR:
+            return "Pair"
+        elif handType == HoldemHand.HandTypes.TWO_PAIR:
+            return "Two Pair"
+        elif handType == HoldemHand.HandTypes.TRIPS:
+            return "Trips"
+        elif handType == HoldemHand.HandTypes.STRAIGHT:
+            return "Straight"
+        elif handType == HoldemHand.HandTypes.STRAIGHT_FLUSH:
+            return "Straight Flush"
+        
+        raise Exception("Invalid hand type") # should not get here
+    
+    # This is a fast way to look up the index mask.
+    @staticmethod
+    def Mask(index: int):
+        return HoldemHand.__CardMasksTable[index]
+    
+    @staticmethod
+    def CardMask(cards: int, suit: int):
+        return (cards >> (13 * suit)) & 0x1FFF
+
+    # This method allows a foreach statement to iterate through each 
+    # card in a card mask
+    @staticmethod
+    def Cards(mask: int):
+        i = 51
+        while i >= 0:
+            if ((1 << i) & mask) != 0:
+                yield HoldemHand.__CardTable[i]
+            i -= 1
+
     @staticmethod
     @dispatch(int, int)
     def Evaluate(cards: int, numberOfCards: int):
@@ -420,13 +513,13 @@ class HoldemHand:
         #   2) there's a flush or straight, but we know that there are enough
         #       duplicates to make a full house / quads possible.  
         if n_dups == 0:
-            return HoldemHand.__HandTypeValueHighCard + HoldemHand.__TopFiveCardsTable[ranks]    
+            return HoldemHand.__HandTypeValueHighCard() + HoldemHand.__TopFiveCardsTable[ranks]    
         elif n_dups == 1:
             kickers: numpy.uint32
             t: numpy.uint32
 
             two_mask = ranks ^ (sc ^ sd ^ sh ^ ss)
-            retval = numpy.uint32(HoldemHand.__HandTypeValuePair + (HoldemHand.__TopCardTable[two_mask] << HoldemHand.TOP_CARD_SHIFT))
+            retval = numpy.uint32(HoldemHand.__HandTypeValuePair() + (HoldemHand.__TopCardTable[two_mask] << HoldemHand.TOP_CARD_SHIFT))
             t = ranks ^ two_mask # Only one bit set in two_mask
             # Get the top five cards in what is left, drop all but the top three
             # cards, and shift them by one to get the three desired kickers
@@ -439,7 +532,7 @@ class HoldemHand:
             two_mask = ranks ^ (sc ^ sd ^ sh ^ ss)
             if two_mask != 0:
                 t = ranks ^ two_mask # exactly two bits set in two_mask
-                retval = numpy.uint32(HoldemHand.__HandTypeValueTwoPair \
+                retval = numpy.uint32(HoldemHand.__HandTypeValueTwoPair() \
                     + (HoldemHand.__TopFiveCardsTable[two_mask] \
                     & (HoldemHand.TOP_CARD_MASK | HoldemHand.SECOND_CARD_MASK)) \
                     + (HoldemHand.__TopCardTable[t] << HoldemHand.THIRD_CARD_SHIFT))
@@ -449,7 +542,7 @@ class HoldemHand:
                 t: numpy.uint32
                 second: numpy.uint32
                 three_mask = ((sc & sd) | (sh & ss)) & ((sc & sh) | (sd & ss))
-                ret_val = numpy.uint32(HoldemHand.__HandTypeValueTrips + (HoldemHand.__TopCardTable[three_mask] << HoldemHand.TOP_CARD_SHIFT))
+                ret_val = numpy.uint32(HoldemHand.__HandTypeValueTrips() + (HoldemHand.__TopCardTable[three_mask] << HoldemHand.TOP_CARD_SHIFT))
                 t = ranks ^ three_mask # Only one bit set in three_mask
                 second = HoldemHand.__TopCardTable[t]
                 retval += (second << HoldemHand.SECOND_CARD_SHIFT)
@@ -461,7 +554,7 @@ class HoldemHand:
             four_mask = sh & sd & sc & ss
             if four_mask != 0:
                 tc = HoldemHand.__TopCardTable[four_mask]
-                retval = numpy.uint32(HoldemHand.__HandTypeValueFourOfAKind \
+                retval = numpy.uint32(HoldemHand.__HandTypeValueFourOfAKind() \
                     + (tc << HoldemHand.TOP_CARD_SHIFT) \
                     + ((HoldemHand.__TopCardTable[ranks ^ (numpy.uint64(1) << numpy.uint32(tc)) ]) << HoldemHand.SECOND_CARD_SHIFT))
                 return retval
@@ -479,7 +572,7 @@ class HoldemHand:
                 tc: numpy.uint32
                 t: numpy.uint32
                 three_mask = ((sc & sd) | (sh & ss)) & ((sc & sh) | (sd & ss))
-                retval = HoldemHand.__HandTypeValueFullhouse
+                retval = HoldemHand.__HandTypeValueFullhouse()
                 tc = HoldemHand.__TopCardTable[three_mask]
                 retval += (tc << HoldemHand.TOP_CARD_SHIFT)
                 t = (two_mask | three_mask) ^ (numpy.uint64(1) << numpy.uint32(tc))
@@ -494,7 +587,7 @@ class HoldemHand:
                 top: numpy.uint32
                 second: numpy.uint32
 
-                retval = HoldemHand.__HandTypeValueTwoPair
+                retval = HoldemHand.__HandTypeValueTwoPair()
                 top = HoldemHand.__TopCardTable[two_mask]
                 retval += (top << HoldemHand.TOP_CARD_SHIFT)
                 second = HoldemHand.__TopCardTable[two_mask ^ (1 << numpy.uint32(top))]
@@ -602,6 +695,7 @@ class HoldemHand:
         return (handValue >> HoldemHand.FIFT_CARD_SHIFT) & HoldemHand.CARD_MASK
     
     @staticmethod
+    @dispatch(int)
     def HandTypeValue(handType: int):
         return numpy.uint32(handType) << HoldemHand.HANDTYPE_SHIFT
 
@@ -613,7 +707,7 @@ class HoldemHand:
 
     @staticmethod
     def __HandTypeValueStraightFlush():
-        return numpy.uint32(HoldemHand.HandTypes.STRAIGHT_FLUSH) << HoldemHand.HANDTYPE_SHIFT
+        return HoldemHand.HandTypes.STRAIGHT_FLUSH << HoldemHand.HANDTYPE_SHIFT
     
     @staticmethod
     def __HandTypeValueStraight():
