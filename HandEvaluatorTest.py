@@ -15,6 +15,22 @@ class HandEvaluatorTest(unittest.TestCase):
         self.assertFalse(HoldemHand.ValidateHand("5s5c", "1h 3"))
         self.assertFalse(HoldemHand.ValidateHand("KcKc"))
         self.assertFalse(HoldemHand.ValidateHand("AcAd", "AcAdAcAd"))    
+    
+    def test_Comparable(self):
+        board = "2s 3s 5s"
+        player1 = HoldemHand("AsKc", board)
+        player2 = HoldemHand("AdKs", board)
+        self.assertTrue(player1 == player2)
+
+        player2 = HoldemHand("AdQd", board)
+        self.assertTrue(player1 > player2)
+        self.assertTrue(player2 < player1)
+
+        board = "Qs Jh 7c"
+        player1 = HoldemHand("QdQh", board)
+        player2 = HoldemHand("JdJs", board)        
+        self.assertTrue(player1 > player2)
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -103,6 +103,15 @@ class HoldemHand:
         HoldemHand.set_PocketCards(self, pocket)
         HoldemHand.set_Board(self, board)
     
+    def __eq__(self, other):        
+        return self.HandValue() == other.HandValue()
+    
+    def __lt__(self, other):
+        return self.HandValue() < other.HandValue()
+    
+    def __gt__(self, other):
+        return self.HandValue() > other.HandValue()
+        
     # This function takes a string representing a full or partial holdem mask 
     # and validates that the text represents valid cards and that no card is
     # duplicated.
@@ -453,10 +462,10 @@ class HoldemHand:
     @staticmethod
     @dispatch(int, int)
     def Evaluate(cards: int, numberOfCards: int):
-        retval: numpy.uint32 = 0
-        four_mask: numpy.uint32
-        three_mask: numpy.uint32
-        two_mask: numpy.uint32
+        retval = 0
+        four_mask = 0
+        three_mask = 0
+        two_mask = 0
 
         if __debug__:
             if numberOfCards < 1 or numberOfCards > 7:
@@ -468,7 +477,7 @@ class HoldemHand:
         sh = numpy.uint32(cards >> HoldemHand.__HeartOffset()) & numpy.uint64(0x1FFF)
         ss = numpy.uint32(cards >> HoldemHand.__SpadeOffset()) & numpy.uint64(0x1FFF)
 
-        ranks: numpy.uint32 = sc | sd | sh | ss
+        ranks = sc | sd | sh | ss
         n_ranks = HoldemHand.__nBitsTable[ranks]
         n_dups = numpy.uint32(numberOfCards - n_ranks)
 
@@ -546,12 +555,12 @@ class HoldemHand:
                 t: numpy.uint32
                 second: numpy.uint32
                 three_mask = ((sc & sd) | (sh & ss)) & ((sc & sh) | (sd & ss))
-                ret_val = numpy.uint32(HoldemHand.__HandTypeValueTrips() + (HoldemHand.__TopCardTable[three_mask] << HoldemHand.TOP_CARD_SHIFT))
+                retval = HoldemHand.__HandTypeValueTrips() + (HoldemHand.__TopCardTable[three_mask] << HoldemHand.TOP_CARD_SHIFT)
                 t = ranks ^ three_mask # Only one bit set in three_mask
-                second = HoldemHand.__TopCardTable[t]
+                second = numpy.uint32(HoldemHand.__TopCardTable[t])
                 retval += (second << HoldemHand.SECOND_CARD_SHIFT)
-                t ^= (numpy.uint64(1) << numpy.uint32(second))
-                retval += numpy.uint32(HoldemHand.__TopCardTable[t] << HoldemHand.THIRD_CARD_SHIFT)
+                t ^= (numpy.uint32(1) << second)
+                retval += HoldemHand.__TopCardTable[t] << HoldemHand.THIRD_CARD_SHIFT
                 return retval
         else:
             # possible quads, fullhouse, straight or flush, or two pair

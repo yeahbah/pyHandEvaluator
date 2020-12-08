@@ -36,6 +36,32 @@ for s in HoldemHand.Cards(mask[0]):
 
 print(HoldemHand.MaskToString(mask[0]))
 
+board = "2h 3d 4c"
+player1 = HoldemHand("AsKs", board)
+player2 = HoldemHand("AcKh", board)
+
+print(player1 == player2)
+print("Player1: " + player1.Description())
+print(player1.HandValue())
+print("Player2: " + player2.Description())
+print(player2.HandValue())
+
+
+board = "Qs Jh 7c"
+pocket = "QdQh"
+handValue = HoldemHand.Evaluate(pocket + board)
+print(handValue)
+print(HoldemHand.DescriptionFromHand(pocket + board))
+
+
+player1 = HoldemHand("QdQh", board)
+player2 = HoldemHand("JdJs", board)
+print("Player1: " + player1.Description())
+print(player1.HandValue())
+print("Player2: " + player2.Description())
+print(player2.HandValue())
+
+
 
 # handValue = HoldemHand.Evaluate(mask[0], 5)
 # print(handValue)
