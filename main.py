@@ -61,6 +61,11 @@ print(player1.HandValue())
 print("Player2: " + player2.Description())
 print(player2.HandValue())
 
+mask = HoldemHand.ParseHand("AsAc")
+pocketAA = HoldemHand.PocketHand169Type(mask[0])
+
+print(pocketAA.value)
+
 
 
 # handValue = HoldemHand.Evaluate(mask[0], 5)
