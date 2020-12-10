@@ -1,6 +1,12 @@
 import numpy
 from enum import Enum
 from multipledispatch import dispatch
+import threading
+import random
+
+from numpy.lib.function_base import disp
+
+lock = threading.Lock()
 
 class HoldemHand:
 
@@ -308,7 +314,7 @@ class HoldemHand:
         return handValue >> HoldemHand.HANDTYPE_SHIFT
 
     @staticmethod
-    def DescriptionFromMask(cards: numpy.uint64):
+    def DescriptionFromMask(cards: int):
         numberOfCards = HoldemHand.BitCount(cards)
 
         # This function support 1-7 cards
@@ -5184,3 +5190,58 @@ class HoldemHand:
                 yield HoldemHand.__CardTable[i]
             i -= 1
         
+    # This method randomly picks from a list of possible masks
+    # list - The list of masks to pick from
+    # A mask containing cards that must not be chosen
+    # The number of cards to return
+    @staticmethod
+    # @dispatch([], int, int)
+    def RandomHandFromList(list, dead: int, ncards: int):
+        mask = 0
+        if __debug__:
+            if not list or len(list) == 0:
+                raise Exception("List of masks to pick from is undefined")
+            
+            if ncards <= 1 or ncards > 7:
+                raise Exception("Number of cards to return is undefined")
+        
+        mask = list[random.randint(0, len(list) - 1)]
+        while mask & dead != 0:
+            mask = list[random.randint(0, len(list) - 1)]
+        
+        if __debug__:
+            if HoldemHand.BitCount(mask) > ncards:
+                raise Exception("Invalid ncards")
+        
+        return HoldemHand.RandomHand(mask, dead, ncards)
+    
+    # Returns a random mask with the specified number of cards and constrained
+    # to not contain any of the passed dead cards
+    # shared 
+    # dead - Mask for the cards that must not be returned
+    # ncards - The number of cards to return in this mask    
+    @staticmethod
+    @dispatch(int, int, int)
+    def RandomHand(shared: int, dead: int, ncards: int):
+        mask = shared
+        card = 0
+        count = ncards - HoldemHand.BitCount(shared)
+
+        i = 0
+        while i < count:
+            card = 1 << random.randint(1, 52)
+            while ((dead | mask) & card) != 0:
+                card = 1 << random.randint(1, 52)
+            mask |= card
+            i += 1
+        
+        return mask | shared
+    
+    # Returns a randomly generated mask that doesn't include any of the cards in the
+    # dead card mask. The mask will return the number of card in the ncards argument
+    # dead - The mask of cards that may not be used in the generated mask
+    # ncards - The number of cards to return in the generated mask
+    @staticmethod
+    @dispatch(int, int)
+    def RandomHand(dead: int, ncards: int):
+        return HoldemHand.RandomHand(0, dead, ncards)
