@@ -91,10 +91,14 @@ print(HoldemHand.PocketHand169Type(hand))
 # for hand in randomHands:
 #     print(HoldemHand.DescriptionFromMask(hand) + " " + HoldemHand.MaskToString(hand))
 
-hand = HoldemHand.ParseHand("AsKs")
-board = HoldemHand.ParseHand("Ts Qs 2c")
+hand = HoldemHand.ParseHand("QsTs")
+board = HoldemHand.ParseHand("Ks Js 2c")
 handStrength = HandAnalysis.HandStrength(hand[0], board[0])
 print(handStrength)
+print(HandAnalysis.StraightDrawCount(HoldemHand.ParseHand("AsKsQsTs")[0], 0))
+
+# opponent = HoldemHand.ParseHand("Js Jc")
+print(HandAnalysis.StraightDrawCount(hand[0], board[0], 0))
 
 # handValue = HoldemHand.Evaluate(mask[0], 5)
 # print(handValue)
