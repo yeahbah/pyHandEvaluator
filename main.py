@@ -66,7 +66,17 @@ pocketAA = HoldemHand.PocketHand169Type(mask[0])
 
 print(pocketAA.value)
 
+hands = HoldemHand.Hands(2)
+x = []
+for hand in hands:
+    x.append(hand)
+print(len(x))
 
+hands = HoldemHand.Hands(3, 0, 5)
+y = []
+for hand in hands:
+    y.append(hand)
+print(len(y))
 
 # handValue = HoldemHand.Evaluate(mask[0], 5)
 # print(handValue)

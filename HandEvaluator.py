@@ -4766,6 +4766,7 @@ class HoldemHand:
     # Enables a foreach command to enumerate all possible ncard hands.
     # numberOfCards - the number of cards in the mask (must be between 1 and 7)
     @staticmethod
+    @dispatch(int)
     def Hands(numberOfCards: int):
         a = b = c = d = e = f = g = 0
         _card1 = _n2 = _n3 = _n4 = _n5 = _n6 = numpy.uint32(0)
@@ -4915,6 +4916,261 @@ class HoldemHand:
                 yield HoldemHand.__CardMasksTable[a]
                 a += 1
         
+        else:
+            yield 0
+
+    # Enables a foreach command to enumerate all possible ncard hands.
+    # shared - a bitfield containing the cards that must be in the enumerated hands
+    # dead - a bitfield containing the cards that must not be in the enumerated hands
+    # numberOfCards - the number of cards in the mask (must be between 1 and 7)
+    @staticmethod
+    @dispatch(int, int, int)
+    def Hands(shared: int, dead: int, numberOfCards: int):
+        a = b = c = d = e = f = g = 0
+        _card1 = _card2 = _card3 = _card4 = _card5 = _card6 = _card7 = 0
+        _n2 = _n3 = _n4 = _n5 = _n6 = 0
+
+        dead |= shared
+
+        numberOfCards -= HoldemHand.BitCount(shared)
+        if numberOfCards == 7:
+            while a < HoldemHand.CARD_MASKS_TABLE_SIZE - 6:
+                _card1 = HoldemHand.__CardMasksTable[a]
+                if (dead & _card1) != 0: 
+                    a += 1
+                    continue
+                b = a + 1
+                while b < HoldemHand.CARD_MASKS_TABLE_SIZE - 5:
+                    _card2 = HoldemHand.__CardMasksTable[b]
+                    if (dead & _card2) != 0:                        
+                        b += 1
+                        continue
+                    _n2 = _card1 | _card2
+                    c = b + 1
+                    while c < HoldemHand.CARD_MASKS_TABLE_SIZE - 4:
+                        _card3 = HoldemHand.__CardMasksTable[c]
+                        if (dead & _card3) != 0:
+                            c += 1
+                            continue
+                        _n3 = _n2 | _card3
+                        d = c + 1
+                        while d < HoldemHand.CARD_MASKS_TABLE_SIZE - 3:
+                            _card4 = HoldemHand.__CardMasksTable[d]
+                            if (dead & _card4) != 0:
+                                d += 1
+                                continue
+                            _n4 = _n3 | _card4
+                            e = d + 1
+                            while e < HoldemHand.CARD_MASKS_TABLE_SIZE - 2:
+                                _card5 = HoldemHand.__CardMasksTable[e]
+                                if (dead & _card5) != 0: 
+                                    e += 1
+                                    continue
+                                _n5 = _n4 | _card5
+
+                                f = e + 1
+                                while f < HoldemHand.CARD_MASKS_TABLE_SIZE - 1:
+                                    _card6 = HoldemHand.__CardMasksTable[f]
+                                    if (dead & _card6) != 0:
+                                        f += 1
+                                        continue
+                                    _n6 = _n5 | _card6
+                                    g = f + 1
+                                    while g < HoldemHand.CARD_MASKS_TABLE_SIZE:
+                                        _card7 = HoldemHand.__CardMasksTable[g]
+                                        if (dead & _card7) != 0:
+                                            g += 1
+                                            continue
+                                        yield _n6 | _card7 | shared
+                                        g += 1
+                                    f += 1
+                                e += 1
+                            d += 1
+                        c += 1
+                    b += 1
+                a += 1            
+
+        elif numberOfCards == 6:
+            a = 0
+            while a < HoldemHand.CARD_MASKS_TABLE_SIZE - 5:
+                _card1 = HoldemHand.__CardMasksTable[a]
+                if (dead & _card1) != 0: 
+                    a += 1
+                    continue
+                b = a + 1
+                while b < HoldemHand.CARD_MASKS_TABLE_SIZE - 4:
+                    _card2 = HoldemHand.__CardMasksTable[b]
+                    if (dead & _card2) != 0:                        
+                        b += 1
+                        continue
+                    _n2 = _card1 | _card2
+                    c = b + 1
+                    while c < HoldemHand.CARD_MASKS_TABLE_SIZE - 3:
+                        _card3 = HoldemHand.__CardMasksTable[c]
+                        if (dead & _card3) != 0:
+                            c += 1
+                            continue
+                        _n3 = _n2 | _card3
+                        d = c + 1
+                        while d < HoldemHand.CARD_MASKS_TABLE_SIZE - 2:
+                            _card4 = HoldemHand.__CardMasksTable[d]
+                            if (dead & _card4) != 0:
+                                d += 1
+                                continue
+                            _n4 = _n3 | _card4
+                            e = d + 1
+                            while e < HoldemHand.CARD_MASKS_TABLE_SIZE - 1:
+                                _card5 = HoldemHand.__CardMasksTable[e]
+                                if (dead & _card5) != 0: 
+                                    e += 1
+                                    continue
+                                _n5 = _n4 | _card5
+
+                                f = e + 1
+                                while f < HoldemHand.CARD_MASKS_TABLE_SIZE:
+                                    _card6 = HoldemHand.__CardMasksTable[f]
+                                    if (dead & _card6) != 0:
+                                        f += 1
+                                        continue
+                                    yield _n5 | _card6 | shared
+
+                                    f += 1
+                                e += 1
+                            d += 1
+                        c += 1
+                    b += 1
+                a += 1
+
+        elif numberOfCards == 5:
+            a = 0
+            while a < HoldemHand.CARD_MASKS_TABLE_SIZE - 4:
+                _card1 = HoldemHand.__CardMasksTable[a]
+                if (dead & _card1) != 0: 
+                    a += 1
+                    continue
+                b = a + 1
+                while b < HoldemHand.CARD_MASKS_TABLE_SIZE - 3:
+                    _card2 = HoldemHand.__CardMasksTable[b]
+                    if (dead & _card2) != 0:                        
+                        b += 1
+                        continue
+                    _n2 = _card1 | _card2
+                    c = b + 1
+                    while c < HoldemHand.CARD_MASKS_TABLE_SIZE - 2:
+                        _card3 = HoldemHand.__CardMasksTable[c]
+                        if (dead & _card3) != 0:
+                            c += 1
+                            continue
+                        _n3 = _n2 | _card3
+                        d = c + 1
+                        while d < HoldemHand.CARD_MASKS_TABLE_SIZE - 1:
+                            _card4 = HoldemHand.__CardMasksTable[d]
+                            if (dead & _card4) != 0:
+                                d += 1
+                                continue
+                            _n4 = _n3 | _card4
+                            e = d + 1
+                            while e < HoldemHand.CARD_MASKS_TABLE_SIZE:
+                                _card5 = HoldemHand.__CardMasksTable[e]
+                                if (dead & _card5) != 0: 
+                                    e += 1
+                                    continue
+                                yield _n4 | _card5 | shared
+
+                                e += 1
+                            d += 1
+                        c += 1
+                    b += 1
+                a += 1
+            
+        elif numberOfCards == 4:
+            a = 0
+            while a < HoldemHand.CARD_MASKS_TABLE_SIZE - 3:
+                _card1 = HoldemHand.__CardMasksTable[a]
+                if (dead & _card1) != 0: 
+                    a += 1
+                    continue
+                b = a + 1
+                while b < HoldemHand.CARD_MASKS_TABLE_SIZE - 2:
+                    _card2 = HoldemHand.__CardMasksTable[b]
+                    if (dead & _card2) != 0:                        
+                        b += 1
+                        continue
+                    _n2 = _card1 | _card2
+                    c = b + 1
+                    while c < HoldemHand.CARD_MASKS_TABLE_SIZE - 1:
+                        _card3 = HoldemHand.__CardMasksTable[c]
+                        if (dead & _card3) != 0:
+                            c += 1
+                            continue
+                        _n3 = _n2 | _card3
+                        d = c + 1
+                        while d < HoldemHand.CARD_MASKS_TABLE_SIZE:
+                            _card4 = HoldemHand.__CardMasksTable[d]
+                            if (dead & _card4) != 0:
+                                d += 1
+                                continue
+                            yield _n3 | _card4 | shared
+
+                            d += 1
+                        c += 1
+                    b += 1
+                a += 1
+
+        elif numberOfCards == 3:
+            a = 0
+            while a < HoldemHand.CARD_MASKS_TABLE_SIZE - 2:
+                _card1 = HoldemHand.__CardMasksTable[a]
+                if (dead & _card1) != 0: 
+                    a += 1
+                    continue
+                b = a + 1
+                while b < HoldemHand.CARD_MASKS_TABLE_SIZE - 1:
+                    _card2 = HoldemHand.__CardMasksTable[b]
+                    if (dead & _card2) != 0:                        
+                        b += 1
+                        continue
+                    _n2 = _card1 | _card2
+                    c = b + 1
+                    while c < HoldemHand.CARD_MASKS_TABLE_SIZE:
+                        _card3 = HoldemHand.__CardMasksTable[c]
+                        if (dead & _card3) != 0:
+                            c += 1
+                            continue
+                        yield _n2 | _card3 | shared
+
+                        c += 1
+                    b += 1
+                a += 1
+
+        elif numberOfCards == 2:
+            a = 0
+            while a < HoldemHand.CARD_MASKS_TABLE_SIZE - 1:
+                _card1 = HoldemHand.__CardMasksTable[a]
+                if (dead & _card1) != 0:
+                    a += 1
+                    continue
+                b = a + 1
+                while b < HoldemHand.CARD_MASKS_TABLE_SIZE:
+                    _card2 = HoldemHand.__CardMasksTable[b]
+                    if (dead & _card2) != 0:
+                        b += 1
+                        continue
+                    yield _card1 | _card2 | shared
+                    b += 1
+                a += 1
+
+        elif numberOfCards == 1:
+            a = 0
+            while a < HoldemHand.CARD_MASKS_TABLE_SIZE:
+                _card1 = HoldemHand.__CardMasksTable[a]
+                if (dead & _card1) != 0:
+                    a += 1
+                    continue
+                yield _card1 | shared
+                a += 1
+        elif numberOfCards == 0:
+            yield shared
         else:
             yield 0
 
