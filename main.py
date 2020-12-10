@@ -85,6 +85,11 @@ print(HoldemHand.DescriptionFromMask(hand))
 print(HoldemHand.MaskToString(hand))
 print(HoldemHand.PocketHand169Type(hand))
 
+# generat random hands within 1 second
+randomHands = HoldemHand.RandomHand(5, 1.0)
+for hand in randomHands:
+    print(HoldemHand.DescriptionFromMask(hand) + " " + HoldemHand.MaskToString(hand))
+
 # handValue = HoldemHand.Evaluate(mask[0], 5)
 # print(handValue)
 

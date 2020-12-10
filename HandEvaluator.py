@@ -1,12 +1,10 @@
 import numpy
+import random
 from enum import Enum
 from multipledispatch import dispatch
-import threading
-import random
+from timeit import default_timer as timer
 
-from numpy.lib.function_base import disp
 
-lock = threading.Lock()
 
 class HoldemHand:
 
@@ -5245,3 +5243,44 @@ class HoldemHand:
     @dispatch(int, int)
     def RandomHand(dead: int, ncards: int):
         return HoldemHand.RandomHand(0, dead, ncards)
+
+    # Iterates through random hands that meets the specified requirements until the specified
+    # time duration has elapse. 
+    #
+    # Please note that this iterator requires interop. If you need
+    # and interop free mask evaluator you should remove this function along with the other interop
+    # functions in this file.
+    # shared - These cards must be included in the returned mask
+    # dead - These cards must not be included in the returned mask
+    # ncards - The number of cards n the returned random mask
+    # dureation - The amount of timme to allow the generation of hands to occur.
+    #           When elapsed, the iterator will terminate
+    # returns a random hand mask
+    @staticmethod
+    @dispatch(int, int, int, float)
+    def RandomHand(shared: int, dead: int, ncards: int, duration: float):
+        start = timer()
+        if __debug__:
+            if ncards < 0 or ncards > 7:
+                raise Exception("Invalid number of cards")
+            if duration < 0:
+                raise Exception("Duration must not be negative")
+        
+        yield HoldemHand.RandomHand(shared, dead, ncards)
+        while (timer() - start) < duration:
+            yield HoldemHand.RandomHand(shared, dead, ncards)
+    
+    # Iterates through random hands that meets the specified requirements until the specified
+    # time duration has elapse. 
+    # 
+    # Please note that this iterator requires interop. If you need
+    # and interop free mask evaluator you should remove this function along with the other interop
+    # functions in this file.    
+    # ncards - The nuber of cards in the returned mask
+    # duration - The amount of time to allow the generation of hands to occur.
+    #       When elapsed, the iterator will terminate
+    # returns a random hand mask
+    @staticmethod
+    @dispatch(int, float)
+    def RandomHand(ncards: int, duration: float):
+        return HoldemHand.RandomHand(0, 0, ncards, duration)
