@@ -1,4 +1,5 @@
 from HandEvaluator import HoldemHand
+from HandAnalysis import HandAnalysis
 import numpy
 
 #print(HoldemHand.ValidateHand("As Ks"))
@@ -85,10 +86,15 @@ print(HoldemHand.DescriptionFromMask(hand))
 print(HoldemHand.MaskToString(hand))
 print(HoldemHand.PocketHand169Type(hand))
 
-# generat random hands within 1 second
-randomHands = HoldemHand.RandomHand(5, 1.0)
-for hand in randomHands:
-    print(HoldemHand.DescriptionFromMask(hand) + " " + HoldemHand.MaskToString(hand))
+# generate random hands within 1 second
+# randomHands = HoldemHand.RandomHand(5, 1.0)
+# for hand in randomHands:
+#     print(HoldemHand.DescriptionFromMask(hand) + " " + HoldemHand.MaskToString(hand))
+
+hand = HoldemHand.ParseHand("AsKs")
+board = HoldemHand.ParseHand("Ts Qs 2c")
+handStrength = HandAnalysis.HandStrength(hand[0], board[0])
+print(handStrength)
 
 # handValue = HoldemHand.Evaluate(mask[0], 5)
 # print(handValue)

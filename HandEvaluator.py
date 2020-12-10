@@ -605,11 +605,22 @@ class HoldemHand:
             
     #end Evaluate()
     
+    # Evaluates a mask (passed as a string) and returns a mask value.
+    # A mask value can be compared against another mask value to
+    # determine which has the higher value.
     @staticmethod
     @dispatch(str)
     def Evaluate(hand: str):
         handMask = HoldemHand.ParseHand(hand)
         return HoldemHand.Evaluate(handMask[0], handMask[1])
+    
+    # Evaluates a mask (passed as a mask mask) and returns a mask value.
+    # A mask value can be compared against another mask value to
+    # determine which has the higher value.
+    @staticmethod
+    @dispatch(int)
+    def Evaluate(cards: int):
+        return HoldemHand.Evaluate(cards, HoldemHand.BitCount(cards))
     
     # Evaluates the card mask and returns the type of mask it is. This function is
     # faster (but provides less information) than Evaluate or Evaluate.
