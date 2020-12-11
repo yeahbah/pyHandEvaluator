@@ -1,4 +1,4 @@
-from typing import Union
+from HandAnalysis import HandAnalysis
 import unittest
 from HandEvaluator import HoldemHand
 
@@ -30,7 +30,26 @@ class HandEvaluatorTest(unittest.TestCase):
         player1 = HoldemHand("QdQh", board)
         player2 = HoldemHand("JdJs", board)        
         self.assertTrue(player1 > player2)
+    
+    def test_StraightDraw(self):
+        # open ended straight draw
+        board = HoldemHand.ParseHand("7s 8c Qh")
+        pocket = HoldemHand.ParseHand("9d Td")
+        outs = HandAnalysis.StraightDrawCount(pocket[0], board[0], 0)
+        self.assertTrue(outs == 8)
+        self.assertTrue(HandAnalysis.IsOpenEndedStraightDraw(pocket[0], board[0], 0))
 
+        dead = HoldemHand.ParseHand("Ac Js")
+        outs = HandAnalysis.StraightDrawCount(pocket[0], board[0], dead[0])
+        self.assertTrue(outs == 7)
+
+        # gut shot
+        pocket = HoldemHand.ParseHand("Jd 9d")
+        outs = HandAnalysis.StraightDrawCount(pocket[0], board[0], 0)
+        self.assertTrue(outs == 4)
+        self.assertFalse(HandAnalysis.IsOpenEndedStraightDraw(pocket[0], board[0], 0))
+
+        
 
 if __name__ == '__main__':
     unittest.main()

@@ -9,6 +9,8 @@ class HandAnalysis:
     # pocket - Pocket cards
     # board - Current board
     # returns hand strength as a percentage of hands won
+    @staticmethod
+    @dispatch(int, int)
     def HandStrength(pocket: int, board: int):
         win = 0.0
         count = 0.0
@@ -28,6 +30,18 @@ class HandAnalysis:
                 win += 0.5
             count += 1.0
         return win / count
+    
+    #TODO
+    @staticmethod
+    @dispatch(str, str, int, float)
+    def HandStrength(pocketQuery: str, board: str, numOpponents: int, duration: float):
+        pass
+
+    #TODO
+    @staticmethod
+    @dispatch(int, int, int, float)
+    def HandStrength(pocket: int, board: int, numOpponents: int, duration: float):
+        pass
     
     # This method returns the number of straight draws that are possible for the current mask
     # mask - current hand
@@ -93,4 +107,50 @@ class HandAnalysis:
         
         return retval
 
-        
+    # Returns true if the mask is an open ended straight draw
+    # mask - Players pocket cards mask
+    # dead - Community card mask
+    # returns true if the combined mask is an open ended straight draw
+    @staticmethod
+    @dispatch(str, str)
+    def IsOpenEndedStraightDraw(mask: str, dead: str):
+        return HandAnalysis.IsOpenEndedStraightDraw(HoldemHand.ParseHand(mask)[0], HoldemHand.ParseHand(dead)[0])
+
+    # Returns true if the combined mask is an open ended straight draw. Only straight possibilities that
+    # improve the player's mask are considered in this method
+    # pocket - Players pocket cards mask
+    # board - Community card mask
+    # dead - Dead cards
+    # Returns true if the combined mask is an open ended straight draw
+    @staticmethod
+    @dispatch(int, int, int)
+    def IsOpenEndedStraightDraw(pocket: int, board: int, dead: int):
+        if __debug__:
+            if HoldemHand.BitCount(pocket) != 2:
+                raise Exception("Pocket must have exactly two cards")
+            if HoldemHand.BitCount(board) != 3 and HoldemHand.BitCount(board) != 4:
+                raise Exception("Board must have 3 or 4 cards for this calculation")
+        return HandAnalysis.IsOpenEndedStraightDraw(pocket | board, 0) and HandAnalysis.StraightDrawCount(pocket, board, dead) > 0
+    
+    # Returns true if the combined mask is an open ended straight draw
+    # mask - Players pocket cards mask
+    # dead - Communit cards mask
+    # Returns true if the combined mask is an open ended straight draw
+    @staticmethod
+    @dispatch(int, int)
+    def IsOpenEndedStraightDraw(mask: int, dead: int):
+        if __debug__:
+            if mask and dead != 0:
+                raise Exception("Mask and dead cards must not have any cards in common")
+            if HoldemHand.BitCount(mask) < 4 or HoldemHand.BitCount(mask) > 6:
+                raise Exception("Mask must have 4-6 cards")
+        return HandAnalysis.StraightDrawCount(mask, 0) > 4 and HandAnalysis.StraightDrawCount(mask, dead)
+
+    # Returns true if the mask is an open ended straight draw
+    # mask - Players pocket cards mask
+    # dead - Community card mask
+    # Returns true if the combined mask is an open ended straight draw    
+    @staticmethod
+    @dispatch(str, str)
+    def IsOpenEndedStraightDraw(mask: str, dead: str):
+        return HandAnalysis.IsOpenEndedStraightDraw(HoldemHand.ParseHand(mask)[0], HoldemHand.ParseHand(dead)[0])
