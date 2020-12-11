@@ -97,6 +97,10 @@ handStrength = HandAnalysis.HandStrength(hand[0], board[0])
 print(handStrength)
 print(HandAnalysis.StraightDrawCount(HoldemHand.ParseHand("AsKsQsTs")[0], 0))
 
+# strength vs 9 opponents
+handStrength = HandAnalysis.HandStrength(hand[0], board[0], 9, 1.0)
+print(handStrength)
+
 # opponent = HoldemHand.ParseHand("Js Jc")
 print(HandAnalysis.StraightDrawCount(hand[0], board[0], 0))
 

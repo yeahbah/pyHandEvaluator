@@ -1,5 +1,7 @@
 from HandEvaluator import HoldemHand
 from multipledispatch import dispatch
+from timeit import default_timer as timer
+import random
 
 class HandAnalysis:
     DEFAULT_TIME_DURATION = 0.25
@@ -31,7 +33,7 @@ class HandAnalysis:
             count += 1.0
         return win / count
     
-    #TODO
+    #TODO - require pocket query parser
     @staticmethod
     @dispatch(str, str, int, float)
     def HandStrength(pocketQuery: str, board: str, numOpponents: int, duration: float):
@@ -41,8 +43,221 @@ class HandAnalysis:
     @staticmethod
     @dispatch(int, int, int, float)
     def HandStrength(pocket: int, board: int, numOpponents: int, duration: float):
-        pass
-    
+        win = 0.0
+        count = 0.0        
+
+        if __debug__:
+            if HoldemHand.BitCount(pocket) != 2:
+                raise Exception("Pocket must have exactly two cards")
+            if HoldemHand.BitCount(board) > 5:
+                raise Exception("Board must have 5 or less cards")
+            if numOpponents < 1 or numOpponents > 9:
+                raise Exception("May only select 1-9 opponents")
+
+        startTime = timer()
+        ourRank = HoldemHand.Evaluate(pocket | board)
+        if numOpponents == 1:
+            while timer() - startTime < duration:
+                oppcards = HoldemHand.RandomHand(0, pocket | board, 2)
+                opprank = HoldemHand.Evaluate(oppcards | board)
+                if ourRank > opprank:
+                    win += 1.0
+                elif ourRank == opprank:
+                    win += 0.5
+                count += 1.0
+
+        elif numOpponents == 2:
+            while timer() - startTime < duration:
+                opp1cards = HoldemHand.RandomHand(0, pocket | board, 2)
+                opp2cards = HoldemHand.RandomHand(0, pocket | board | opp1cards, 2)
+                opp1rank = HoldemHand.Evaluate(opp1cards | board)
+                opp2rank = HoldemHand.Evaluate(opp2cards | board)
+
+                if (ourRank > opp1rank) and (ourRank > opp2rank):
+                    win += 1.0
+                elif ourRank >= opp1rank and ourRank >= opp2rank:
+                    win += 0.5
+                count += 1.0
+        
+        elif numOpponents == 3:
+            while timer() - startTime < duration:
+                opp1cards = HoldemHand.RandomHand(0, pocket | board, 2)
+                opp2cards = HoldemHand.RandomHand(0, pocket | board | opp1cards, 2)
+                opp3cards = HoldemHand.RandomHand(0, pocket | board | opp1cards | opp2cards, 2)
+                opp1rank = HoldemHand.Evaluate(opp1cards | board)
+                opp2rank = HoldemHand.Evaluate(opp2cards | board)
+                opp3rank = HoldemHand.Evaluate(opp3cards | board) 
+
+                if (ourRank > opp1rank) and (ourRank > opp2rank) and (ourRank > opp3rank):
+                    win += 1.0
+                elif (ourRank >= opp1rank) and (ourRank >= opp2rank) and (ourRank >= opp3rank):
+                    win += 0.5
+                count += 1.0
+        
+        elif numOpponents == 4:
+            while timer() - startTime < duration:
+                opp1cards = HoldemHand.RandomHand(0, pocket | board, 2)
+                opp2cards = HoldemHand.RandomHand(0, pocket | board | opp1cards, 2)
+                opp3cards = HoldemHand.RandomHand(0, pocket | board | opp1cards | opp2cards, 2)
+                opp4cards = HoldemHand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards, 2)
+                opp1rank = HoldemHand.Evaluate(opp1cards | board)
+                opp2rank = HoldemHand.Evaluate(opp2cards | board)
+                opp3rank = HoldemHand.Evaluate(opp3cards | board)
+                opp4rank = HoldemHand.Evaluate(opp4cards | board)
+
+                if (ourRank > opp1rank) and (ourRank > opp2rank) \
+                    and (ourRank > opp3rank) and (ourRank > opp4rank):
+                    win += 1.0
+                elif (ourRank >= opp1rank) and (ourRank >= opp2rank) \
+                    and (ourRank >= opp3rank) and (ourRank >= opp4rank):
+                    win += 0.5
+                count += 1.0
+        
+        elif numOpponents == 5:
+            while timer() - startTime < duration:
+                opp1cards = HoldemHand.RandomHand(0, pocket | board, 2)
+                opp2cards = HoldemHand.RandomHand(0, pocket | board | opp1cards, 2)
+                opp3cards = HoldemHand.RandomHand(0, pocket | board | opp1cards | opp2cards, 2)
+                opp4cards = HoldemHand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards, 2)
+                opp5cards = HoldemHand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards | opp4cards, 2)
+                opp1rank = HoldemHand.Evaluate(opp1cards | board)
+                opp2rank = HoldemHand.Evaluate(opp2cards | board)
+                opp3rank = HoldemHand.Evaluate(opp3cards | board)
+                opp4rank = HoldemHand.Evaluate(opp4cards | board)
+                opp5rank = HoldemHand.Evaluate(opp5cards | board)
+            
+                if (ourRank > opp1rank) and (ourRank > opp2rank) \
+                    and (ourRank > opp3rank) and (ourRank > opp4rank) \
+                    and (ourRank > opp5rank):
+                    win += 1.0
+                elif (ourRank >= opp1rank) and (ourRank >= opp2rank) \
+                    and (ourRank >= opp3rank) and (ourRank >= opp4rank) \
+                    and (ourRank >= opp5rank):
+                    win += 0.5
+                count += 1.0
+        
+        elif numOpponents == 6:
+            while timer() - startTime < duration:
+                opp1cards = HoldemHand.RandomHand(0, pocket | board, 2)
+                opp2cards = HoldemHand.RandomHand(0, pocket | board | opp1cards, 2)
+                opp3cards = HoldemHand.RandomHand(0, pocket | board | opp1cards | opp2cards, 2)
+                opp4cards = HoldemHand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards, 2)
+                opp5cards = HoldemHand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards | opp4cards, 2)
+                opp6cards = HoldemHand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards | opp4cards | opp5cards, 2)
+                opp1rank = HoldemHand.Evaluate(opp1cards | board)
+                opp2rank = HoldemHand.Evaluate(opp2cards | board)
+                opp3rank = HoldemHand.Evaluate(opp3cards | board)
+                opp4rank = HoldemHand.Evaluate(opp4cards | board)
+                opp5rank = HoldemHand.Evaluate(opp5cards | board)
+                opp6rank = HoldemHand.Evaluate(opp6cards | board)
+            
+                if (ourRank > opp1rank) and (ourRank > opp2rank) \
+                    and (ourRank > opp3rank) and (ourRank > opp4rank) \
+                    and (ourRank > opp5rank) and (ourRank > opp6rank):
+                    win += 1.0
+                elif (ourRank >= opp1rank) and (ourRank >= opp2rank) \
+                    and (ourRank >= opp3rank) and (ourRank >= opp4rank) \
+                    and (ourRank >= opp5rank) and (ourRank >= opp6rank):
+                    win += 0.5
+                count += 1.0
+        
+        elif numOpponents == 7:
+            while timer() - startTime < duration:
+                opp1cards = HoldemHand.RandomHand(0, pocket | board, 2)
+                opp2cards = HoldemHand.RandomHand(0, pocket | board | opp1cards, 2)
+                opp3cards = HoldemHand.RandomHand(0, pocket | board | opp1cards | opp2cards, 2)
+                opp4cards = HoldemHand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards, 2)
+                opp5cards = HoldemHand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards | opp4cards, 2)
+                opp6cards = HoldemHand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards | opp4cards | opp5cards, 2)
+                opp7cards = HoldemHand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards | opp4cards | opp5cards | opp6cards, 2)
+                opp1rank = HoldemHand.Evaluate(opp1cards | board)
+                opp2rank = HoldemHand.Evaluate(opp2cards | board)
+                opp3rank = HoldemHand.Evaluate(opp3cards | board)
+                opp4rank = HoldemHand.Evaluate(opp4cards | board)
+                opp5rank = HoldemHand.Evaluate(opp5cards | board)
+                opp6rank = HoldemHand.Evaluate(opp6cards | board)
+                opp7rank = HoldemHand.Evaluate(opp7cards | board)
+            
+                if (ourRank > opp1rank) and (ourRank > opp2rank) \
+                    and (ourRank > opp3rank) and (ourRank > opp4rank) \
+                    and (ourRank > opp5rank) and (ourRank > opp6rank) \
+                    and (ourRank > opp7rank):
+                    win += 1.0
+                elif (ourRank >= opp1rank) and (ourRank >= opp2rank) \
+                    and (ourRank >= opp3rank) and (ourRank >= opp4rank) \
+                    and (ourRank >= opp5rank) and (ourRank >= opp6rank) \
+                    and (ourRank >= opp7rank):
+                    win += 0.5
+                count += 1.0
+
+        elif numOpponents == 8:
+            while timer() - startTime < duration:
+                opp1cards = HoldemHand.RandomHand(0, pocket | board, 2)
+                opp2cards = HoldemHand.RandomHand(0, pocket | board | opp1cards, 2)
+                opp3cards = HoldemHand.RandomHand(0, pocket | board | opp1cards | opp2cards, 2)
+                opp4cards = HoldemHand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards, 2)
+                opp5cards = HoldemHand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards | opp4cards, 2)
+                opp6cards = HoldemHand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards | opp4cards | opp5cards, 2)
+                opp7cards = HoldemHand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards | opp4cards | opp5cards | opp6cards, 2)
+                opp8cards = HoldemHand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards | opp4cards | opp5cards | opp6cards | opp7cards, 2)
+                opp1rank = HoldemHand.Evaluate(opp1cards | board)
+                opp2rank = HoldemHand.Evaluate(opp2cards | board)
+                opp3rank = HoldemHand.Evaluate(opp3cards | board)
+                opp4rank = HoldemHand.Evaluate(opp4cards | board)
+                opp5rank = HoldemHand.Evaluate(opp5cards | board)
+                opp6rank = HoldemHand.Evaluate(opp6cards | board)
+                opp7rank = HoldemHand.Evaluate(opp7cards | board)
+                opp8rank = HoldemHand.Evaluate(opp8cards | board)
+            
+                if (ourRank > opp1rank) and (ourRank > opp2rank) \
+                    and (ourRank > opp3rank) and (ourRank > opp4rank) \
+                    and (ourRank > opp5rank) and (ourRank > opp6rank) \
+                    and (ourRank > opp7rank) and (ourRank > opp8rank):
+                    win += 1.0
+                elif (ourRank >= opp1rank) and (ourRank >= opp2rank) \
+                    and (ourRank >= opp3rank) and (ourRank >= opp4rank) \
+                    and (ourRank >= opp5rank) and (ourRank >= opp6rank) \
+                    and (ourRank >= opp7rank) and (ourRank >= opp8rank):
+                    win += 0.5
+                count += 1.0
+        
+        elif numOpponents == 9:
+            while timer() - startTime < duration:
+                opp1cards = HoldemHand.RandomHand(0, pocket | board, 2)
+                opp2cards = HoldemHand.RandomHand(0, pocket | board | opp1cards, 2)
+                opp3cards = HoldemHand.RandomHand(0, pocket | board | opp1cards | opp2cards, 2)
+                opp4cards = HoldemHand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards, 2)
+                opp5cards = HoldemHand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards | opp4cards, 2)
+                opp6cards = HoldemHand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards | opp4cards | opp5cards, 2)
+                opp7cards = HoldemHand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards | opp4cards | opp5cards | opp6cards, 2)
+                opp8cards = HoldemHand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards | opp4cards | opp5cards | opp6cards | opp7cards, 2)
+                opp9cards = HoldemHand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards | opp4cards | opp5cards | opp6cards | opp7cards | opp8cards, 2)
+                opp1rank = HoldemHand.Evaluate(opp1cards | board)
+                opp2rank = HoldemHand.Evaluate(opp2cards | board)
+                opp3rank = HoldemHand.Evaluate(opp3cards | board)
+                opp4rank = HoldemHand.Evaluate(opp4cards | board)
+                opp5rank = HoldemHand.Evaluate(opp5cards | board)
+                opp6rank = HoldemHand.Evaluate(opp6cards | board)
+                opp7rank = HoldemHand.Evaluate(opp7cards | board)
+                opp8rank = HoldemHand.Evaluate(opp8cards | board)
+                opp9rank = HoldemHand.Evaluate(opp9cards | board)
+            
+                if (ourRank > opp1rank) and (ourRank > opp2rank) \
+                    and (ourRank > opp3rank) and (ourRank > opp4rank) \
+                    and (ourRank > opp5rank) and (ourRank > opp6rank) \
+                    and (ourRank > opp7rank) and (ourRank > opp8rank) \
+                    and (ourRank > opp9rank):
+                    win += 1.0
+                elif (ourRank >= opp1rank) and (ourRank >= opp2rank) \
+                    and (ourRank >= opp3rank) and (ourRank >= opp4rank) \
+                    and (ourRank >= opp5rank) and (ourRank >= opp6rank) \
+                    and (ourRank >= opp7rank) and (ourRank >= opp8rank) \
+                    and (ourRank >= opp9rank):
+                    win += 0.5
+                count += 1.0
+
+        return win / count
+
     # This method returns the number of straight draws that are possible for the current mask
     # mask - current hand
     # dead - dead cards
