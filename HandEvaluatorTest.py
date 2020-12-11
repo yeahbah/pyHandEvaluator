@@ -48,8 +48,8 @@ class HandEvaluatorTest(unittest.TestCase):
         outs = HandAnalysis.StraightDrawCount(pocket[0], board[0], 0)
         self.assertTrue(outs == 4)
         self.assertFalse(HandAnalysis.IsOpenEndedStraightDraw(pocket[0], board[0], 0))
+        self.assertTrue(HandAnalysis.IsGutShotStraightDraw(pocket[0], board[0], 0))
 
-        
 
 if __name__ == '__main__':
     unittest.main()

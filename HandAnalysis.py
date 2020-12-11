@@ -154,3 +154,43 @@ class HandAnalysis:
     @dispatch(str, str)
     def IsOpenEndedStraightDraw(mask: str, dead: str):
         return HandAnalysis.IsOpenEndedStraightDraw(HoldemHand.ParseHand(mask)[0], HoldemHand.ParseHand(dead)[0])
+
+    # Return true if the combined cards contains a gut shot straight draw
+    # pocket - Players pocket cards mask
+    # board - Communit board mask
+    # dead - Dead cards    
+    @staticmethod
+    @dispatch(int, int, int)
+    def IsGutShotStraightDraw(pocket: int, board: int, dead: int):
+        if __debug__:
+            if HoldemHand.BitCount(pocket) != 2:
+                raise Exception("Pocket must have exactly two cards")
+            if HoldemHand.BitCount(board) != 3 and HoldemHand.BitCount(board) != 4:
+                raise Exception("Board must have 3 or 4 cards for this calculation")
+        
+        
+        return HandAnalysis.IsGutShotStraightDraw(pocket | board, dead) and HandAnalysis.StraightDrawCount(pocket, board, dead) > 0
+
+    # mask - Current mask
+    # dead - Dead cards
+    @staticmethod
+    @dispatch(int, int)
+    def IsGutShotStraightDraw(mask: int, dead: int):
+        if __debug__:
+            if mask & dead != 0:
+                raise Exception("Mask and dead cards must not have any cards in common")
+            if HoldemHand.BitCount(mask) < 4 or HoldemHand.BitCount(mask) > 6:
+                raise Exception("mask must have 4-6 cards")
+        
+        return HandAnalysis.StraightDrawCount(mask, 0) <= 4 and HandAnalysis.StraightDrawCount(mask, dead) > 0
+    
+    # mask - Current mask
+    # dead - Dead cards
+    @staticmethod
+    @dispatch(str, str)
+    def IsGutShotStraightDraw(mask: str, dead: str):
+        return HandAnalysis.IsGutShotStraightDraw(HoldemHand.ParseHand(mask)[0], HoldemHand.ParseCard(dead)[0])
+
+
+
+
