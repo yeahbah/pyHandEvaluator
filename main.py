@@ -104,6 +104,9 @@ print(handStrength)
 # opponent = HoldemHand.ParseHand("Js Jc")
 print(HandAnalysis.StraightDrawCount(hand[0], board[0], 0))
 
+print(HandAnalysis.CountContiguous(hand[0], board[0]))
+
+
 # handValue = HoldemHand.Evaluate(mask[0], 5)
 # print(handValue)
 
