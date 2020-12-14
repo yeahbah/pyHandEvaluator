@@ -49,7 +49,16 @@ class HandEvaluatorTest(unittest.TestCase):
         self.assertTrue(outs == 4)
         self.assertFalse(HandAnalysis.IsOpenEndedStraightDraw(pocket[0], board[0], 0))
         self.assertTrue(HandAnalysis.IsGutShotStraightDraw(pocket[0], board[0], 0))
+    
+    def test_IsStraightDraw(self):
+        pocket = "2c3d"
+        board = "9d 5d 4c"
+        dead = "AdJh"
+        self.assertTrue(HandAnalysis.IsStraightDraw(pocket, board, dead))
 
+        pocketMask = HoldemHand.ParseHand(pocket)[0]
+        boardMask = HoldemHand.ParseHand(board)[0]
+        self.assertTrue(HandAnalysis.IsStraightDraw(pocketMask | boardMask, 0))
 
 if __name__ == '__main__':
     unittest.main()

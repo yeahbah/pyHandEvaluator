@@ -1,3 +1,4 @@
+from os import stat
 from HandEvaluator import HoldemHand
 from multipledispatch import dispatch
 from timeit import default_timer as timer
@@ -39,7 +40,6 @@ class HandAnalysis:
     def HandStrength(pocketQuery: str, board: str, numOpponents: int, duration: float):
         pass
 
-    #TODO
     @staticmethod
     @dispatch(int, int, int, float)
     def HandStrength(pocket: int, board: int, numOpponents: int, duration: float):
@@ -405,6 +405,42 @@ class HandAnalysis:
     @dispatch(str, str)
     def IsGutShotStraightDraw(mask: str, dead: str):
         return HandAnalysis.IsGutShotStraightDraw(HoldemHand.ParseHand(mask)[0], HoldemHand.ParseCard(dead)[0])
+
+    # Returns true if the passed mask only needs one card to make a straight.
+    # Note that the pocket cards must contains at least one card in the 
+    # combined straight.
+    # pocket - Players pocket mask
+    # board - Community board
+    # dead - Dead cards
+    @staticmethod
+    @dispatch(int, int, int)
+    def IsStraightDraw(pocket: int, board: int, dead: int):
+        return HandAnalysis.StraightDrawCount(pocket, board, dead) > 0
+    
+    @staticmethod
+    @dispatch(int, int)
+    def IsStraightDraw(mask: int, dead: int):
+        return HandAnalysis.StraightDrawCount(mask, dead) > 0
+
+    @staticmethod
+    @dispatch(str, str)
+    def IsStraightDraw(mask: str, dead: str):
+        return HandAnalysis.IsStraightDraw(HoldemHand.ParseHand(mask)[0], HoldemHand.ParseHand(dead)[0])
+    
+    @staticmethod
+    @dispatch(str, str, str)
+    def IsStraightDraw(pocket: str, board: str, dead: str):
+        if __debug__:
+            if not HoldemHand.ValidateHand(pocket):
+                raise Exception("Invalid pocket hand")
+            if not HoldemHand.ValidateHand(board):
+                raise Exception("Invalid board cards")
+        pocketMask = HoldemHand.ParseHand(pocket)[0]
+        boardMask = HoldemHand.ParseHand(board)[0]
+        deadMask = HoldemHand.ParseHand(dead)[0]
+        return HandAnalysis.IsStraightDraw(pocketMask, boardMask, deadMask)
+                
+
 
 
 
