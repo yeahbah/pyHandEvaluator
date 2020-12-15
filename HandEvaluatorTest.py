@@ -60,5 +60,22 @@ class HandEvaluatorTest(unittest.TestCase):
         boardMask = HoldemHand.ParseHand(board)[0]
         self.assertTrue(HandAnalysis.IsStraightDraw(pocketMask | boardMask, 0))
 
+    def test_FlushDrawCount(self):
+        pocket = "Th 2h"
+        board = "9h Qh 7s"
+        dead = "Ah Kc"
+        # expected flush draw outs: 8
+        outs = HandAnalysis.FlushDrawCount(HoldemHand.ParseHand(pocket)[0], HoldemHand.ParseHand(board)[0], HoldemHand.ParseHand(dead)[0])
+        self.assertTrue(outs == 8)
+
+        # expected 9 outs
+        outs = HandAnalysis.FlushDrawCount(HoldemHand.ParseHand(pocket)[0] | HoldemHand.ParseHand(board)[0], 0)
+        self.assertTrue(outs == 9)
+
+        # expected 0 outs
+        board = "9h Qh 7h"
+        outs = HandAnalysis.FlushDrawCount(HoldemHand.ParseHand(pocket)[0] | HoldemHand.ParseHand(board)[0], 0)
+        self.assertTrue(outs == 0)
+
 if __name__ == '__main__':
     unittest.main()

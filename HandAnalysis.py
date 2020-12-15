@@ -1,4 +1,6 @@
 from os import stat
+
+from numpy.lib.shape_base import expand_dims
 from HandEvaluator import HoldemHand
 from multipledispatch import dispatch
 from timeit import default_timer as timer
@@ -486,6 +488,71 @@ class HandAnalysis:
         hearts = HoldemHand.CardMask(mask, HoldemHand.Hands)
         spades = HoldemHand.CardMask(mask, HoldemHand.SPADES)
         return HandAnalysis.__ContiguousCountTable[clubs | diamonds | hearts | spades]    
+
+    # Counts the number of hands that are a flush with one more drawn card
+    # mask - Hand
+    # dead - Cards not allowed to be drawn
+    @staticmethod
+    @dispatch(int, int)
+    def FlushDrawCount(mask: int, dead: int):
+        retval = 0
+
+        # Get original mask value
+        handType = HoldemHand.EvaluateType(mask)[0]
+
+        # if current mask is better than a straight then return 0 outs
+        if handType >= HoldemHand.HandTypes.FLUSH:
+            return retval
+        
+        # look ahead one card
+        for card in HoldemHand.Hands(0, mask | dead, 1):
+            handType = HoldemHand.EvaluateType(mask | card)[0]
+
+            # include straight flush as this will ensure outs is always the maximum
+            if handType == HoldemHand.HandTypes.FLUSH or handType == HoldemHand.HandTypes.STRAIGHT_FLUSH:
+                retval += 1
+        
+        return retval
+    
+    # Counts the number of hands that are a flush with one more drawn card. However,
+    # Flush hands that only improve the board are not considered
+    # player - Players two card hand
+    # board - Board cards
+    # dead - Dead cards
+    @staticmethod
+    @dispatch(int, int, int)
+    def FlushDrawCount(player: int, board: int, dead: int):
+        retval = 0
+        if __debug__:
+            if HoldemHand.BitCount(player) != 2:
+                raise Exception("Player must have exactly 2 cards")
+            if HoldemHand.BitCount(board) != 3 and HoldemHand.BitCount(board) != 4:
+                raise Exception("Board must contain 3 or 4 cards")
+        
+        # Get original mask value
+        playerOrigHandType = HoldemHand.EvaluateType(player | board)[0]
+
+        # if current mask better than a straight then return 0 outs
+        if playerOrigHandType == HoldemHand.HandTypes.FLUSH or \
+            playerOrigHandType == HoldemHand.HandTypes.STRAIGHT_FLUSH:
+            return retval
+        
+        # look ahead one card
+        for card in HoldemHand.Hands(0, board | player | dead, 1):
+            # get new mask value
+            playerNewHandValue = HoldemHand.Evaluate(player | board | card)
+            boardNewHandValue = HoldemHand.Evaluate(board | card)
+
+            # include straight flush as this will ensure outs is always the maximum
+            if HoldemHand.HandType(playerNewHandValue) == HoldemHand.HandTypes.FLUSH or \
+                HoldemHand.HandType(playerNewHandValue) == HoldemHand.HandTypes.STRAIGHT_FLUSH:
+                # if the mask improved, increment out
+                if HoldemHand.HandType(playerNewHandValue) > HoldemHand.HandType(boardNewHandValue) or \
+                    HoldemHand.HandType(playerNewHandValue) == HoldemHand.HandType(boardNewHandValue) and \
+                    HoldemHand.TopCard(playerNewHandValue) > HoldemHand.TopCard(boardNewHandValue):
+                    retval += 1
+            
+        return retval
     
     __ContiguousCountTable = [
         0, 0, 0, 2, 0, 0, 2, 3, 0, 0, 0, 2, 2, 2, 3, 4, 0, 0, 0, 2,
