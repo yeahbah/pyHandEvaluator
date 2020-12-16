@@ -591,6 +591,61 @@ class HandAnalysis:
                 raise Exception("Invalid board")
         
         return HandAnalysis.FlushDrawCount(HoldemHand.ParseHand(pocket)[0], HoldemHand.ParseHand(board)[0], HoldemHand.ParseHand(dead)[0]) > 0
+
+    # Returns true if there are three cards of the same suit. 
+    # The pocket cards must have at least one card in that suit.
+    # pocket - Players pocket cards mask
+    # board - Community card mask
+    # dead - Dead cards
+    @staticmethod
+    @dispatch(int, int, int)
+    def IsBackdoorFlushDraw(pocket: int, board: int, dead: int):
+        if __debug__:
+            if HoldemHand.BitCount(pocket) != 2:
+                raise Exception("Pocket must have exactly two cards")
+            if HoldemHand.BitCount(board) != 3 and HoldemHand.BitCount(board) != 4:
+                raise Exception("Board must have 3 or 4 cards for this calculation")
+        
+        mask = pocket | board
+        currentType = HoldemHand.EvaluateType(mask)[0]
+        if currentType >= HoldemHand.HandTypes.FLUSH:
+            return False
+        
+        ss = (mask >> HoldemHand.GetSpadeOffset()) & 0x1FFF
+        sc = (mask >> HoldemHand.GetClubOffset()) & 0x1FFF
+        sd = (mask >> HoldemHand.GetDiamondOffset()) & 0x1FFF
+        sh = (mask >> HoldemHand.GetHeartOffset()) & 0x1FFF
+
+        if HoldemHand.BitCount(ss) == 3:
+            ps = (pocket >> HoldemHand.GetSpadeOffset()) & 0x1fff
+            return ps != 0
+        elif HoldemHand.BitCount(sc) == 3:
+            pc = (pocket >> HoldemHand.GetClubOffset()) & 0x1fff
+            return pc != 0
+        elif HoldemHand.BitCount(sd) == 3:
+            pd = (pocket >> HoldemHand.GetDiamondOffset()) & 0x1fff
+            return pd != 0
+        elif HoldemHand.BitCount(sh) == 3:
+            ph = (pocket >> HoldemHand.GetHeartOffset()) & 0x1fff
+            return ph != 0
+        
+        return False
+
+    # Returns true if there are three cards of the same suit. 
+    # The pocket cards must have at least one card in that suit.    
+    # pocket - players pocket cards
+    # board - Community cards
+    # dead - Dead cards
+    @staticmethod
+    @dispatch(str, str, str)
+    def IsBackdoorFlushDraw(pocket: str, board: str, dead: str):
+        if __debug__:
+            if not HoldemHand.ValidateHand(pocket):
+                raise Exception("Invalid pocket cards")
+            if not HoldemHand.ValidateHand(board):
+                raise Exception("Invalid board")
+        
+        return HandAnalysis.IsBackdoorFlushDraw(HoldemHand.ParseHand(pocket)[0], HoldemHand.ParseHand(board)[0], HoldemHand.ParseHand(dead)[0])
     
     __ContiguousCountTable = [
         0, 0, 0, 2, 0, 0, 2, 3, 0, 0, 0, 2, 2, 2, 3, 4, 0, 0, 0, 2,

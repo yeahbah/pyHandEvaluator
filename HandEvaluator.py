@@ -321,10 +321,10 @@ class HoldemHand:
                 raise Exception("Invalid number of cards")
 
         # separate out by suit
-        sc = numpy.uint32(cards >> HoldemHand.__ClubOffset()) & numpy.uint64(0x1FFF)
-        sd = numpy.uint32(cards >> HoldemHand.__DiamondOffset()) & numpy.uint64(0x1FFF)
-        sh = numpy.uint32(cards >> HoldemHand.__HeartOffset()) & numpy.uint64(0x1FFF)
-        ss = numpy.uint32(cards >> HoldemHand.__SpadeOffset()) & numpy.uint64(0x1FFF)
+        sc = numpy.uint32(cards >> HoldemHand.GetClubOffset()) & numpy.uint64(0x1FFF)
+        sd = numpy.uint32(cards >> HoldemHand.GetDiamondOffset()) & numpy.uint64(0x1FFF)
+        sh = numpy.uint32(cards >> HoldemHand.GetHeartOffset()) & numpy.uint64(0x1FFF)
+        ss = numpy.uint32(cards >> HoldemHand.GetSpadeOffset()) & numpy.uint64(0x1FFF)
 
         handValue = HoldemHand.Evaluate(cards, numberOfCards)
         handType = HoldemHand.HandType(handValue)
@@ -467,10 +467,10 @@ class HoldemHand:
                 raise Exception("Invalid number of cards")
 
         # separate out by suit
-        sc = numpy.uint32(cards >> HoldemHand.__ClubOffset()) & numpy.uint64(0x1FFF)
-        sd = numpy.uint32(cards >> HoldemHand.__DiamondOffset()) & numpy.uint64(0x1FFF)
-        sh = numpy.uint32(cards >> HoldemHand.__HeartOffset()) & numpy.uint64(0x1FFF)
-        ss = numpy.uint32(cards >> HoldemHand.__SpadeOffset()) & numpy.uint64(0x1FFF)
+        sc = numpy.uint32(cards >> HoldemHand.GetClubOffset()) & numpy.uint64(0x1FFF)
+        sd = numpy.uint32(cards >> HoldemHand.GetDiamondOffset()) & numpy.uint64(0x1FFF)
+        sh = numpy.uint32(cards >> HoldemHand.GetHeartOffset()) & numpy.uint64(0x1FFF)
+        ss = numpy.uint32(cards >> HoldemHand.GetSpadeOffset()) & numpy.uint64(0x1FFF)
 
         ranks = sc | sd | sh | ss
         n_ranks = HoldemHand.__nBitsTable[ranks]
@@ -643,10 +643,10 @@ class HoldemHand:
     @dispatch(int, int)
     def EvaluateType(mask: int, numberOfCards: int):
         is_st_or_fl = HoldemHand.HandTypes.HIGH_CARD
-        ss = (mask >> HoldemHand.__SpadeOffset()) & 0x1fff
-        sc = (mask >> HoldemHand.__ClubOffset()) & 0x1fff
-        sd = (mask >> HoldemHand.__DiamondOffset()) & 0x1fff
-        sh = (mask >> HoldemHand.__HeartOffset()) & 0x1fff
+        ss = (mask >> HoldemHand.GetSpadeOffset()) & 0x1fff
+        sc = (mask >> HoldemHand.GetClubOffset()) & 0x1fff
+        sd = (mask >> HoldemHand.GetDiamondOffset()) & 0x1fff
+        sh = (mask >> HoldemHand.GetHeartOffset()) & 0x1fff
 
         ranks = sc | sd | sh | ss
         rankinfo = HoldemHand.__nBitsAndStrTable[ranks]
@@ -826,19 +826,19 @@ class HoldemHand:
         return numpy.uint32(HoldemHand.HandTypes.HIGH_CARD) << HoldemHand.HANDTYPE_SHIFT
 
     @staticmethod
-    def __SpadeOffset():
+    def GetSpadeOffset():
         return 13 * HoldemHand.SPADES
     
     @staticmethod
-    def __ClubOffset():
+    def GetClubOffset():
         return 13 * HoldemHand.CLUBS
     
     @staticmethod
-    def __DiamondOffset():
+    def GetDiamondOffset():
         return 13 * HoldemHand.DIAMONDS
     
     @staticmethod
-    def __HeartOffset():
+    def GetHeartOffset():
         return 13 * HoldemHand.HEARTS    
 
     __nBitsAndStrTable = [0x0, 0x4, 0x4, 0x8, 0x4, 0x8, 0x8, 0xc, 0x4, 0x8, 0x8, 0xc, 0x8, 0xc, 0xc, 0x10, 0x4, 0x8, 0x8, 0xc, 
