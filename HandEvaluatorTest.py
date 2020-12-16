@@ -106,6 +106,22 @@ class HandEvaluatorTest(unittest.TestCase):
         dead = "Ac Ad"
         outs = HandAnalysis.DrawCount(pocket, board, dead, HoldemHand.HandTypes.FOUR_OF_A_KIND)
         self.assertTrue(outs == 1)
+    
+    def test_HandDistance(self):
+        pocket = HoldemHand.ParseHand("As Ks")[0]
+        board = HoldemHand.ParseHand("Qs Ts 2c")[0]
+        # expected distance is 46
+        self.assertTrue(HandAnalysis.HandDistance(pocket, board) == 46)
+
+        # the nuts, expected distance is 0
+        board = HoldemHand.ParseHand("Qs Ts 2c Js")[0]
+        self.assertTrue(HandAnalysis.HandDistance(pocket, board) == 0)
+
+        # second nuts, expected distance is 1
+        pocket = HoldemHand.ParseHand("Kc Ks")[0]
+        board = HoldemHand.ParseHand("Kd Ac 2h 7s")[0]
+        self.assertTrue(HandAnalysis.HandDistance(pocket, board) == 1)
+        
 
 if __name__ == '__main__':
     unittest.main()

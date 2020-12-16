@@ -744,6 +744,36 @@ class HandAnalysis:
         
         return HandAnalysis.DrawCount(HoldemHand.ParseHand(player)[0], HoldemHand.ParseHand(board)[0], HoldemHand.ParseHand(dead)[0], handType)
     
+    # This method returns the mask distance from the best possible
+    # mask given this board (no draws are considered). The value 0 is the 
+    # best possible mask. The value 1 is the next best mask and so on.
+    # pocket - The players pocket mask
+    # board - The board mask
+    @staticmethod
+    @dispatch(int, int)
+    def HandDistance(pocket: int, board: int):
+        if __debug__:
+            if HoldemHand.BitCount(pocket) != 2:
+                raise Exception("Player must have exactly two cards")
+            if HoldemHand.BitCount(board) != 3 and HoldemHand.BitCount(board) !=4:
+                raise Exception("Board must containt 3 or 4 cards")
+        hv = 0
+        handValues = []
+        pocketHandVal = HoldemHand.Evaluate(pocket | board)
+        for p in HoldemHand.Hands(0, board, 2):
+            hv = HoldemHand.Evaluate(p | board)            
+            if hv not in handValues:
+                handValues.append(hv)
+        
+        handValues = sorted(handValues)
+        count = len(handValues) - 1
+        for handval in handValues:
+            if handval == pocketHandVal:
+                return count
+            count -= 1
+        
+        return -1
+    
     __ContiguousCountTable = [
         0, 0, 0, 2, 0, 0, 2, 3, 0, 0, 0, 2, 2, 2, 3, 4, 0, 0, 0, 2,
             0, 0, 2, 3, 2, 2, 2, 2, 3, 3, 4, 5, 0, 0, 0, 2, 0, 0, 2, 3,

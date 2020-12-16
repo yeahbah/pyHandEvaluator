@@ -106,6 +106,14 @@ print(HandAnalysis.StraightDrawCount(hand[0], board[0], 0))
 
 print(HandAnalysis.CountContiguous(hand[0], board[0]))
 
+pocket = HoldemHand.ParseHand("As Ks")[0]
+board = HoldemHand.ParseHand("Qs Ts 2c")[0]
+# expected distance is 46
+print(HandAnalysis.HandDistance(pocket, board))
+
+# the nuts, expected distance is 0
+board = HoldemHand.ParseHand("Qs Ts 2c Js")[0]
+print(HandAnalysis.HandDistance(pocket, board))
 
 # handValue = HoldemHand.Evaluate(mask[0], 5)
 # print(handValue)
