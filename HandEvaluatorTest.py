@@ -77,5 +77,14 @@ class HandEvaluatorTest(unittest.TestCase):
         outs = HandAnalysis.FlushDrawCount(HoldemHand.ParseHand(pocket)[0] | HoldemHand.ParseHand(board)[0], 0)
         self.assertTrue(outs == 0)
 
+        pocket = HoldemHand.ParseHand("6d 7d")[0]
+        board = HoldemHand.ParseHand("8d Tc 9d")[0]
+        self.assertTrue(HandAnalysis.IsFlushDraw(pocket, board, 0))
+
+        pocket = "7c 2d"
+        board = "Ac 2h Tc"
+        dead = "Jc Jd"
+        self.assertFalse(HandAnalysis.IsFlushDraw(pocket, board, dead))
+
 if __name__ == '__main__':
     unittest.main()

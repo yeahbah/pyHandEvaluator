@@ -553,6 +553,44 @@ class HandAnalysis:
                     retval += 1
             
         return retval
+
+    # Returns true if there are 4 cards of the same suit
+    # pocket - Players pocket cards mask
+    # board - Communit card mask
+    # dead - dead cards
+    @staticmethod
+    @dispatch(int, int, int)
+    def IsFlushDraw(pocket: int, board: int, dead: int):
+        if __debug__:
+            if HoldemHand.BitCount(pocket) != 2:
+                raise Exception("Pocket must have exactly two cards")
+            if HoldemHand.BitCount(board) != 3 and HoldemHand.BitCount != 4:
+                raise Exception("board must have 3 or 4 cards for this calculation")
+
+        return HandAnalysis.FlushDrawCount(pocket, board, dead) > 0
+
+    # Returns true if the hand is a flush draw
+    # mask - cards
+    # dead - dead cards
+    @staticmethod
+    @dispatch(int, int)
+    def IsFlushDraw(mask: int, dead: int):
+        return HandAnalysis.FlushDrawCount(mask, dead) > 0    
+
+    # Returns if there are 4 cards of the same suit
+    # pocket - Player's pocket cards
+    # board community cards
+    # dead - Dead cards
+    @staticmethod
+    @dispatch(str, str, str)
+    def IsFlushDraw(pocket: str, board: str, dead: str):
+        if __debug__:
+            if not HoldemHand.ValidateHand(pocket):
+                raise Exception("Invalid pocket cards")
+            if not HoldemHand.ValidateHand(board):
+                raise Exception("Invalid board")
+        
+        return HandAnalysis.FlushDrawCount(HoldemHand.ParseHand(pocket)[0], HoldemHand.ParseHand(board)[0], HoldemHand.ParseHand(dead)[0]) > 0
     
     __ContiguousCountTable = [
         0, 0, 0, 2, 0, 0, 2, 3, 0, 0, 0, 2, 2, 2, 3, 4, 0, 0, 0, 2,
