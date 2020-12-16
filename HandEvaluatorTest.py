@@ -91,6 +91,21 @@ class HandEvaluatorTest(unittest.TestCase):
         board = "Ac 2h Td"
         dead = "Ad Kd"
         self.assertTrue(HandAnalysis.IsBackdoorFlushDraw(pocket, board, dead))
+    
+    def test_DrawCount(self):
+        pocket = HoldemHand.ParseHand("Kc Qd")[0]
+        board = HoldemHand.ParseHand("Kd Qc 5c 7s")[0]
+        # draw to a full house
+        # expected outs = 4
+        outs = HandAnalysis.DrawCount(pocket, board, 0, HoldemHand.HandTypes.FULLHOUSE)
+        self.assertTrue(outs == 4)
+
+        # quad draw, outs = 1
+        pocket = "3s 3c"
+        board = "As 3d Th"
+        dead = "Ac Ad"
+        outs = HandAnalysis.DrawCount(pocket, board, dead, HoldemHand.HandTypes.FOUR_OF_A_KIND)
+        self.assertTrue(outs == 1)
 
 if __name__ == '__main__':
     unittest.main()

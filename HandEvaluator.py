@@ -598,9 +598,9 @@ class HoldemHand:
                 retval = HoldemHand.__HandTypeValueTwoPair()
                 top = HoldemHand.__TopCardTable[two_mask]
                 retval += (top << HoldemHand.TOP_CARD_SHIFT)
-                second = HoldemHand.__TopCardTable[two_mask ^ (1 << numpy.uint32(top))]
+                second = HoldemHand.__TopCardTable[two_mask ^ (numpy.uint64(1) << numpy.uint32(top))]
                 retval += (second << HoldemHand.SECOND_CARD_SHIFT)
-                retval += numpy.uint32( (HoldemHand.__TopCardTable[ranks ^ ( numpy.uint64(1) << numpy.uint32(top) ) ^ (1 << numpy.uint32(second) )]) << HoldemHand.THIRD_CARD_SHIFT )
+                retval += numpy.uint32( (HoldemHand.__TopCardTable[ranks ^ ( numpy.uint64(1) << numpy.uint32(top) ) ^ (numpy.uint64(1) << numpy.uint32(second) )]) << HoldemHand.THIRD_CARD_SHIFT )
                 return retval
             
     #end Evaluate()

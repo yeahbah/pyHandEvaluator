@@ -646,6 +646,103 @@ class HandAnalysis:
                 raise Exception("Invalid board")
         
         return HandAnalysis.IsBackdoorFlushDraw(HoldemHand.ParseHand(pocket)[0], HoldemHand.ParseHand(board)[0], HoldemHand.ParseHand(dead)[0])
+
+    # The method returns the number of draws that are possible for the
+    # specified HandType. This method only returns the counts that improve the 
+    # player's mask rather than just the board. Because of this subtle distinction,
+    # DrawCount(player, board, dead, type) doesn't necessarily return the same value as
+    # DrawCount(player | board, dead, type).
+    # player - Two card mask making up the players pocket cards
+    # board - The community cards
+    # dead - Dead cards
+    # handType - the type of mask to count draws for
+    @staticmethod
+    @dispatch(int, int, int, int)
+    def DrawCount(player: int, board: int, dead: int, handType: int):
+        retval = 0
+        if __debug__:
+            if HoldemHand.BitCount(player) != 2:
+                raise Exception("Player must have exactly two cards")
+            if HoldemHand.BitCount(board) != 3 and HoldemHand.BitCount(board) != 4:
+                raise Exception("Board must contain 3 or 4 cards for this calculation")
+            if (board | player) & dead != 0: 
+                raise Exception("Player and board must not contain dead cards")
+        
+        # Get original mask value
+        playerOrigHandVal = HoldemHand.Evaluate(player | board)
+
+        if HoldemHand.HandType(playerOrigHandVal) > handType:
+            return 0
+        
+        # look ahead one card
+        for card in HoldemHand.Hands(0, board | player | dead, 1):
+            # get new mask value
+            playerNewHandVal = HoldemHand.Evaluate(player | board | card)
+
+            # Get new board value
+            boardHandVal = HoldemHand.Evaluate(board | card)
+
+            # Is the new mask better than the old one? We don't
+            # want to know about supesizing the kickers so this
+            # ensures that mask moved up in mask type
+            handImproved = HoldemHand.HandType(playerNewHandVal) > HoldemHand.HandType(playerOrigHandVal)
+
+            # if the mask improved and it matches the specified type, return true
+            handStrongerThanBoard = playerNewHandVal > boardHandVal
+
+            if handImproved and handStrongerThanBoard and HoldemHand.HandType(playerNewHandVal) == handType:
+                retval += 1
+
+        return retval
+
+    # The method returns the number of draws that are possible for the
+    # specified HandType. Note that DrawCount(pocket, board, dead, type) is not
+    # necessarily the same as DrawCount(pocket | board, dead, type). 
+    # 
+    # This method returns all possible draws that are the same as the requested type.
+    # mask - hand
+    # dead - Dead cards
+    # handType - The type of mask to count draws for
+    @staticmethod
+    @dispatch(int, int, int)
+    def DrawCount(mask: int, dead: int, handType: int):
+        retval = 0
+        if HoldemHand.BitCount(mask) >=7:
+            raise Exception("mask must contain less than 7 cards")
+        if mask & dead != 0:
+            raise Exception("mask must not contain dead cards")
+
+        playerOriginalHandType = HoldemHand.EvaluateType(mask)[0]
+        if playerOriginalHandType >= handType:
+            return 0
+
+        # Look ahead one card
+        for card in HoldemHand.Hands(0, mask | dead, 1):
+            # Get new mask value
+            playerNewHandType = HoldemHand.EvaluateType(mask | card)[0]
+
+            if playerNewHandType > playerOriginalHandType and playerNewHandType == handType:
+                retval += 1
+
+        return retval        
+    
+
+    # The method returns the number of draws that are possible for the
+    # specified HandType.
+    # player - Two card mask making up the players pocket cards
+    # board - The community cards
+    # dead - Dead cards
+    # handType - The type of mask to count draws for
+    @staticmethod
+    @dispatch(str, str, str, int)
+    def DrawCount(player: str, board: str, dead: str, handType: int):
+        if __debug__:
+            if not HoldemHand.ValidateHand(player):
+                raise Exception("Invalid pocket cards")
+            if not HoldemHand.ValidateHand(board):
+                raise Exception("Invalid board")
+        
+        return HandAnalysis.DrawCount(HoldemHand.ParseHand(player)[0], HoldemHand.ParseHand(board)[0], HoldemHand.ParseHand(dead)[0], handType)
     
     __ContiguousCountTable = [
         0, 0, 0, 2, 0, 0, 2, 3, 0, 0, 0, 2, 2, 2, 3, 4, 0, 0, 0, 2,
