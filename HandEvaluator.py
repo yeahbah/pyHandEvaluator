@@ -339,24 +339,24 @@ class HoldemHand:
         
         if handType == HoldemHand.HandTypes.FLUSH:
             flushDescription = "Flush ({0}) with {1} high"
-            if HoldemHand.__nBitsTable[ss] >= 5:
+            if HoldemHand.nBitsTable[ss] >= 5:
                 return flushDescription.format("Spades", HoldemHand.__RankTable[HoldemHand.TopCard(handValue)])
-            elif HoldemHand.__nBitsTable[sc] >= 5:
+            elif HoldemHand.nBitsTable[sc] >= 5:
                 return flushDescription.format("Clubs", HoldemHand.__RankTable[HoldemHand.TopCard(handValue)])
-            elif HoldemHand.__nBitsTable[sd] >= 5:
+            elif HoldemHand.nBitsTable[sd] >= 5:
                 return flushDescription.format("Diamonds", HoldemHand.__RankTable[HoldemHand.TopCard(handValue)])
-            elif HoldemHand.__nBitsTable[sh] >= 5:
+            elif HoldemHand.nBitsTable[sh] >= 5:
                 return flushDescription.format("Hearts", HoldemHand.__RankTable[HoldemHand.TopCard(handValue)])
         
         if handType == HoldemHand.HandTypes.STRAIGHT_FLUSH:
             flushDescription = "Straight Flush ({0}) with {1} high"
-            if HoldemHand.__nBitsTable[ss] >= 5:
+            if HoldemHand.nBitsTable[ss] >= 5:
                 return flushDescription.format("Spades", HoldemHand.__RankTable[HoldemHand.TopCard(handValue)])
-            elif HoldemHand.__nBitsTable[sc] >= 5:
+            elif HoldemHand.nBitsTable[sc] >= 5:
                 return flushDescription.format("Clubs", HoldemHand.__RankTable[HoldemHand.TopCard(handValue)])
-            elif HoldemHand.__nBitsTable[sd] >= 5:
+            elif HoldemHand.nBitsTable[sd] >= 5:
                 return flushDescription.format("Diamonds", HoldemHand.__RankTable[HoldemHand.TopCard(handValue)])
-            elif HoldemHand.__nBitsTable[sh] >= 5:
+            elif HoldemHand.nBitsTable[sh] >= 5:
                 return flushDescription.format("Hearts", HoldemHand.__RankTable[HoldemHand.TopCard(handValue)])
 
         raise Exception("Invalid hand type") # should never get here
@@ -473,31 +473,31 @@ class HoldemHand:
         ss = numpy.uint32(cards >> HoldemHand.GetSpadeOffset()) & numpy.uint64(0x1FFF)
 
         ranks = sc | sd | sh | ss
-        n_ranks = HoldemHand.__nBitsTable[ranks]
+        n_ranks = HoldemHand.nBitsTable[ranks]
         n_dups = numpy.uint32(numberOfCards - n_ranks)
 
         # Check for straight, flush, or straight flush, and return if we can
         # determine immediately that this is the best possible mask 
         if n_ranks >= 5:
-            if HoldemHand.__nBitsTable[ss] >= 5:
+            if HoldemHand.nBitsTable[ss] >= 5:
                 if HoldemHand.__StraightTable[ss] != 0:
                     return HoldemHand.__HandTypeValueStraightFlush() + (HoldemHand.__StraightTable[ss] << HoldemHand.TOP_CARD_SHIFT)
                 else:
                     retval = HoldemHand.__HandTypeValueFlush() + HoldemHand.__TopFiveCardsTable[ss]
             
-            elif HoldemHand.__nBitsTable[sc] >= 5:
+            elif HoldemHand.nBitsTable[sc] >= 5:
                 if (HoldemHand.__StraightTable[sc] != 0):
                     return HoldemHand.__HandTypeValueStraightFlush() + (HoldemHand.__StraightTable[sc] << HoldemHand.TOP_CARD_SHIFT)
                 else:
                     retval = HoldemHand.__HandTypeValueFlush() + HoldemHand.__TopFiveCardsTable[sc]
 
-            elif HoldemHand.__nBitsTable[sd] >= 5:
+            elif HoldemHand.nBitsTable[sd] >= 5:
                 if (HoldemHand.__StraightTable[sd] != 0):
                     return HoldemHand.__HandTypeValueStraightFlush() + (HoldemHand.__StraightTable[sd] << HoldemHand.TOP_CARD_SHIFT)
                 else:
                     retval = HoldemHand.__HandTypeValueFlush() + HoldemHand.__TopFiveCardsTable[sd]
                     
-            elif HoldemHand.__nBitsTable[sh] >= 5:
+            elif HoldemHand.nBitsTable[sh] >= 5:
                 if (HoldemHand.__StraightTable[sh] != 0):
                     return HoldemHand.__HandTypeValueStraightFlush() + (HoldemHand.__StraightTable[sh] << HoldemHand.TOP_CARD_SHIFT)
                 else:
@@ -574,7 +574,7 @@ class HoldemHand:
             #    already eliminated quads, we can use this shortcut */
 
             two_mask = ranks ^ (sc ^ sd ^ sh ^ ss)
-            if HoldemHand.__nBitsTable[two_mask] != n_dups:
+            if HoldemHand.nBitsTable[two_mask] != n_dups:
                 # Must be some trips then, which really means there is a 
                 # full house since n_dups >= 3 
                 tc: numpy.uint32
@@ -750,10 +750,10 @@ class HoldemHand:
     # Count bits. Optimized for cards so only works with 52 bits
     @staticmethod
     def BitCount(bitField: numpy.uint64):
-        return HoldemHand.__nBitsTable[bitField & 0x1FFF] + \
-            HoldemHand.__nBitsTable[(bitField >> 13) & 0x1FFF] + \
-            HoldemHand.__nBitsTable[(bitField >> 26) & 0x1FFF] + \
-            HoldemHand.__nBitsTable[(bitField >> 39) & 0x1FFF]
+        return HoldemHand.nBitsTable[bitField & 0x1FFF] + \
+            HoldemHand.nBitsTable[(bitField >> 13) & 0x1FFF] + \
+            HoldemHand.nBitsTable[(bitField >> 26) & 0x1FFF] + \
+            HoldemHand.nBitsTable[(bitField >> 39) & 0x1FFF]
 
     
     # returns uint32
@@ -1253,7 +1253,7 @@ class HoldemHand:
             0x2b, 0x2f, 0x2f, 0x33, 0x2b, 0x2f, 0x2f, 0x33, 0x2f, 0x33, 0x33, 0x37]
 
     # A table representing the bit count for a 13 bit integer    
-    __nBitsTable = [0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3,
+    nBitsTable = [0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3,
             4, 1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4,
             4, 5, 1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3,
             4, 4, 5, 2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5,

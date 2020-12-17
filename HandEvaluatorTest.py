@@ -121,7 +121,26 @@ class HandEvaluatorTest(unittest.TestCase):
         pocket = HoldemHand.ParseHand("Kc Ks")[0]
         board = HoldemHand.ParseHand("Kd Ac 2h 7s")[0]
         self.assertTrue(HandAnalysis.HandDistance(pocket, board) == 1)
-        
+    
+    def test_OutsMaskDiscounted(self):
+        pocket = HoldemHand.ParseHand("Qs Js")[0]
+        board = HoldemHand.ParseHand("9c Ts 7d 3c")[0]
+        opponents = []
+        outs = HandAnalysis.OutsMaskDiscounted(pocket, board, opponents)
+        expected = "Ks 8s Kh 8h Kd 8d"
+        self.assertTrue(expected == HoldemHand.MaskToString(outs))
+
+        opponents = [HoldemHand.ParseHand("8s 9s")[0], HoldemHand.ParseHand("Ac Ks")[0]]
+        outs = HandAnalysis.OutsMaskDiscounted(pocket, board, opponents)
+        expected = "Kh Qh 8h Kd Qd 8d Kc Qc 8c"
+        self.assertTrue(expected == HoldemHand.MaskToString(outs))
+
+        # Kc does not help our hero and clubs puts our hero in danger
+        opponents = [HoldemHand.ParseHand("8s 9s")[0], HoldemHand.ParseHand("Ac Kc")[0]]
+        outs = HandAnalysis.OutsMaskDiscounted(pocket, board, opponents)
+        expected = "Ks Kh Qh 8h Kd Qd 8d"
+        self.assertTrue(expected == HoldemHand.MaskToString(outs))
+
 
 if __name__ == '__main__':
     unittest.main()

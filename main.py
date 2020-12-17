@@ -115,6 +115,14 @@ print(HandAnalysis.HandDistance(pocket, board))
 board = HoldemHand.ParseHand("Qs Ts 2c Js")[0]
 print(HandAnalysis.HandDistance(pocket, board))
 
+pocket = HoldemHand.ParseHand("Qs Js")[0]
+board = HoldemHand.ParseHand("9c Ts 7d 3c")[0]
+opponents = []
+outs = HandAnalysis.OutsMaskDiscounted(pocket, board, opponents)
+
+# should print out Ks 8s Kh 8h Kd 8d
+print(HoldemHand.MaskToString(outs))
+
 # handValue = HoldemHand.Evaluate(mask[0], 5)
 # print(handValue)
 

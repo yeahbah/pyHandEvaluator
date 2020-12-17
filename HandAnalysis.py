@@ -774,6 +774,410 @@ class HandAnalysis:
         
         return -1
     
+    # Returns the number of discouted outs possible with the next card.
+    # 
+    # Players pocket cards
+    # The board (must contain either 3 or 4 cards)
+    # A list of zero or more opponent cards.
+    # The count of the number of single cards that improve the current hand applying the following discouting rules:
+    # 1) Drawing to a pair must use an over card (ie a card higher than all those on the board)
+    # 2) Drawing to 2 pair / pairing your hand is discounted if the board is paired (ie your 2 pair drawing deat to trips)
+    # 3) Drawing to a hand lower than a flush must not make a 3 suited board or the board be 3 suited.
+    # 4) Drawing to a hand lower than a stright, the flop must not be 3card connected or on the turn
+    # allow a straight to be made with only 1 pocket card or the out make a straight using only 1 card.
+    # 
+    # Function provided by Matt Baker.    
+    # player - players pocket hand
+    # board - board cards so far
+    # opponents - Opponents pocket hands
+    @staticmethod
+    def OutsDiscounted(player: int, board: int, opponentsList):
+        return HoldemHand.BitCount(HandAnalysis.OutsMaskDiscounted(player, board, opponentsList))
+    
+    # Creates a Hand mask with the cards that will improve the specified players hand
+    # against a list of opponents or if no opponents are list just the cards that improve the 
+    # players current hand. 
+    # 
+    # This implements the concept of 'discounted outs'. That is outs that will improve the
+    # players hand, but not potentially improve an opponents hand to an even better one. For
+    # example drawing to a straight that could end up loosing to a flush.
+    # 
+    # Please note that this only looks at single cards that improve the hand and will not specifically
+    # look at runner-runner possiblities.
+    # 
+    # Players pocket cards
+    # The board (must contain either 3 or 4 cards)
+    # A list of zero or more opponent pocket cards
+    # A mask of all of the cards that improve the hand applying the following discouting rules: 
+    # 1) Drawing to a pair must use an over card (ie a card higher than all those on the board)
+    # 2) Drawing to 2 pair / pairing your hand is discounted if the board is paired (ie your 2 pair drawing deat to trips)
+    # 3) Drawing to a hand lower than a flush must not make a 3 suited board or the board be 3 suited.
+    # 4) Drawing to a hand lower than a stright, the flop must not be 3card connected or on the turn
+    # allow a straight to be made with only 1 pocket card or the out make a straight using only 1 card. 
+    # 
+    # 
+    # Function provided by Matt Baker.
+    # player - Players pocket hand
+    # board - Board mask
+    # opponents - Opponent pocket hands
+    # Returns a mask of cards that are probably outs
+    @staticmethod
+    def OutsMaskDiscounted(player: int, board: int, opponentsList):
+        retval = 0
+        dead = 0
+        ncards = HoldemHand.BitCount(player | board)
+
+        if __debug__:
+            if HoldemHand.BitCount(player) != 2:
+                raise Exception("Player pocket must have exactly two cards")
+            if ncards != 5 and ncards != 6:
+                raise Exception("Outs only make sense after the flop and before the river")
+        if len(opponentsList) > 0:
+            for opp in opponentsList:
+                if HoldemHand.BitCount(opp) != 2:
+                    raise Exception("Opponent hand ust have exactly two cards")
+                dead |= opp
+            playerOrigHandVal = HoldemHand.Evaluate(player | board, ncards);
+            playerOrigHandType = HoldemHand.HandType(playerOrigHandVal)
+            playerOrigTopCard = HoldemHand.TopCard(playerOrigHandVal)
+
+            for card in HoldemHand.Hands(0, dead | board | player, 1):
+                bWinFlag = True
+                playerNewHandVal = HoldemHand.Evaluate(player | board | card, ncards + 1)
+                playerNewHandType = HoldemHand.HandType(playerNewHandVal)
+                playerNewTopCard = HoldemHand.TopCard(playerNewHandVal)
+                for oppmask in opponentsList:
+                    oppHandVal = HoldemHand.Evaluate(oppmask | board | card, ncards + 1)
+                    bWinFlag = oppHandVal < playerNewHandVal and \
+                        (playerNewHandType > playerOrigHandType or (playerNewHandType == playerOrigHandType and playerNewTopCard > playerOrigTopCard))
+                    if not bWinFlag:
+                        break
+                if bWinFlag:
+                    retval |= card
+        else:
+            # Look at the cards that improve the hand
+            playerOrigHandVal = HoldemHand.Evaluate(player | board, ncards)
+            playerOrigHandType = HoldemHand.HandType(playerOrigHandVal)
+            playerOrigTopCard = HoldemHand.TopCard(playerOrigHandVal)
+            boardOrigHandVal = HoldemHand.Evaluate(board)
+            boardOrigHandType = HoldemHand.HandType(boardOrigHandVal)
+            boardOrigTopCard = HoldemHand.TopCard(boardOrigHandVal)
+
+            # Look at players pocket cards for special cases
+            playerPocketHandVal = HoldemHand.Evaluate(player)
+            playerPocketHandType = HoldemHand.HandType(playerPocketHandVal)
+
+            # Separate out by suit
+            sc = (board >> HoldemHand.GetClubOffset()) & 0x1fff
+            sd = (board >> HoldemHand.GetDiamondOffset()) & 0x1fff
+            sh = (board >> HoldemHand.GetHeartOffset()) & 0x1fff
+            ss = (board >> HoldemHand.GetSpadeOffset()) & 0x1fff
+
+            # Check if board is 3 suited
+            discountSuitedBoard = (HoldemHand.nBitsTable[sc] > 2) or (HoldemHand.nBitsTable[sd] > 2) or (HoldemHand.nBitsTable[sh] > 2) or (HoldemHand.nBitsTable[ss] > 2)
+
+            # Check if board is 3 connected on the flop. a dangerous board:
+            # 3 possible straights using 2 pocket cards and a higher chance
+            # of 2 pair; player often play 2 connected cards which can hit
+            countContiguous = 0
+            boardCardCount = HoldemHand.BitCount(board)
+
+            if boardCardCount == 3:
+                bf = HoldemHand.CardMask(board, HoldemHand.CLUBS) or HoldemHand.CardMask(board, HoldemHand.DIAMONDS) or HoldemHand.CardMask(board, HoldemHand.HEARTS) or HoldemHand.CardMask(board, HoldemHand.SPADES)
+                if HoldemHand.BitCount(0x1800 & bf) == 2: countContiguous += 1
+                if HoldemHand.BitCount(0xc00 & bf) == 2: countContiguous += 1
+                if HoldemHand.BitCount(0x600 & bf) == 2: countContiguous += 1
+                if HoldemHand.BitCount(0x300 & bf) == 2: countContiguous += 1
+                if HoldemHand.BitCount(0x180 & bf) == 2: countContiguous += 1
+                if HoldemHand.BitCount(0xc0 & bf) == 2: countContiguous += 1
+                if HoldemHand.BitCount(0x60 & bf) == 2: countContiguous += 1
+                if HoldemHand.BitCount(0x30 & bf) == 2: countContiguous += 1
+                if HoldemHand.BitCount(0x18 & bf) == 2: countContiguous += 1
+                if HoldemHand.BitCount(0xc & bf) == 2: countContiguous += 1;
+                if HoldemHand.BitCount(0x6 & bf) == 2: countContiguous += 1;
+                if HoldemHand.BitCount(0x3 & bf) == 2: countContiguous += 1;
+                if HoldemHand.BitCount(0x1001 & bf) == 2: countContiguous += 1;
+            
+            discountStraight = countContiguous > 2
+
+            # Look ahead one card
+            for card in HoldemHand.Hands(0, dead | board | player, 1):
+                boardNewHandVal = HoldemHand.Evaluate(board | card)
+                boardNewHandType = HoldemHand.HandType(boardNewHandVal)
+                boardNewTopCard = HoldemHand.TopCard(boardNewHandVal)
+                playerNewHandVal = HoldemHand.Evaluate(player | board | card, ncards + 1)
+                playerNewHandType = HoldemHand.HandType(playerNewHandVal)
+                playerNewTopCard = HoldemHand.TopCard(playerNewHandVal)
+                playerImproved = HoldemHand.TopCard(playerNewHandVal)
+                playerStrongerThanBoard = playerNewHandType > boardNewHandType or (playerNewHandType == boardNewHandType and playerNewTopCard > boardNewTopCard)
+
+                if playerImproved and playerStrongerThanBoard:
+                    isOut = False
+                    discountSuitedOut = False
+                    if not discountSuitedBoard:
+                        cc = (card >> HoldemHand.GetClubOffset()) & 0x1fff
+                        cd = (card >> HoldemHand.GetDiamondOffset()) & 0x1fff
+                        ch = (card >> HoldemHand.GetHeartOffset()) & 0x1fff
+                        cs = (card >> HoldemHand.GetSpadeOffset()) & 0x1fff
+
+                        # Check if card will make a 3 suited board
+                        discountSuitedOut = (HoldemHand.nBitsTable[sc] > 1 and HoldemHand.nBitsTable[cc] == 1) \
+                            or (HoldemHand.nBitsTable[sd] > 1 and HoldemHand.nBitsTable[cd] == 1) \
+                            or (HoldemHand.nBitsTable[sh] > 1 and HoldemHand.nBitsTable[ch] == 1) \
+                            or (HoldemHand.nBitsTable[ss] > 1 and HoldemHand.nBitsTable[cs] == 1)
+                        
+                    # Check if board is 4 connected or card + board is 4 connected
+                    # Dangerous board: straight using 1 pocket card only
+                    if boardCardCount != 4:
+                        continue
+
+                    # We need to check for the following:
+                    # 9x,8x,7x,6x (4 in a row)
+                    # 9x,8x,7x,5x (3 in a row with a 1 gap connected card)
+                    # 9x,8x,6x,5x (2 connected with a 1 gap connected in the middle)
+                    countContiguous = 0
+                    bf = HoldemHand.CardMask(board | card, HoldemHand.CLUBS) | HoldemHand.CardMask(board | card, HoldemHand.DIAMONDS) | HoldemHand.CardMask(board | card, HoldemHand.HEARTS) | HoldemHand.CardMask(board | card, HoldemHand.SPADES)
+
+                    # AxKx
+                    if HoldemHand.BitCount(0x1800 & bf) == 2:
+                        countContiguous += 1
+                    
+                    # KxQx
+                    if HoldemHand.BitCount(0xc00 & bf) == 2:
+                        countContiguous += 1
+                    else:
+                        if countContiguous == 1 and HoldemHand.BitCount(0x300 & bf) == 2:
+                            # 2 connected with a 1 gap connected in the middle
+                            discountStraight = True                            
+                        countContiguous = 0
+                    
+                    # QxJx
+                    if HoldemHand.BitCount(0x600 & bf) == 2:
+                        countContiguous += 1
+                    else:
+                        if countContiguous == 1:
+                            if HoldemHand.BitCount(0x100 & bf) == 2:
+                                # 2 connected with a 1 gap in the middle
+                                discountStraight = True
+                        elif countContiguous == 2:
+                            # test for a T
+                            if HoldemHand.BitCount(0x100 & bf) == 1:
+                                # 3 in a row with a 1 gap connected
+                                discountStraight = True
+                        countContiguous = 0
+
+                    # JxTx
+                    if HoldemHand.BitCount(0x300 & bf) == 2:
+                        countContiguous += 1
+                    else:
+                        if countContiguous == 1:
+                            if HoldemHand.BitCount(0xc0 & bf) == 2:
+                                # 2 connected with a 1 gap in the middle
+                                discountStraight = True
+                        elif countContiguous == 2:
+                            # test for 9x
+                            if HoldemHand.BitCount(0x00 & bf) == 1:
+                                # 3 in a row with a 1 gap connected
+                                discountStraight = True
+                        elif countContiguous == 3: # 4 in a row
+                            discountStraight = True
+
+                        countContiguous = 0
+                    
+                    # Tx9x
+                    if HoldemHand.BitCount(0x180 & bf) == 2:
+                        countContiguous += 1
+                    else:
+                        if countContiguous == 1:
+                            if HoldemHand.BitCount(0x60 & bf) == 2:
+                                # 2 connected with a 1 gap in the middle
+                                discountStraight = True
+                        elif countContiguous == 2:
+                            # test for 8x or Ax
+                            if HoldemHand.BitCount(0x1040 & bf) == 1:
+                                discountStraight = True
+                        elif countContiguous == 3:
+                            discountStraight = True
+                        
+                        countContiguous = 0
+                    
+                    # 9x8x
+                    if HoldemHand.BitCount(0xc0 & bf) == 2:
+                        countContiguous += 1
+                    else:
+                        if countContiguous == 1:
+                            if HoldemHand.BitCount(0x30 & bf) == 2:
+                                # 2 connected with a 1 gap in the middle
+                                discountStraight = True
+                        elif countContiguous == 2:
+                            # test for 7x or Kx
+                            if HoldemHand.BitCount(0x820 & bf) == 1:
+                                # 3 in a row with a 1 gap connected
+                                discountStraight = True
+                        elif countContiguous == 3: # 4 in a row
+                            discountStraight = True
+                        
+                        countContiguous = 0
+                    
+                    # 8x7x
+                    if HoldemHand.BitCount(0x60 & bf) == 2:
+                        countContiguous += 1
+                    else:
+                        if countContiguous == 1:
+                            if HoldemHand.BitCount(0x18 & bf) == 2:
+                                # 2 connected with a 1 gap in the middle
+                                discountStraight = True
+                        elif countContiguous == 2:
+                            # test for 6x or Qx
+                            if HoldemHand.BitCount(0x410 & bf) == 1:
+                                # 3 in a row with a 1 gap connected
+                                discountStraight = True
+                        elif countContiguous == 3: # 4 in a row
+                            discountStraight = True
+                        
+                        countContiguous = 0
+                    
+                    # 7x6x
+                    if HoldemHand.BitCount(0x30 & bf) == 2:
+                        countContiguous += 1
+                    else:
+                        if countContiguous == 1:
+                            if HoldemHand.BitCount(0xc & bf) == 2:
+                                # 2 connected with a 1 gap in the middle
+                                discountStraight = True
+                        elif countContiguous == 2:
+                            # test for 5x or Jx
+                            if HoldemHand.BitCount(0x208 & bf) == 1:
+                                # 3 in a row with a gap connected
+                                discountStraight = True
+                        elif countContiguous == 3: # 4 in a row
+                            discountStraight = True
+                        
+                        countContiguous = 0
+                    
+                    # 6x5x
+                    if HoldemHand.BitCount(0x18 & bf) == 2:
+                        countContiguous += 1
+                    else:
+                        if countContiguous == 1:
+                            if HoldemHand.BitCount(0x6 & bf) == 2:
+                                discountStraight = True
+                        elif countContiguous == 2:
+                            if HoldemHand.BitCount(0x104 & bf) == 1:
+                                discountStraight = True
+                        elif countContiguous == 3:
+                            discountStraight = True
+                        
+                        countContiguous = 0
+                    
+                    # 5x4x
+                    if HoldemHand.BitCount(0xc & bf) == 2:
+                        countContiguous += 1
+                    else:
+                        if countContiguous == 1:
+                            if HoldemHand.BitCount(0x3 & bf) == 2:
+                                # 2 connected with a 1 gap in the middle
+                                discountStraight = True
+                        elif countContiguous == 2:
+                            # test for 3x or 9x
+                            if HoldemHand.BitCount(0x82 & bf) == 1:
+                                # 3 in a row with a 1 gap connected
+                                discountStraight = True
+                        elif countContiguous == 3: # 4 in a row
+                            discountStraight = True
+                        
+                        countContiguous = 0
+
+                    # 4x3x
+                    if HoldemHand.BitCount(0x6 & bf) == 2:
+                        countContiguous += 1
+                    else:
+                        if countContiguous == 1:
+                            if HoldemHand.BitCount(0x1001 & bf) == 2:
+                                # 2 connected with a 1 gap in the middle
+                                discountStraight = True
+                        elif countContiguous == 2:
+                            # test for 2x or 8x
+                            if HoldemHand.BitCount(0x41 & bf) == 1:
+                                # 3 in a row with a 1 gap connected
+                                discountStraight = True
+                        elif countContiguous == 3: # 4 in a row
+                            discountStraight = True
+                        
+                        countContiguous = 0
+                    
+                    # 3x2x
+                    if HoldemHand.BitCount(0x3 & bf) == 2:
+                        countContiguous += 1
+                    else:                            
+                        if countContiguous == 2:
+                            # test for Ax or 7x
+                            if HoldemHand.BitCount(0x1020 & bf) == 1:
+                                # 3 in a row with a 1 gap connected
+                                discountStraight = True
+                        elif countContiguous == 3: # 4 in a row
+                            discountStraight = True
+                        
+                        countContiguous = 0
+
+                    # 2xAx
+                    if HoldemHand.BitCount(0x1001 & bf) == 2:
+                        countContiguous += 1
+                        # check one last time
+                        if countContiguous == 2:
+                            # test for 5x
+                            if HoldemHand.BitCount(0x8 & bf) == 1:
+                                # 3 in a row with a 1 gap connected
+                                discountStraight = True
+                        elif countContiguous == 3: # 4 in a row
+                            discountStraight = True
+                    else:                            
+                        if countContiguous == 2:
+                            # test for 6x
+                            if HoldemHand.BitCount(0x10 & bf) == 1:
+                                # 3 in a row with a 1 gap connected
+                                discountStraight = True
+                        elif countContiguous == 3: # 4 in a row
+                            discountStraight = True
+                    
+                    # Hand improving to a pair, must use overcards and not make a 3 suited board
+                    if playerNewHandType == HoldemHand.HandTypes.PAIR:
+                        newCardVal = HoldemHand.Evaluate(card)
+                        newTopCard = HoldemHand.TopCard(newCardVal)
+                        if boardOrigTopCard < newTopCard and not (discountSuitedBoard or discountSuitedOut) and not discountStraight:
+                            isOut = True
+                    
+                    # Hand imporving to two pair, must use one of the players pocket cards and 
+                    # the player already has a pair, either a pocket pair or a pair using the board. 
+                    # ie: not drawing to two pair when trips is out - drawing dead.
+                    # And not make a 3 suited board and not discounting for a straight. 
+                    elif playerNewHandType == HoldemHand.HandTypes.TWO_PAIR:
+                        playerPocketHandNewCardVal = HoldemHand.Evaluate(player | card)
+                        playerPocketHandNewCardType = HoldemHand.HandType(playerPocketHandNewCardVal)
+                        if (playerPocketHandNewCardType == HoldemHand.HandTypes.PAIR and playerPocketHandType != HoldemHand.HandTypes.PAIR) and (boardOrigHandType != HoldemHand.HandTypes.PAIR or playerOrigHandType == HoldemHand.HandTypes.TWO_PAIR):
+                            if not (discountSuitedBoard or discountSuitedOut) and not discountStraight:
+                                isOut = True;
+
+                    # New hand better than two pair
+                    elif playerNewHandType > HoldemHand.HandTypes.TWO_PAIR:
+                        # Hand imporving trips, must not make a 3 suited board and not discounting for a straight. 
+                        if playerNewHandType == HoldemHand.HandTypes.TRIPS:
+                            if not (discountSuitedBoard or discountSuitedOut) and not discountStraight:
+                                isOut = True
+                        # Hand imporving to a straight, must not make a 3 suited board.
+                        elif playerNewHandType == HoldemHand.HandTypes.STRAIGHT:
+                            if not (discountSuitedBoard or discountSuitedOut):
+                                isOut = True
+                        else:
+                            # No discounting for a Flush (should we consider a straight Flush?),
+                            # Full house, Four of a kind and straight flush
+                            isOut = True
+                    
+                    if isOut:
+                        retval |= card
+
+        return retval
+    
     __ContiguousCountTable = [
         0, 0, 0, 2, 0, 0, 2, 3, 0, 0, 0, 2, 2, 2, 3, 4, 0, 0, 0, 2,
             0, 0, 2, 3, 2, 2, 2, 2, 3, 3, 4, 5, 0, 0, 0, 2, 0, 0, 2, 3,
