@@ -1177,6 +1177,102 @@ class HandAnalysis:
                         retval |= card
 
         return retval
+
+    # Returns the number of outs possible with the next card. Note that cards that only
+    # help the board will be ignored.
+    # player - Player's pocket cards
+    # board - The board (must contain either 3 or 4 card)
+    # opponentsList - a list of zero or more opponent cards
+    @staticmethod    
+    def OutCards(player: str, board: str, opponentsList):
+        playerMask = HoldemHand.ParseHand(player)[0]
+        boardMask = HoldemHand.ParseHand(board)[0]
+        if not HoldemHand.ValidateHand(player) and not HoldemHand.BitCount(player) != 2:
+            raise Exception("Invalid player pocket")
+        if not HoldemHand.ValidateHand(board) and not HoldemHand.BitCount(board) != 3 and HoldemHand.BitCount(board) != 4:
+            raise Exception("Invalid board")
+        
+        opponentsMask = []
+        i = 0
+        while i < len(opponentsList):
+            oppMask = HoldemHand.ParseHand(opponentsList[i])
+            if not HoldemHand.ValidateHand(opponentsList[i]) and not oppMask[1] != 2:
+                raise Exception("Invalid opponent pocket cards")
+            opponentsMask.append(oppMask[0])
+            i += 1
+        
+        mask = HandAnalysis.OutsMask(playerMask, boardMask, opponentsMask)
+        retval = ""
+        for s in HoldemHand.Cards(mask):
+            if len(retval) == 0:
+                retval = s
+            else:
+                retval += " " + s
+        
+        return retval
+    
+    # Creates a Hand mask with the cards that will improve the specified players mask
+    # against a list of opponents or if no opponents are list just the cards that improve the 
+    # players current had.
+    # 
+    # Please note that this only looks at single cards that improve the mask and will not specifically
+    # look at runner-runner possiblities.
+    # player - Player's pocket cards
+    # board - The board (must contain either 3 or 4 cards)
+    # opponents - A list of zero or more opponent pocket cards
+    # Returns a mask of all of the cards that improve the mask
+    def OutsMask(player: int, board: int, opponentsList):
+        retval = 0
+        if __debug__:
+            if HoldemHand.BitCount(player) != 2:
+                raise Exception("Player must have exactly two cards")
+            if HoldemHand.BitCount(board) != 3 and HoldemHand.BitCount(board) != 4:
+                raise Exception("Board must contain 3 or 4 cards")
+        
+        # Get original mask value
+        playerOrigHandVal = HoldemHand.Evaluate(player | board)
+
+        # Look ahead one card
+        for card in HoldemHand.Hands(0, board | player, 1):
+            # Get new mask value
+            playerNewHandVal = HoldemHand.Evaluate(player | board | card)
+
+            # Get new board value
+            boardHandVal = HoldemHand.Evaluate(board | card)
+
+            # Is the new mask better than the old one?
+            handImproved = playerNewHandVal > playerOrigHandVal
+
+            # This compare ensures we move up in mask type
+            handStrongerThanBoard = HoldemHand.HandType(playerNewHandVal) > HoldemHand.HandType(boardHandVal) \
+                or (HoldemHand.HandType(playerNewHandVal) == HoldemHand.HandType(boardHandVal) \
+                and HoldemHand.TopCard(playerNewHandVal) > HoldemHand.TopCard(boardHandVal))
+            
+            # Check against opponents cards
+            handBeatAllOpponents = True
+            if handImproved and handStrongerThanBoard and len(opponentsList) > 0:
+                for opponent in opponentsList:
+                    opponentHandVal = HoldemHand.Evaluate(opponent | board | card)
+                    if opponentHandVal > playerNewHandVal:
+                        handBeatAllOpponents = False
+                        break
+            
+            # if the mask improved then we have an out
+            if handImproved and handStrongerThanBoard and handBeatAllOpponents:
+                retval |= card
+        
+        # return outs as mask mask
+        return retval
+    
+    # Returns the number of outs possible with the next card
+    # player - Player's pocket cards
+    # board - The board (must contain either 3 or 4 cards)
+    # oponents - A list of zero or more opponent cards.
+    # Returns the count of the number of single cards that improve the current mask.
+    @staticmethod
+    def Outs(player: int, board: int, opponentsList):
+        return HoldemHand.BitCount(HandAnalysis.OutsMask(player, board, opponentsList))
+        
     
     __ContiguousCountTable = [
         0, 0, 0, 2, 0, 0, 2, 3, 0, 0, 0, 2, 2, 2, 3, 4, 0, 0, 0, 2,

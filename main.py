@@ -1,3 +1,4 @@
+from inspect import Parameter
 from HandEvaluator import HoldemHand
 from HandAnalysis import HandAnalysis
 import numpy
@@ -122,6 +123,16 @@ outs = HandAnalysis.OutsMaskDiscounted(pocket, board, opponents)
 
 # should print out Ks 8s Kh 8h Kd 8d
 print(HoldemHand.MaskToString(outs))
+
+pocket = HoldemHand.ParseHand("As Ks")[0]
+board = HoldemHand.ParseHand("2s 3s 5c 6d")[0]
+opponents = [HoldemHand.ParseHand("5s 6c")[0]]
+
+# 6s murders our hero
+print(HandAnalysis.Outs(pocket, board, opponents))
+cards =  HandAnalysis.OutCards("As Ks", "2s 3s 5c 6d", ["5s 6c"])
+print(cards)
+
 
 # handValue = HoldemHand.Evaluate(mask[0], 5)
 # print(handValue)

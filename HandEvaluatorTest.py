@@ -141,6 +141,19 @@ class HandEvaluatorTest(unittest.TestCase):
         expected = "Ks Kh Qh 8h Kd Qd 8d"
         self.assertTrue(expected == HoldemHand.MaskToString(outs))
 
+    def test_Outs(self):
+        pocket = "As Ks"
+        board = "2s 3s 5c 6d"
+        opponents = [HoldemHand.ParseHand("5s 6c")[0]]
+        expectedOuts = 8 # because 4s does not improve our heroe's hand
+        self.assertTrue(expectedOuts == HandAnalysis.Outs(HoldemHand.ParseHand(pocket)[0], HoldemHand.ParseHand(board)[0], opponents))
+        expectedOuts = "Qs Js Ts 9s 8s 7s 5s 4s"
+        self.assertTrue(expectedOuts, HandAnalysis.OutCards(pocket, board, ["5s 6c"]))
+
+        opponents = [HoldemHand.ParseHand("6s 7s")[0]]
+        expectedOuts = 15 # opponent out is not discounted
+        self.assertTrue(expectedOuts == HandAnalysis.Outs(HoldemHand.ParseHand(pocket)[0], HoldemHand.ParseHand(board)[0], opponents))
+
 
 if __name__ == '__main__':
     unittest.main()
