@@ -1,7 +1,7 @@
 from os import stat
 
 from numpy.lib.shape_base import expand_dims
-from HandEvaluator import HoldemHand
+from HandEvaluator import Hand
 from multipledispatch import dispatch
 from timeit import default_timer as timer
 import random
@@ -21,14 +21,14 @@ class HandAnalysis:
         count = 0.0
 
         if __debug__:
-            if HoldemHand.BitCount(pocket) != 2:
+            if Hand.BitCount(pocket) != 2:
                 raise Exception("Pocket must have exactly two cards")
-            if HoldemHand.BitCount(board) < 3 or HoldemHand.BitCount(board) > 5:
+            if Hand.BitCount(board) < 3 or Hand.BitCount(board) > 5:
                 raise Exception("Board must have 3, 4, or 5 cards for this calculation")
         
-        ourRank = HoldemHand.Evaluate(pocket | board)
-        for opponentHand in HoldemHand.Hands(0, pocket | board, 2):
-            opponentRank = HoldemHand.Evaluate(opponentHand | board)
+        ourRank = Hand.Evaluate(pocket | board)
+        for opponentHand in Hand.Hands(0, pocket | board, 2):
+            opponentRank = Hand.Evaluate(opponentHand | board)
             if ourRank > opponentRank:
                 win += 1.0
             elif ourRank == opponentRank:
@@ -49,19 +49,19 @@ class HandAnalysis:
         count = 0.0        
 
         if __debug__:
-            if HoldemHand.BitCount(pocket) != 2:
+            if Hand.BitCount(pocket) != 2:
                 raise Exception("Pocket must have exactly two cards")
-            if HoldemHand.BitCount(board) > 5:
+            if Hand.BitCount(board) > 5:
                 raise Exception("Board must have 5 or less cards")
             if numOpponents < 1 or numOpponents > 9:
                 raise Exception("May only select 1-9 opponents")
 
         startTime = timer()
-        ourRank = HoldemHand.Evaluate(pocket | board)
+        ourRank = Hand.Evaluate(pocket | board)
         if numOpponents == 1:
             while timer() - startTime < duration:
-                oppcards = HoldemHand.RandomHand(0, pocket | board, 2)
-                opprank = HoldemHand.Evaluate(oppcards | board)
+                oppcards = Hand.RandomHand(0, pocket | board, 2)
+                opprank = Hand.Evaluate(oppcards | board)
                 if ourRank > opprank:
                     win += 1.0
                 elif ourRank == opprank:
@@ -70,10 +70,10 @@ class HandAnalysis:
 
         elif numOpponents == 2:
             while timer() - startTime < duration:
-                opp1cards = HoldemHand.RandomHand(0, pocket | board, 2)
-                opp2cards = HoldemHand.RandomHand(0, pocket | board | opp1cards, 2)
-                opp1rank = HoldemHand.Evaluate(opp1cards | board)
-                opp2rank = HoldemHand.Evaluate(opp2cards | board)
+                opp1cards = Hand.RandomHand(0, pocket | board, 2)
+                opp2cards = Hand.RandomHand(0, pocket | board | opp1cards, 2)
+                opp1rank = Hand.Evaluate(opp1cards | board)
+                opp2rank = Hand.Evaluate(opp2cards | board)
 
                 if (ourRank > opp1rank) and (ourRank > opp2rank):
                     win += 1.0
@@ -83,12 +83,12 @@ class HandAnalysis:
         
         elif numOpponents == 3:
             while timer() - startTime < duration:
-                opp1cards = HoldemHand.RandomHand(0, pocket | board, 2)
-                opp2cards = HoldemHand.RandomHand(0, pocket | board | opp1cards, 2)
-                opp3cards = HoldemHand.RandomHand(0, pocket | board | opp1cards | opp2cards, 2)
-                opp1rank = HoldemHand.Evaluate(opp1cards | board)
-                opp2rank = HoldemHand.Evaluate(opp2cards | board)
-                opp3rank = HoldemHand.Evaluate(opp3cards | board) 
+                opp1cards = Hand.RandomHand(0, pocket | board, 2)
+                opp2cards = Hand.RandomHand(0, pocket | board | opp1cards, 2)
+                opp3cards = Hand.RandomHand(0, pocket | board | opp1cards | opp2cards, 2)
+                opp1rank = Hand.Evaluate(opp1cards | board)
+                opp2rank = Hand.Evaluate(opp2cards | board)
+                opp3rank = Hand.Evaluate(opp3cards | board) 
 
                 if (ourRank > opp1rank) and (ourRank > opp2rank) and (ourRank > opp3rank):
                     win += 1.0
@@ -98,14 +98,14 @@ class HandAnalysis:
         
         elif numOpponents == 4:
             while timer() - startTime < duration:
-                opp1cards = HoldemHand.RandomHand(0, pocket | board, 2)
-                opp2cards = HoldemHand.RandomHand(0, pocket | board | opp1cards, 2)
-                opp3cards = HoldemHand.RandomHand(0, pocket | board | opp1cards | opp2cards, 2)
-                opp4cards = HoldemHand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards, 2)
-                opp1rank = HoldemHand.Evaluate(opp1cards | board)
-                opp2rank = HoldemHand.Evaluate(opp2cards | board)
-                opp3rank = HoldemHand.Evaluate(opp3cards | board)
-                opp4rank = HoldemHand.Evaluate(opp4cards | board)
+                opp1cards = Hand.RandomHand(0, pocket | board, 2)
+                opp2cards = Hand.RandomHand(0, pocket | board | opp1cards, 2)
+                opp3cards = Hand.RandomHand(0, pocket | board | opp1cards | opp2cards, 2)
+                opp4cards = Hand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards, 2)
+                opp1rank = Hand.Evaluate(opp1cards | board)
+                opp2rank = Hand.Evaluate(opp2cards | board)
+                opp3rank = Hand.Evaluate(opp3cards | board)
+                opp4rank = Hand.Evaluate(opp4cards | board)
 
                 if (ourRank > opp1rank) and (ourRank > opp2rank) \
                     and (ourRank > opp3rank) and (ourRank > opp4rank):
@@ -117,16 +117,16 @@ class HandAnalysis:
         
         elif numOpponents == 5:
             while timer() - startTime < duration:
-                opp1cards = HoldemHand.RandomHand(0, pocket | board, 2)
-                opp2cards = HoldemHand.RandomHand(0, pocket | board | opp1cards, 2)
-                opp3cards = HoldemHand.RandomHand(0, pocket | board | opp1cards | opp2cards, 2)
-                opp4cards = HoldemHand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards, 2)
-                opp5cards = HoldemHand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards | opp4cards, 2)
-                opp1rank = HoldemHand.Evaluate(opp1cards | board)
-                opp2rank = HoldemHand.Evaluate(opp2cards | board)
-                opp3rank = HoldemHand.Evaluate(opp3cards | board)
-                opp4rank = HoldemHand.Evaluate(opp4cards | board)
-                opp5rank = HoldemHand.Evaluate(opp5cards | board)
+                opp1cards = Hand.RandomHand(0, pocket | board, 2)
+                opp2cards = Hand.RandomHand(0, pocket | board | opp1cards, 2)
+                opp3cards = Hand.RandomHand(0, pocket | board | opp1cards | opp2cards, 2)
+                opp4cards = Hand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards, 2)
+                opp5cards = Hand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards | opp4cards, 2)
+                opp1rank = Hand.Evaluate(opp1cards | board)
+                opp2rank = Hand.Evaluate(opp2cards | board)
+                opp3rank = Hand.Evaluate(opp3cards | board)
+                opp4rank = Hand.Evaluate(opp4cards | board)
+                opp5rank = Hand.Evaluate(opp5cards | board)
             
                 if (ourRank > opp1rank) and (ourRank > opp2rank) \
                     and (ourRank > opp3rank) and (ourRank > opp4rank) \
@@ -140,18 +140,18 @@ class HandAnalysis:
         
         elif numOpponents == 6:
             while timer() - startTime < duration:
-                opp1cards = HoldemHand.RandomHand(0, pocket | board, 2)
-                opp2cards = HoldemHand.RandomHand(0, pocket | board | opp1cards, 2)
-                opp3cards = HoldemHand.RandomHand(0, pocket | board | opp1cards | opp2cards, 2)
-                opp4cards = HoldemHand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards, 2)
-                opp5cards = HoldemHand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards | opp4cards, 2)
-                opp6cards = HoldemHand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards | opp4cards | opp5cards, 2)
-                opp1rank = HoldemHand.Evaluate(opp1cards | board)
-                opp2rank = HoldemHand.Evaluate(opp2cards | board)
-                opp3rank = HoldemHand.Evaluate(opp3cards | board)
-                opp4rank = HoldemHand.Evaluate(opp4cards | board)
-                opp5rank = HoldemHand.Evaluate(opp5cards | board)
-                opp6rank = HoldemHand.Evaluate(opp6cards | board)
+                opp1cards = Hand.RandomHand(0, pocket | board, 2)
+                opp2cards = Hand.RandomHand(0, pocket | board | opp1cards, 2)
+                opp3cards = Hand.RandomHand(0, pocket | board | opp1cards | opp2cards, 2)
+                opp4cards = Hand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards, 2)
+                opp5cards = Hand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards | opp4cards, 2)
+                opp6cards = Hand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards | opp4cards | opp5cards, 2)
+                opp1rank = Hand.Evaluate(opp1cards | board)
+                opp2rank = Hand.Evaluate(opp2cards | board)
+                opp3rank = Hand.Evaluate(opp3cards | board)
+                opp4rank = Hand.Evaluate(opp4cards | board)
+                opp5rank = Hand.Evaluate(opp5cards | board)
+                opp6rank = Hand.Evaluate(opp6cards | board)
             
                 if (ourRank > opp1rank) and (ourRank > opp2rank) \
                     and (ourRank > opp3rank) and (ourRank > opp4rank) \
@@ -165,20 +165,20 @@ class HandAnalysis:
         
         elif numOpponents == 7:
             while timer() - startTime < duration:
-                opp1cards = HoldemHand.RandomHand(0, pocket | board, 2)
-                opp2cards = HoldemHand.RandomHand(0, pocket | board | opp1cards, 2)
-                opp3cards = HoldemHand.RandomHand(0, pocket | board | opp1cards | opp2cards, 2)
-                opp4cards = HoldemHand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards, 2)
-                opp5cards = HoldemHand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards | opp4cards, 2)
-                opp6cards = HoldemHand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards | opp4cards | opp5cards, 2)
-                opp7cards = HoldemHand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards | opp4cards | opp5cards | opp6cards, 2)
-                opp1rank = HoldemHand.Evaluate(opp1cards | board)
-                opp2rank = HoldemHand.Evaluate(opp2cards | board)
-                opp3rank = HoldemHand.Evaluate(opp3cards | board)
-                opp4rank = HoldemHand.Evaluate(opp4cards | board)
-                opp5rank = HoldemHand.Evaluate(opp5cards | board)
-                opp6rank = HoldemHand.Evaluate(opp6cards | board)
-                opp7rank = HoldemHand.Evaluate(opp7cards | board)
+                opp1cards = Hand.RandomHand(0, pocket | board, 2)
+                opp2cards = Hand.RandomHand(0, pocket | board | opp1cards, 2)
+                opp3cards = Hand.RandomHand(0, pocket | board | opp1cards | opp2cards, 2)
+                opp4cards = Hand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards, 2)
+                opp5cards = Hand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards | opp4cards, 2)
+                opp6cards = Hand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards | opp4cards | opp5cards, 2)
+                opp7cards = Hand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards | opp4cards | opp5cards | opp6cards, 2)
+                opp1rank = Hand.Evaluate(opp1cards | board)
+                opp2rank = Hand.Evaluate(opp2cards | board)
+                opp3rank = Hand.Evaluate(opp3cards | board)
+                opp4rank = Hand.Evaluate(opp4cards | board)
+                opp5rank = Hand.Evaluate(opp5cards | board)
+                opp6rank = Hand.Evaluate(opp6cards | board)
+                opp7rank = Hand.Evaluate(opp7cards | board)
             
                 if (ourRank > opp1rank) and (ourRank > opp2rank) \
                     and (ourRank > opp3rank) and (ourRank > opp4rank) \
@@ -194,22 +194,22 @@ class HandAnalysis:
 
         elif numOpponents == 8:
             while timer() - startTime < duration:
-                opp1cards = HoldemHand.RandomHand(0, pocket | board, 2)
-                opp2cards = HoldemHand.RandomHand(0, pocket | board | opp1cards, 2)
-                opp3cards = HoldemHand.RandomHand(0, pocket | board | opp1cards | opp2cards, 2)
-                opp4cards = HoldemHand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards, 2)
-                opp5cards = HoldemHand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards | opp4cards, 2)
-                opp6cards = HoldemHand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards | opp4cards | opp5cards, 2)
-                opp7cards = HoldemHand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards | opp4cards | opp5cards | opp6cards, 2)
-                opp8cards = HoldemHand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards | opp4cards | opp5cards | opp6cards | opp7cards, 2)
-                opp1rank = HoldemHand.Evaluate(opp1cards | board)
-                opp2rank = HoldemHand.Evaluate(opp2cards | board)
-                opp3rank = HoldemHand.Evaluate(opp3cards | board)
-                opp4rank = HoldemHand.Evaluate(opp4cards | board)
-                opp5rank = HoldemHand.Evaluate(opp5cards | board)
-                opp6rank = HoldemHand.Evaluate(opp6cards | board)
-                opp7rank = HoldemHand.Evaluate(opp7cards | board)
-                opp8rank = HoldemHand.Evaluate(opp8cards | board)
+                opp1cards = Hand.RandomHand(0, pocket | board, 2)
+                opp2cards = Hand.RandomHand(0, pocket | board | opp1cards, 2)
+                opp3cards = Hand.RandomHand(0, pocket | board | opp1cards | opp2cards, 2)
+                opp4cards = Hand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards, 2)
+                opp5cards = Hand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards | opp4cards, 2)
+                opp6cards = Hand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards | opp4cards | opp5cards, 2)
+                opp7cards = Hand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards | opp4cards | opp5cards | opp6cards, 2)
+                opp8cards = Hand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards | opp4cards | opp5cards | opp6cards | opp7cards, 2)
+                opp1rank = Hand.Evaluate(opp1cards | board)
+                opp2rank = Hand.Evaluate(opp2cards | board)
+                opp3rank = Hand.Evaluate(opp3cards | board)
+                opp4rank = Hand.Evaluate(opp4cards | board)
+                opp5rank = Hand.Evaluate(opp5cards | board)
+                opp6rank = Hand.Evaluate(opp6cards | board)
+                opp7rank = Hand.Evaluate(opp7cards | board)
+                opp8rank = Hand.Evaluate(opp8cards | board)
             
                 if (ourRank > opp1rank) and (ourRank > opp2rank) \
                     and (ourRank > opp3rank) and (ourRank > opp4rank) \
@@ -225,24 +225,24 @@ class HandAnalysis:
         
         elif numOpponents == 9:
             while timer() - startTime < duration:
-                opp1cards = HoldemHand.RandomHand(0, pocket | board, 2)
-                opp2cards = HoldemHand.RandomHand(0, pocket | board | opp1cards, 2)
-                opp3cards = HoldemHand.RandomHand(0, pocket | board | opp1cards | opp2cards, 2)
-                opp4cards = HoldemHand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards, 2)
-                opp5cards = HoldemHand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards | opp4cards, 2)
-                opp6cards = HoldemHand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards | opp4cards | opp5cards, 2)
-                opp7cards = HoldemHand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards | opp4cards | opp5cards | opp6cards, 2)
-                opp8cards = HoldemHand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards | opp4cards | opp5cards | opp6cards | opp7cards, 2)
-                opp9cards = HoldemHand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards | opp4cards | opp5cards | opp6cards | opp7cards | opp8cards, 2)
-                opp1rank = HoldemHand.Evaluate(opp1cards | board)
-                opp2rank = HoldemHand.Evaluate(opp2cards | board)
-                opp3rank = HoldemHand.Evaluate(opp3cards | board)
-                opp4rank = HoldemHand.Evaluate(opp4cards | board)
-                opp5rank = HoldemHand.Evaluate(opp5cards | board)
-                opp6rank = HoldemHand.Evaluate(opp6cards | board)
-                opp7rank = HoldemHand.Evaluate(opp7cards | board)
-                opp8rank = HoldemHand.Evaluate(opp8cards | board)
-                opp9rank = HoldemHand.Evaluate(opp9cards | board)
+                opp1cards = Hand.RandomHand(0, pocket | board, 2)
+                opp2cards = Hand.RandomHand(0, pocket | board | opp1cards, 2)
+                opp3cards = Hand.RandomHand(0, pocket | board | opp1cards | opp2cards, 2)
+                opp4cards = Hand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards, 2)
+                opp5cards = Hand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards | opp4cards, 2)
+                opp6cards = Hand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards | opp4cards | opp5cards, 2)
+                opp7cards = Hand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards | opp4cards | opp5cards | opp6cards, 2)
+                opp8cards = Hand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards | opp4cards | opp5cards | opp6cards | opp7cards, 2)
+                opp9cards = Hand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards | opp4cards | opp5cards | opp6cards | opp7cards | opp8cards, 2)
+                opp1rank = Hand.Evaluate(opp1cards | board)
+                opp2rank = Hand.Evaluate(opp2cards | board)
+                opp3rank = Hand.Evaluate(opp3cards | board)
+                opp4rank = Hand.Evaluate(opp4cards | board)
+                opp5rank = Hand.Evaluate(opp5cards | board)
+                opp6rank = Hand.Evaluate(opp6cards | board)
+                opp7rank = Hand.Evaluate(opp7cards | board)
+                opp8rank = Hand.Evaluate(opp8cards | board)
+                opp9rank = Hand.Evaluate(opp9cards | board)
             
                 if (ourRank > opp1rank) and (ourRank > opp2rank) \
                     and (ourRank > opp3rank) and (ourRank > opp4rank) \
@@ -269,20 +269,20 @@ class HandAnalysis:
         retval = 0
 
         # Get original mask value
-        origType = HoldemHand.EvaluateType(mask)[0]
+        origType = Hand.EvaluateType(mask)[0]
 
         # If current mask is better than a straight then return 0 outs
-        if origType >= HoldemHand.HandTypes.STRAIGHT:
+        if origType >= Hand.HandTypes.STRAIGHT:
             return retval
         
         # look ahead one card
-        for card in HoldemHand.Hands(0, mask | dead, 1):
+        for card in Hand.Hands(0, mask | dead, 1):
 
             # Get new mask value
-            newHandType = HoldemHand.EvaluateType(mask | card)[0]
+            newHandType = Hand.EvaluateType(mask | card)[0]
 
             # Include straight flush as this will ensure outs is always the maximum
-            if newHandType == HoldemHand.HandTypes.STRAIGHT or newHandType == HoldemHand.HandTypes.STRAIGHT_FLUSH:
+            if newHandType == Hand.HandTypes.STRAIGHT or newHandType == Hand.HandTypes.STRAIGHT_FLUSH:
                 retval += 1
             
         return retval
@@ -296,30 +296,30 @@ class HandAnalysis:
     @dispatch(int, int, int)
     def StraightDrawCount(player: int, board: int, dead: int):
         retval = 0
-        ncards = HoldemHand.BitCount(player | board)
+        ncards = Hand.BitCount(player | board)
 
         if __debug__:
-            if HoldemHand.BitCount(player) != 2:
+            if Hand.BitCount(player) != 2:
                 raise Exception("Player must have exactly 2 cards")
-            if HoldemHand.BitCount(board) != 3 and HoldemHand.BitCount(board) != 4:
+            if Hand.BitCount(board) != 3 and Hand.BitCount(board) != 4:
                 raise Exception("Board must contain 3 or 4 cards")
         
-        playerOrigHandVal = HoldemHand.Evaluate(player | board, ncards);
+        playerOrigHandVal = Hand.Evaluate(player | board, ncards);
 
-        if HoldemHand.HandType(playerOrigHandVal) >= HoldemHand.HandTypes.STRAIGHT:
+        if Hand.HandType(playerOrigHandVal) >= Hand.HandTypes.STRAIGHT:
             return retval
         
-        for card in HoldemHand.Hands(0, board | player | dead, 1):
-            playerNewHandVal = HoldemHand.Evaluate(player | board | card, ncards + 1)
-            playerHandType = HoldemHand.HandType(playerNewHandVal);
+        for card in Hand.Hands(0, board | player | dead, 1):
+            playerNewHandVal = Hand.Evaluate(player | board | card, ncards + 1)
+            playerHandType = Hand.HandType(playerNewHandVal);
 
             # Include straight flush as this will ensure outs is always the maximum
-            if playerHandType == HoldemHand.HandTypes.STRAIGHT or playerHandType == HoldemHand.HandTypes.STRAIGHT_FLUSH:
-                boardHandVal = HoldemHand.Evaluate(board | card)
+            if playerHandType == Hand.HandTypes.STRAIGHT or playerHandType == Hand.HandTypes.STRAIGHT_FLUSH:
+                boardHandVal = Hand.Evaluate(board | card)
 
-                if (HoldemHand.HandType(playerNewHandVal) > HoldemHand.HandType(boardHandVal)) \
-                    or (HoldemHand.HandType(playerNewHandVal) == HoldemHand.HandType(boardHandVal) \
-                    and HoldemHand.HandType(playerNewHandVal) > HoldemHand.TopCard(boardHandVal)):
+                if (Hand.HandType(playerNewHandVal) > Hand.HandType(boardHandVal)) \
+                    or (Hand.HandType(playerNewHandVal) == Hand.HandType(boardHandVal) \
+                    and Hand.HandType(playerNewHandVal) > Hand.TopCard(boardHandVal)):
                     retval += 1
         
         return retval
@@ -331,7 +331,7 @@ class HandAnalysis:
     @staticmethod
     @dispatch(str, str)
     def IsOpenEndedStraightDraw(mask: str, dead: str):
-        return HandAnalysis.IsOpenEndedStraightDraw(HoldemHand.ParseHand(mask)[0], HoldemHand.ParseHand(dead)[0])
+        return HandAnalysis.IsOpenEndedStraightDraw(Hand.ParseHand(mask)[0], Hand.ParseHand(dead)[0])
 
     # Returns true if the combined mask is an open ended straight draw. Only straight possibilities that
     # improve the player's mask are considered in this method
@@ -343,9 +343,9 @@ class HandAnalysis:
     @dispatch(int, int, int)
     def IsOpenEndedStraightDraw(pocket: int, board: int, dead: int):
         if __debug__:
-            if HoldemHand.BitCount(pocket) != 2:
+            if Hand.BitCount(pocket) != 2:
                 raise Exception("Pocket must have exactly two cards")
-            if HoldemHand.BitCount(board) != 3 and HoldemHand.BitCount(board) != 4:
+            if Hand.BitCount(board) != 3 and Hand.BitCount(board) != 4:
                 raise Exception("Board must have 3 or 4 cards for this calculation")
         return HandAnalysis.IsOpenEndedStraightDraw(pocket | board, 0) and HandAnalysis.StraightDrawCount(pocket, board, dead) > 0
     
@@ -359,7 +359,7 @@ class HandAnalysis:
         if __debug__:
             if mask and dead != 0:
                 raise Exception("Mask and dead cards must not have any cards in common")
-            if HoldemHand.BitCount(mask) < 4 or HoldemHand.BitCount(mask) > 6:
+            if Hand.BitCount(mask) < 4 or Hand.BitCount(mask) > 6:
                 raise Exception("Mask must have 4-6 cards")
         return HandAnalysis.StraightDrawCount(mask, 0) > 4 and HandAnalysis.StraightDrawCount(mask, dead)
 
@@ -370,7 +370,7 @@ class HandAnalysis:
     @staticmethod
     @dispatch(str, str)
     def IsOpenEndedStraightDraw(mask: str, dead: str):
-        return HandAnalysis.IsOpenEndedStraightDraw(HoldemHand.ParseHand(mask)[0], HoldemHand.ParseHand(dead)[0])
+        return HandAnalysis.IsOpenEndedStraightDraw(Hand.ParseHand(mask)[0], Hand.ParseHand(dead)[0])
 
     # Return true if the combined cards contains a gut shot straight draw
     # pocket - Players pocket cards mask
@@ -380,9 +380,9 @@ class HandAnalysis:
     @dispatch(int, int, int)
     def IsGutShotStraightDraw(pocket: int, board: int, dead: int):
         if __debug__:
-            if HoldemHand.BitCount(pocket) != 2:
+            if Hand.BitCount(pocket) != 2:
                 raise Exception("Pocket must have exactly two cards")
-            if HoldemHand.BitCount(board) != 3 and HoldemHand.BitCount(board) != 4:
+            if Hand.BitCount(board) != 3 and Hand.BitCount(board) != 4:
                 raise Exception("Board must have 3 or 4 cards for this calculation")
         
         
@@ -396,7 +396,7 @@ class HandAnalysis:
         if __debug__:
             if mask & dead != 0:
                 raise Exception("Mask and dead cards must not have any cards in common")
-            if HoldemHand.BitCount(mask) < 4 or HoldemHand.BitCount(mask) > 6:
+            if Hand.BitCount(mask) < 4 or Hand.BitCount(mask) > 6:
                 raise Exception("mask must have 4-6 cards")
         
         return HandAnalysis.StraightDrawCount(mask, 0) <= 4 and HandAnalysis.StraightDrawCount(mask, dead) > 0
@@ -406,7 +406,7 @@ class HandAnalysis:
     @staticmethod
     @dispatch(str, str)
     def IsGutShotStraightDraw(mask: str, dead: str):
-        return HandAnalysis.IsGutShotStraightDraw(HoldemHand.ParseHand(mask)[0], HoldemHand.ParseCard(dead)[0])
+        return HandAnalysis.IsGutShotStraightDraw(Hand.ParseHand(mask)[0], Hand.ParseCard(dead)[0])
 
     # Returns true if the passed mask only needs one card to make a straight.
     # Note that the pocket cards must contains at least one card in the 
@@ -427,19 +427,19 @@ class HandAnalysis:
     @staticmethod
     @dispatch(str, str)
     def IsStraightDraw(mask: str, dead: str):
-        return HandAnalysis.IsStraightDraw(HoldemHand.ParseHand(mask)[0], HoldemHand.ParseHand(dead)[0])
+        return HandAnalysis.IsStraightDraw(Hand.ParseHand(mask)[0], Hand.ParseHand(dead)[0])
     
     @staticmethod
     @dispatch(str, str, str)
     def IsStraightDraw(pocket: str, board: str, dead: str):
         if __debug__:
-            if not HoldemHand.ValidateHand(pocket):
+            if not Hand.ValidateHand(pocket):
                 raise Exception("Invalid pocket hand")
-            if not HoldemHand.ValidateHand(board):
+            if not Hand.ValidateHand(board):
                 raise Exception("Invalid board cards")
-        pocketMask = HoldemHand.ParseHand(pocket)[0]
-        boardMask = HoldemHand.ParseHand(board)[0]
-        deadMask = HoldemHand.ParseHand(dead)[0]
+        pocketMask = Hand.ParseHand(pocket)[0]
+        boardMask = Hand.ParseHand(board)[0]
+        deadMask = Hand.ParseHand(dead)[0]
         return HandAnalysis.IsStraightDraw(pocketMask, boardMask, deadMask)
     
     # Returns the count of adjacent cards
@@ -449,18 +449,18 @@ class HandAnalysis:
     @dispatch(int, int)
     def CountContiguous(pocket: int, board: int):
         mask = pocket | board
-        bf = HoldemHand.CardMask(mask, HoldemHand.CLUBS) | HoldemHand.CardMask(mask, HoldemHand.DIAMONDS) \
-                | HoldemHand.CardMask(mask, HoldemHand.HEARTS) | HoldemHand.CardMask(mask, HoldemHand.SPADES)
+        bf = Hand.CardMask(mask, Hand.CLUBS) | Hand.CardMask(mask, Hand.DIAMONDS) \
+                | Hand.CardMask(mask, Hand.HEARTS) | Hand.CardMask(mask, Hand.SPADES)
         if __debug__: 
-            if HoldemHand.BitCount(pocket) != 2:
+            if Hand.BitCount(pocket) != 2:
                 raise Exception("Pocket must have exactly two cards")
-            if HoldemHand.BitCount(board) != 3 and HoldemHand.BitCount(board) != 4:
+            if Hand.BitCount(board) != 3 and Hand.BitCount(board) != 4:
                 raise Exception("Board must have 3 or 4 cards for this calculation")    
 
             masks = [0x7f, 0x3f, 0x1f, 0xf, 0x7, 0x3]
             i = 0
             while i < len(masks):
-                count = HoldemHand.BitCount(masks[i])
+                count = Hand.BitCount(masks[i])
                 contmask = 0
                 offset = 13 - count
                 while offset >= 0:                    
@@ -483,10 +483,10 @@ class HandAnalysis:
     @staticmethod
     @dispatch(int)
     def CountContiguous(mask: int):
-        clubs = HoldemHand.CardMask(mask, HoldemHand.CLUBS)
-        diamonds = HoldemHand.CardMask(mask, HoldemHand.DIAMONDS)
-        hearts = HoldemHand.CardMask(mask, HoldemHand.Hands)
-        spades = HoldemHand.CardMask(mask, HoldemHand.SPADES)
+        clubs = Hand.CardMask(mask, Hand.CLUBS)
+        diamonds = Hand.CardMask(mask, Hand.DIAMONDS)
+        hearts = Hand.CardMask(mask, Hand.Hands)
+        spades = Hand.CardMask(mask, Hand.SPADES)
         return HandAnalysis.__ContiguousCountTable[clubs | diamonds | hearts | spades]    
 
     # Counts the number of hands that are a flush with one more drawn card
@@ -498,18 +498,18 @@ class HandAnalysis:
         retval = 0
 
         # Get original mask value
-        handType = HoldemHand.EvaluateType(mask)[0]
+        handType = Hand.EvaluateType(mask)[0]
 
         # if current mask is better than a straight then return 0 outs
-        if handType >= HoldemHand.HandTypes.FLUSH:
+        if handType >= Hand.HandTypes.FLUSH:
             return retval
         
         # look ahead one card
-        for card in HoldemHand.Hands(0, mask | dead, 1):
-            handType = HoldemHand.EvaluateType(mask | card)[0]
+        for card in Hand.Hands(0, mask | dead, 1):
+            handType = Hand.EvaluateType(mask | card)[0]
 
             # include straight flush as this will ensure outs is always the maximum
-            if handType == HoldemHand.HandTypes.FLUSH or handType == HoldemHand.HandTypes.STRAIGHT_FLUSH:
+            if handType == Hand.HandTypes.FLUSH or handType == Hand.HandTypes.STRAIGHT_FLUSH:
                 retval += 1
         
         return retval
@@ -524,32 +524,32 @@ class HandAnalysis:
     def FlushDrawCount(player: int, board: int, dead: int):
         retval = 0
         if __debug__:
-            if HoldemHand.BitCount(player) != 2:
+            if Hand.BitCount(player) != 2:
                 raise Exception("Player must have exactly 2 cards")
-            if HoldemHand.BitCount(board) != 3 and HoldemHand.BitCount(board) != 4:
+            if Hand.BitCount(board) != 3 and Hand.BitCount(board) != 4:
                 raise Exception("Board must contain 3 or 4 cards")
         
         # Get original mask value
-        playerOrigHandType = HoldemHand.EvaluateType(player | board)[0]
+        playerOrigHandType = Hand.EvaluateType(player | board)[0]
 
         # if current mask better than a straight then return 0 outs
-        if playerOrigHandType == HoldemHand.HandTypes.FLUSH or \
-            playerOrigHandType == HoldemHand.HandTypes.STRAIGHT_FLUSH:
+        if playerOrigHandType == Hand.HandTypes.FLUSH or \
+            playerOrigHandType == Hand.HandTypes.STRAIGHT_FLUSH:
             return retval
         
         # look ahead one card
-        for card in HoldemHand.Hands(0, board | player | dead, 1):
+        for card in Hand.Hands(0, board | player | dead, 1):
             # get new mask value
-            playerNewHandValue = HoldemHand.Evaluate(player | board | card)
-            boardNewHandValue = HoldemHand.Evaluate(board | card)
+            playerNewHandValue = Hand.Evaluate(player | board | card)
+            boardNewHandValue = Hand.Evaluate(board | card)
 
             # include straight flush as this will ensure outs is always the maximum
-            if HoldemHand.HandType(playerNewHandValue) == HoldemHand.HandTypes.FLUSH or \
-                HoldemHand.HandType(playerNewHandValue) == HoldemHand.HandTypes.STRAIGHT_FLUSH:
+            if Hand.HandType(playerNewHandValue) == Hand.HandTypes.FLUSH or \
+                Hand.HandType(playerNewHandValue) == Hand.HandTypes.STRAIGHT_FLUSH:
                 # if the mask improved, increment out
-                if HoldemHand.HandType(playerNewHandValue) > HoldemHand.HandType(boardNewHandValue) or \
-                    HoldemHand.HandType(playerNewHandValue) == HoldemHand.HandType(boardNewHandValue) and \
-                    HoldemHand.TopCard(playerNewHandValue) > HoldemHand.TopCard(boardNewHandValue):
+                if Hand.HandType(playerNewHandValue) > Hand.HandType(boardNewHandValue) or \
+                    Hand.HandType(playerNewHandValue) == Hand.HandType(boardNewHandValue) and \
+                    Hand.TopCard(playerNewHandValue) > Hand.TopCard(boardNewHandValue):
                     retval += 1
             
         return retval
@@ -562,9 +562,9 @@ class HandAnalysis:
     @dispatch(int, int, int)
     def IsFlushDraw(pocket: int, board: int, dead: int):
         if __debug__:
-            if HoldemHand.BitCount(pocket) != 2:
+            if Hand.BitCount(pocket) != 2:
                 raise Exception("Pocket must have exactly two cards")
-            if HoldemHand.BitCount(board) != 3 and HoldemHand.BitCount != 4:
+            if Hand.BitCount(board) != 3 and Hand.BitCount != 4:
                 raise Exception("board must have 3 or 4 cards for this calculation")
 
         return HandAnalysis.FlushDrawCount(pocket, board, dead) > 0
@@ -585,12 +585,12 @@ class HandAnalysis:
     @dispatch(str, str, str)
     def IsFlushDraw(pocket: str, board: str, dead: str):
         if __debug__:
-            if not HoldemHand.ValidateHand(pocket):
+            if not Hand.ValidateHand(pocket):
                 raise Exception("Invalid pocket cards")
-            if not HoldemHand.ValidateHand(board):
+            if not Hand.ValidateHand(board):
                 raise Exception("Invalid board")
         
-        return HandAnalysis.FlushDrawCount(HoldemHand.ParseHand(pocket)[0], HoldemHand.ParseHand(board)[0], HoldemHand.ParseHand(dead)[0]) > 0
+        return HandAnalysis.FlushDrawCount(Hand.ParseHand(pocket)[0], Hand.ParseHand(board)[0], Hand.ParseHand(dead)[0]) > 0
 
     # Returns true if there are three cards of the same suit. 
     # The pocket cards must have at least one card in that suit.
@@ -601,32 +601,32 @@ class HandAnalysis:
     @dispatch(int, int, int)
     def IsBackdoorFlushDraw(pocket: int, board: int, dead: int):
         if __debug__:
-            if HoldemHand.BitCount(pocket) != 2:
+            if Hand.BitCount(pocket) != 2:
                 raise Exception("Pocket must have exactly two cards")
-            if HoldemHand.BitCount(board) != 3 and HoldemHand.BitCount(board) != 4:
+            if Hand.BitCount(board) != 3 and Hand.BitCount(board) != 4:
                 raise Exception("Board must have 3 or 4 cards for this calculation")
         
         mask = pocket | board
-        currentType = HoldemHand.EvaluateType(mask)[0]
-        if currentType >= HoldemHand.HandTypes.FLUSH:
+        currentType = Hand.EvaluateType(mask)[0]
+        if currentType >= Hand.HandTypes.FLUSH:
             return False
         
-        ss = (mask >> HoldemHand.GetSpadeOffset()) & 0x1FFF
-        sc = (mask >> HoldemHand.GetClubOffset()) & 0x1FFF
-        sd = (mask >> HoldemHand.GetDiamondOffset()) & 0x1FFF
-        sh = (mask >> HoldemHand.GetHeartOffset()) & 0x1FFF
+        ss = (mask >> Hand.GetSpadeOffset()) & 0x1FFF
+        sc = (mask >> Hand.GetClubOffset()) & 0x1FFF
+        sd = (mask >> Hand.GetDiamondOffset()) & 0x1FFF
+        sh = (mask >> Hand.GetHeartOffset()) & 0x1FFF
 
-        if HoldemHand.BitCount(ss) == 3:
-            ps = (pocket >> HoldemHand.GetSpadeOffset()) & 0x1fff
+        if Hand.BitCount(ss) == 3:
+            ps = (pocket >> Hand.GetSpadeOffset()) & 0x1fff
             return ps != 0
-        elif HoldemHand.BitCount(sc) == 3:
-            pc = (pocket >> HoldemHand.GetClubOffset()) & 0x1fff
+        elif Hand.BitCount(sc) == 3:
+            pc = (pocket >> Hand.GetClubOffset()) & 0x1fff
             return pc != 0
-        elif HoldemHand.BitCount(sd) == 3:
-            pd = (pocket >> HoldemHand.GetDiamondOffset()) & 0x1fff
+        elif Hand.BitCount(sd) == 3:
+            pd = (pocket >> Hand.GetDiamondOffset()) & 0x1fff
             return pd != 0
-        elif HoldemHand.BitCount(sh) == 3:
-            ph = (pocket >> HoldemHand.GetHeartOffset()) & 0x1fff
+        elif Hand.BitCount(sh) == 3:
+            ph = (pocket >> Hand.GetHeartOffset()) & 0x1fff
             return ph != 0
         
         return False
@@ -640,12 +640,12 @@ class HandAnalysis:
     @dispatch(str, str, str)
     def IsBackdoorFlushDraw(pocket: str, board: str, dead: str):
         if __debug__:
-            if not HoldemHand.ValidateHand(pocket):
+            if not Hand.ValidateHand(pocket):
                 raise Exception("Invalid pocket cards")
-            if not HoldemHand.ValidateHand(board):
+            if not Hand.ValidateHand(board):
                 raise Exception("Invalid board")
         
-        return HandAnalysis.IsBackdoorFlushDraw(HoldemHand.ParseHand(pocket)[0], HoldemHand.ParseHand(board)[0], HoldemHand.ParseHand(dead)[0])
+        return HandAnalysis.IsBackdoorFlushDraw(Hand.ParseHand(pocket)[0], Hand.ParseHand(board)[0], Hand.ParseHand(dead)[0])
 
     # The method returns the number of draws that are possible for the
     # specified HandType. This method only returns the counts that improve the 
@@ -661,36 +661,36 @@ class HandAnalysis:
     def DrawCount(player: int, board: int, dead: int, handType: int):
         retval = 0
         if __debug__:
-            if HoldemHand.BitCount(player) != 2:
+            if Hand.BitCount(player) != 2:
                 raise Exception("Player must have exactly two cards")
-            if HoldemHand.BitCount(board) != 3 and HoldemHand.BitCount(board) != 4:
+            if Hand.BitCount(board) != 3 and Hand.BitCount(board) != 4:
                 raise Exception("Board must contain 3 or 4 cards for this calculation")
             if (board | player) & dead != 0: 
                 raise Exception("Player and board must not contain dead cards")
         
         # Get original mask value
-        playerOrigHandVal = HoldemHand.Evaluate(player | board)
+        playerOrigHandVal = Hand.Evaluate(player | board)
 
-        if HoldemHand.HandType(playerOrigHandVal) > handType:
+        if Hand.HandType(playerOrigHandVal) > handType:
             return 0
         
         # look ahead one card
-        for card in HoldemHand.Hands(0, board | player | dead, 1):
+        for card in Hand.Hands(0, board | player | dead, 1):
             # get new mask value
-            playerNewHandVal = HoldemHand.Evaluate(player | board | card)
+            playerNewHandVal = Hand.Evaluate(player | board | card)
 
             # Get new board value
-            boardHandVal = HoldemHand.Evaluate(board | card)
+            boardHandVal = Hand.Evaluate(board | card)
 
             # Is the new mask better than the old one? We don't
             # want to know about supesizing the kickers so this
             # ensures that mask moved up in mask type
-            handImproved = HoldemHand.HandType(playerNewHandVal) > HoldemHand.HandType(playerOrigHandVal)
+            handImproved = Hand.HandType(playerNewHandVal) > Hand.HandType(playerOrigHandVal)
 
             # if the mask improved and it matches the specified type, return true
             handStrongerThanBoard = playerNewHandVal > boardHandVal
 
-            if handImproved and handStrongerThanBoard and HoldemHand.HandType(playerNewHandVal) == handType:
+            if handImproved and handStrongerThanBoard and Hand.HandType(playerNewHandVal) == handType:
                 retval += 1
 
         return retval
@@ -707,19 +707,19 @@ class HandAnalysis:
     @dispatch(int, int, int)
     def DrawCount(mask: int, dead: int, handType: int):
         retval = 0
-        if HoldemHand.BitCount(mask) >=7:
+        if Hand.BitCount(mask) >=7:
             raise Exception("mask must contain less than 7 cards")
         if mask & dead != 0:
             raise Exception("mask must not contain dead cards")
 
-        playerOriginalHandType = HoldemHand.EvaluateType(mask)[0]
+        playerOriginalHandType = Hand.EvaluateType(mask)[0]
         if playerOriginalHandType >= handType:
             return 0
 
         # Look ahead one card
-        for card in HoldemHand.Hands(0, mask | dead, 1):
+        for card in Hand.Hands(0, mask | dead, 1):
             # Get new mask value
-            playerNewHandType = HoldemHand.EvaluateType(mask | card)[0]
+            playerNewHandType = Hand.EvaluateType(mask | card)[0]
 
             if playerNewHandType > playerOriginalHandType and playerNewHandType == handType:
                 retval += 1
@@ -737,12 +737,12 @@ class HandAnalysis:
     @dispatch(str, str, str, int)
     def DrawCount(player: str, board: str, dead: str, handType: int):
         if __debug__:
-            if not HoldemHand.ValidateHand(player):
+            if not Hand.ValidateHand(player):
                 raise Exception("Invalid pocket cards")
-            if not HoldemHand.ValidateHand(board):
+            if not Hand.ValidateHand(board):
                 raise Exception("Invalid board")
         
-        return HandAnalysis.DrawCount(HoldemHand.ParseHand(player)[0], HoldemHand.ParseHand(board)[0], HoldemHand.ParseHand(dead)[0], handType)
+        return HandAnalysis.DrawCount(Hand.ParseHand(player)[0], Hand.ParseHand(board)[0], Hand.ParseHand(dead)[0], handType)
     
     # This method returns the mask distance from the best possible
     # mask given this board (no draws are considered). The value 0 is the 
@@ -753,15 +753,15 @@ class HandAnalysis:
     @dispatch(int, int)
     def HandDistance(pocket: int, board: int):
         if __debug__:
-            if HoldemHand.BitCount(pocket) != 2:
+            if Hand.BitCount(pocket) != 2:
                 raise Exception("Player must have exactly two cards")
-            if HoldemHand.BitCount(board) != 3 and HoldemHand.BitCount(board) !=4:
+            if Hand.BitCount(board) != 3 and Hand.BitCount(board) !=4:
                 raise Exception("Board must containt 3 or 4 cards")
         hv = 0
         handValues = []
-        pocketHandVal = HoldemHand.Evaluate(pocket | board)
-        for p in HoldemHand.Hands(0, board, 2):
-            hv = HoldemHand.Evaluate(p | board)            
+        pocketHandVal = Hand.Evaluate(pocket | board)
+        for p in Hand.Hands(0, board, 2):
+            hv = Hand.Evaluate(p | board)            
             if hv not in handValues:
                 handValues.append(hv)
         
@@ -792,7 +792,7 @@ class HandAnalysis:
     # opponents - Opponents pocket hands
     @staticmethod
     def OutsDiscounted(player: int, board: int, opponentsList):
-        return HoldemHand.BitCount(HandAnalysis.OutsMaskDiscounted(player, board, opponentsList))
+        return Hand.BitCount(HandAnalysis.OutsMaskDiscounted(player, board, opponentsList))
     
     # Creates a Hand mask with the cards that will improve the specified players hand
     # against a list of opponents or if no opponents are list just the cards that improve the 
@@ -825,29 +825,29 @@ class HandAnalysis:
     def OutsMaskDiscounted(player: int, board: int, opponentsList):
         retval = 0
         dead = 0
-        ncards = HoldemHand.BitCount(player | board)
+        ncards = Hand.BitCount(player | board)
 
         if __debug__:
-            if HoldemHand.BitCount(player) != 2:
+            if Hand.BitCount(player) != 2:
                 raise Exception("Player pocket must have exactly two cards")
             if ncards != 5 and ncards != 6:
                 raise Exception("Outs only make sense after the flop and before the river")
         if len(opponentsList) > 0:
             for opp in opponentsList:
-                if HoldemHand.BitCount(opp) != 2:
+                if Hand.BitCount(opp) != 2:
                     raise Exception("Opponent hand ust have exactly two cards")
                 dead |= opp
-            playerOrigHandVal = HoldemHand.Evaluate(player | board, ncards);
-            playerOrigHandType = HoldemHand.HandType(playerOrigHandVal)
-            playerOrigTopCard = HoldemHand.TopCard(playerOrigHandVal)
+            playerOrigHandVal = Hand.Evaluate(player | board, ncards);
+            playerOrigHandType = Hand.HandType(playerOrigHandVal)
+            playerOrigTopCard = Hand.TopCard(playerOrigHandVal)
 
-            for card in HoldemHand.Hands(0, dead | board | player, 1):
+            for card in Hand.Hands(0, dead | board | player, 1):
                 bWinFlag = True
-                playerNewHandVal = HoldemHand.Evaluate(player | board | card, ncards + 1)
-                playerNewHandType = HoldemHand.HandType(playerNewHandVal)
-                playerNewTopCard = HoldemHand.TopCard(playerNewHandVal)
+                playerNewHandVal = Hand.Evaluate(player | board | card, ncards + 1)
+                playerNewHandType = Hand.HandType(playerNewHandVal)
+                playerNewTopCard = Hand.TopCard(playerNewHandVal)
                 for oppmask in opponentsList:
-                    oppHandVal = HoldemHand.Evaluate(oppmask | board | card, ncards + 1)
+                    oppHandVal = Hand.Evaluate(oppmask | board | card, ncards + 1)
                     bWinFlag = oppHandVal < playerNewHandVal and \
                         (playerNewHandType > playerOrigHandType or (playerNewHandType == playerOrigHandType and playerNewTopCard > playerOrigTopCard))
                     if not bWinFlag:
@@ -856,75 +856,75 @@ class HandAnalysis:
                     retval |= card
         else:
             # Look at the cards that improve the hand
-            playerOrigHandVal = HoldemHand.Evaluate(player | board, ncards)
-            playerOrigHandType = HoldemHand.HandType(playerOrigHandVal)
-            playerOrigTopCard = HoldemHand.TopCard(playerOrigHandVal)
-            boardOrigHandVal = HoldemHand.Evaluate(board)
-            boardOrigHandType = HoldemHand.HandType(boardOrigHandVal)
-            boardOrigTopCard = HoldemHand.TopCard(boardOrigHandVal)
+            playerOrigHandVal = Hand.Evaluate(player | board, ncards)
+            playerOrigHandType = Hand.HandType(playerOrigHandVal)
+            playerOrigTopCard = Hand.TopCard(playerOrigHandVal)
+            boardOrigHandVal = Hand.Evaluate(board)
+            boardOrigHandType = Hand.HandType(boardOrigHandVal)
+            boardOrigTopCard = Hand.TopCard(boardOrigHandVal)
 
             # Look at players pocket cards for special cases
-            playerPocketHandVal = HoldemHand.Evaluate(player)
-            playerPocketHandType = HoldemHand.HandType(playerPocketHandVal)
+            playerPocketHandVal = Hand.Evaluate(player)
+            playerPocketHandType = Hand.HandType(playerPocketHandVal)
 
             # Separate out by suit
-            sc = (board >> HoldemHand.GetClubOffset()) & 0x1fff
-            sd = (board >> HoldemHand.GetDiamondOffset()) & 0x1fff
-            sh = (board >> HoldemHand.GetHeartOffset()) & 0x1fff
-            ss = (board >> HoldemHand.GetSpadeOffset()) & 0x1fff
+            sc = (board >> Hand.GetClubOffset()) & 0x1fff
+            sd = (board >> Hand.GetDiamondOffset()) & 0x1fff
+            sh = (board >> Hand.GetHeartOffset()) & 0x1fff
+            ss = (board >> Hand.GetSpadeOffset()) & 0x1fff
 
             # Check if board is 3 suited
-            discountSuitedBoard = (HoldemHand.nBitsTable[sc] > 2) or (HoldemHand.nBitsTable[sd] > 2) or (HoldemHand.nBitsTable[sh] > 2) or (HoldemHand.nBitsTable[ss] > 2)
+            discountSuitedBoard = (Hand.nBitsTable[sc] > 2) or (Hand.nBitsTable[sd] > 2) or (Hand.nBitsTable[sh] > 2) or (Hand.nBitsTable[ss] > 2)
 
             # Check if board is 3 connected on the flop. a dangerous board:
             # 3 possible straights using 2 pocket cards and a higher chance
             # of 2 pair; player often play 2 connected cards which can hit
             countContiguous = 0
-            boardCardCount = HoldemHand.BitCount(board)
+            boardCardCount = Hand.BitCount(board)
 
             if boardCardCount == 3:
-                bf = HoldemHand.CardMask(board, HoldemHand.CLUBS) or HoldemHand.CardMask(board, HoldemHand.DIAMONDS) or HoldemHand.CardMask(board, HoldemHand.HEARTS) or HoldemHand.CardMask(board, HoldemHand.SPADES)
-                if HoldemHand.BitCount(0x1800 & bf) == 2: countContiguous += 1
-                if HoldemHand.BitCount(0xc00 & bf) == 2: countContiguous += 1
-                if HoldemHand.BitCount(0x600 & bf) == 2: countContiguous += 1
-                if HoldemHand.BitCount(0x300 & bf) == 2: countContiguous += 1
-                if HoldemHand.BitCount(0x180 & bf) == 2: countContiguous += 1
-                if HoldemHand.BitCount(0xc0 & bf) == 2: countContiguous += 1
-                if HoldemHand.BitCount(0x60 & bf) == 2: countContiguous += 1
-                if HoldemHand.BitCount(0x30 & bf) == 2: countContiguous += 1
-                if HoldemHand.BitCount(0x18 & bf) == 2: countContiguous += 1
-                if HoldemHand.BitCount(0xc & bf) == 2: countContiguous += 1;
-                if HoldemHand.BitCount(0x6 & bf) == 2: countContiguous += 1;
-                if HoldemHand.BitCount(0x3 & bf) == 2: countContiguous += 1;
-                if HoldemHand.BitCount(0x1001 & bf) == 2: countContiguous += 1;
+                bf = Hand.CardMask(board, Hand.CLUBS) or Hand.CardMask(board, Hand.DIAMONDS) or Hand.CardMask(board, Hand.HEARTS) or Hand.CardMask(board, Hand.SPADES)
+                if Hand.BitCount(0x1800 & bf) == 2: countContiguous += 1
+                if Hand.BitCount(0xc00 & bf) == 2: countContiguous += 1
+                if Hand.BitCount(0x600 & bf) == 2: countContiguous += 1
+                if Hand.BitCount(0x300 & bf) == 2: countContiguous += 1
+                if Hand.BitCount(0x180 & bf) == 2: countContiguous += 1
+                if Hand.BitCount(0xc0 & bf) == 2: countContiguous += 1
+                if Hand.BitCount(0x60 & bf) == 2: countContiguous += 1
+                if Hand.BitCount(0x30 & bf) == 2: countContiguous += 1
+                if Hand.BitCount(0x18 & bf) == 2: countContiguous += 1
+                if Hand.BitCount(0xc & bf) == 2: countContiguous += 1;
+                if Hand.BitCount(0x6 & bf) == 2: countContiguous += 1;
+                if Hand.BitCount(0x3 & bf) == 2: countContiguous += 1;
+                if Hand.BitCount(0x1001 & bf) == 2: countContiguous += 1;
             
             discountStraight = countContiguous > 2
 
             # Look ahead one card
-            for card in HoldemHand.Hands(0, dead | board | player, 1):
-                boardNewHandVal = HoldemHand.Evaluate(board | card)
-                boardNewHandType = HoldemHand.HandType(boardNewHandVal)
-                boardNewTopCard = HoldemHand.TopCard(boardNewHandVal)
-                playerNewHandVal = HoldemHand.Evaluate(player | board | card, ncards + 1)
-                playerNewHandType = HoldemHand.HandType(playerNewHandVal)
-                playerNewTopCard = HoldemHand.TopCard(playerNewHandVal)
-                playerImproved = HoldemHand.TopCard(playerNewHandVal)
+            for card in Hand.Hands(0, dead | board | player, 1):
+                boardNewHandVal = Hand.Evaluate(board | card)
+                boardNewHandType = Hand.HandType(boardNewHandVal)
+                boardNewTopCard = Hand.TopCard(boardNewHandVal)
+                playerNewHandVal = Hand.Evaluate(player | board | card, ncards + 1)
+                playerNewHandType = Hand.HandType(playerNewHandVal)
+                playerNewTopCard = Hand.TopCard(playerNewHandVal)
+                playerImproved = Hand.TopCard(playerNewHandVal)
                 playerStrongerThanBoard = playerNewHandType > boardNewHandType or (playerNewHandType == boardNewHandType and playerNewTopCard > boardNewTopCard)
 
                 if playerImproved and playerStrongerThanBoard:
                     isOut = False
                     discountSuitedOut = False
                     if not discountSuitedBoard:
-                        cc = (card >> HoldemHand.GetClubOffset()) & 0x1fff
-                        cd = (card >> HoldemHand.GetDiamondOffset()) & 0x1fff
-                        ch = (card >> HoldemHand.GetHeartOffset()) & 0x1fff
-                        cs = (card >> HoldemHand.GetSpadeOffset()) & 0x1fff
+                        cc = (card >> Hand.GetClubOffset()) & 0x1fff
+                        cd = (card >> Hand.GetDiamondOffset()) & 0x1fff
+                        ch = (card >> Hand.GetHeartOffset()) & 0x1fff
+                        cs = (card >> Hand.GetSpadeOffset()) & 0x1fff
 
                         # Check if card will make a 3 suited board
-                        discountSuitedOut = (HoldemHand.nBitsTable[sc] > 1 and HoldemHand.nBitsTable[cc] == 1) \
-                            or (HoldemHand.nBitsTable[sd] > 1 and HoldemHand.nBitsTable[cd] == 1) \
-                            or (HoldemHand.nBitsTable[sh] > 1 and HoldemHand.nBitsTable[ch] == 1) \
-                            or (HoldemHand.nBitsTable[ss] > 1 and HoldemHand.nBitsTable[cs] == 1)
+                        discountSuitedOut = (Hand.nBitsTable[sc] > 1 and Hand.nBitsTable[cc] == 1) \
+                            or (Hand.nBitsTable[sd] > 1 and Hand.nBitsTable[cd] == 1) \
+                            or (Hand.nBitsTable[sh] > 1 and Hand.nBitsTable[ch] == 1) \
+                            or (Hand.nBitsTable[ss] > 1 and Hand.nBitsTable[cs] == 1)
                         
                     # Check if board is 4 connected or card + board is 4 connected
                     # Dangerous board: straight using 1 pocket card only
@@ -936,47 +936,47 @@ class HandAnalysis:
                     # 9x,8x,7x,5x (3 in a row with a 1 gap connected card)
                     # 9x,8x,6x,5x (2 connected with a 1 gap connected in the middle)
                     countContiguous = 0
-                    bf = HoldemHand.CardMask(board | card, HoldemHand.CLUBS) | HoldemHand.CardMask(board | card, HoldemHand.DIAMONDS) | HoldemHand.CardMask(board | card, HoldemHand.HEARTS) | HoldemHand.CardMask(board | card, HoldemHand.SPADES)
+                    bf = Hand.CardMask(board | card, Hand.CLUBS) | Hand.CardMask(board | card, Hand.DIAMONDS) | Hand.CardMask(board | card, Hand.HEARTS) | Hand.CardMask(board | card, Hand.SPADES)
 
                     # AxKx
-                    if HoldemHand.BitCount(0x1800 & bf) == 2:
+                    if Hand.BitCount(0x1800 & bf) == 2:
                         countContiguous += 1
                     
                     # KxQx
-                    if HoldemHand.BitCount(0xc00 & bf) == 2:
+                    if Hand.BitCount(0xc00 & bf) == 2:
                         countContiguous += 1
                     else:
-                        if countContiguous == 1 and HoldemHand.BitCount(0x300 & bf) == 2:
+                        if countContiguous == 1 and Hand.BitCount(0x300 & bf) == 2:
                             # 2 connected with a 1 gap connected in the middle
                             discountStraight = True                            
                         countContiguous = 0
                     
                     # QxJx
-                    if HoldemHand.BitCount(0x600 & bf) == 2:
+                    if Hand.BitCount(0x600 & bf) == 2:
                         countContiguous += 1
                     else:
                         if countContiguous == 1:
-                            if HoldemHand.BitCount(0x100 & bf) == 2:
+                            if Hand.BitCount(0x100 & bf) == 2:
                                 # 2 connected with a 1 gap in the middle
                                 discountStraight = True
                         elif countContiguous == 2:
                             # test for a T
-                            if HoldemHand.BitCount(0x100 & bf) == 1:
+                            if Hand.BitCount(0x100 & bf) == 1:
                                 # 3 in a row with a 1 gap connected
                                 discountStraight = True
                         countContiguous = 0
 
                     # JxTx
-                    if HoldemHand.BitCount(0x300 & bf) == 2:
+                    if Hand.BitCount(0x300 & bf) == 2:
                         countContiguous += 1
                     else:
                         if countContiguous == 1:
-                            if HoldemHand.BitCount(0xc0 & bf) == 2:
+                            if Hand.BitCount(0xc0 & bf) == 2:
                                 # 2 connected with a 1 gap in the middle
                                 discountStraight = True
                         elif countContiguous == 2:
                             # test for 9x
-                            if HoldemHand.BitCount(0x00 & bf) == 1:
+                            if Hand.BitCount(0x00 & bf) == 1:
                                 # 3 in a row with a 1 gap connected
                                 discountStraight = True
                         elif countContiguous == 3: # 4 in a row
@@ -985,16 +985,16 @@ class HandAnalysis:
                         countContiguous = 0
                     
                     # Tx9x
-                    if HoldemHand.BitCount(0x180 & bf) == 2:
+                    if Hand.BitCount(0x180 & bf) == 2:
                         countContiguous += 1
                     else:
                         if countContiguous == 1:
-                            if HoldemHand.BitCount(0x60 & bf) == 2:
+                            if Hand.BitCount(0x60 & bf) == 2:
                                 # 2 connected with a 1 gap in the middle
                                 discountStraight = True
                         elif countContiguous == 2:
                             # test for 8x or Ax
-                            if HoldemHand.BitCount(0x1040 & bf) == 1:
+                            if Hand.BitCount(0x1040 & bf) == 1:
                                 discountStraight = True
                         elif countContiguous == 3:
                             discountStraight = True
@@ -1002,16 +1002,16 @@ class HandAnalysis:
                         countContiguous = 0
                     
                     # 9x8x
-                    if HoldemHand.BitCount(0xc0 & bf) == 2:
+                    if Hand.BitCount(0xc0 & bf) == 2:
                         countContiguous += 1
                     else:
                         if countContiguous == 1:
-                            if HoldemHand.BitCount(0x30 & bf) == 2:
+                            if Hand.BitCount(0x30 & bf) == 2:
                                 # 2 connected with a 1 gap in the middle
                                 discountStraight = True
                         elif countContiguous == 2:
                             # test for 7x or Kx
-                            if HoldemHand.BitCount(0x820 & bf) == 1:
+                            if Hand.BitCount(0x820 & bf) == 1:
                                 # 3 in a row with a 1 gap connected
                                 discountStraight = True
                         elif countContiguous == 3: # 4 in a row
@@ -1020,16 +1020,16 @@ class HandAnalysis:
                         countContiguous = 0
                     
                     # 8x7x
-                    if HoldemHand.BitCount(0x60 & bf) == 2:
+                    if Hand.BitCount(0x60 & bf) == 2:
                         countContiguous += 1
                     else:
                         if countContiguous == 1:
-                            if HoldemHand.BitCount(0x18 & bf) == 2:
+                            if Hand.BitCount(0x18 & bf) == 2:
                                 # 2 connected with a 1 gap in the middle
                                 discountStraight = True
                         elif countContiguous == 2:
                             # test for 6x or Qx
-                            if HoldemHand.BitCount(0x410 & bf) == 1:
+                            if Hand.BitCount(0x410 & bf) == 1:
                                 # 3 in a row with a 1 gap connected
                                 discountStraight = True
                         elif countContiguous == 3: # 4 in a row
@@ -1038,16 +1038,16 @@ class HandAnalysis:
                         countContiguous = 0
                     
                     # 7x6x
-                    if HoldemHand.BitCount(0x30 & bf) == 2:
+                    if Hand.BitCount(0x30 & bf) == 2:
                         countContiguous += 1
                     else:
                         if countContiguous == 1:
-                            if HoldemHand.BitCount(0xc & bf) == 2:
+                            if Hand.BitCount(0xc & bf) == 2:
                                 # 2 connected with a 1 gap in the middle
                                 discountStraight = True
                         elif countContiguous == 2:
                             # test for 5x or Jx
-                            if HoldemHand.BitCount(0x208 & bf) == 1:
+                            if Hand.BitCount(0x208 & bf) == 1:
                                 # 3 in a row with a gap connected
                                 discountStraight = True
                         elif countContiguous == 3: # 4 in a row
@@ -1056,14 +1056,14 @@ class HandAnalysis:
                         countContiguous = 0
                     
                     # 6x5x
-                    if HoldemHand.BitCount(0x18 & bf) == 2:
+                    if Hand.BitCount(0x18 & bf) == 2:
                         countContiguous += 1
                     else:
                         if countContiguous == 1:
-                            if HoldemHand.BitCount(0x6 & bf) == 2:
+                            if Hand.BitCount(0x6 & bf) == 2:
                                 discountStraight = True
                         elif countContiguous == 2:
-                            if HoldemHand.BitCount(0x104 & bf) == 1:
+                            if Hand.BitCount(0x104 & bf) == 1:
                                 discountStraight = True
                         elif countContiguous == 3:
                             discountStraight = True
@@ -1071,16 +1071,16 @@ class HandAnalysis:
                         countContiguous = 0
                     
                     # 5x4x
-                    if HoldemHand.BitCount(0xc & bf) == 2:
+                    if Hand.BitCount(0xc & bf) == 2:
                         countContiguous += 1
                     else:
                         if countContiguous == 1:
-                            if HoldemHand.BitCount(0x3 & bf) == 2:
+                            if Hand.BitCount(0x3 & bf) == 2:
                                 # 2 connected with a 1 gap in the middle
                                 discountStraight = True
                         elif countContiguous == 2:
                             # test for 3x or 9x
-                            if HoldemHand.BitCount(0x82 & bf) == 1:
+                            if Hand.BitCount(0x82 & bf) == 1:
                                 # 3 in a row with a 1 gap connected
                                 discountStraight = True
                         elif countContiguous == 3: # 4 in a row
@@ -1089,16 +1089,16 @@ class HandAnalysis:
                         countContiguous = 0
 
                     # 4x3x
-                    if HoldemHand.BitCount(0x6 & bf) == 2:
+                    if Hand.BitCount(0x6 & bf) == 2:
                         countContiguous += 1
                     else:
                         if countContiguous == 1:
-                            if HoldemHand.BitCount(0x1001 & bf) == 2:
+                            if Hand.BitCount(0x1001 & bf) == 2:
                                 # 2 connected with a 1 gap in the middle
                                 discountStraight = True
                         elif countContiguous == 2:
                             # test for 2x or 8x
-                            if HoldemHand.BitCount(0x41 & bf) == 1:
+                            if Hand.BitCount(0x41 & bf) == 1:
                                 # 3 in a row with a 1 gap connected
                                 discountStraight = True
                         elif countContiguous == 3: # 4 in a row
@@ -1107,12 +1107,12 @@ class HandAnalysis:
                         countContiguous = 0
                     
                     # 3x2x
-                    if HoldemHand.BitCount(0x3 & bf) == 2:
+                    if Hand.BitCount(0x3 & bf) == 2:
                         countContiguous += 1
                     else:                            
                         if countContiguous == 2:
                             # test for Ax or 7x
-                            if HoldemHand.BitCount(0x1020 & bf) == 1:
+                            if Hand.BitCount(0x1020 & bf) == 1:
                                 # 3 in a row with a 1 gap connected
                                 discountStraight = True
                         elif countContiguous == 3: # 4 in a row
@@ -1121,12 +1121,12 @@ class HandAnalysis:
                         countContiguous = 0
 
                     # 2xAx
-                    if HoldemHand.BitCount(0x1001 & bf) == 2:
+                    if Hand.BitCount(0x1001 & bf) == 2:
                         countContiguous += 1
                         # check one last time
                         if countContiguous == 2:
                             # test for 5x
-                            if HoldemHand.BitCount(0x8 & bf) == 1:
+                            if Hand.BitCount(0x8 & bf) == 1:
                                 # 3 in a row with a 1 gap connected
                                 discountStraight = True
                         elif countContiguous == 3: # 4 in a row
@@ -1134,16 +1134,16 @@ class HandAnalysis:
                     else:                            
                         if countContiguous == 2:
                             # test for 6x
-                            if HoldemHand.BitCount(0x10 & bf) == 1:
+                            if Hand.BitCount(0x10 & bf) == 1:
                                 # 3 in a row with a 1 gap connected
                                 discountStraight = True
                         elif countContiguous == 3: # 4 in a row
                             discountStraight = True
                     
                     # Hand improving to a pair, must use overcards and not make a 3 suited board
-                    if playerNewHandType == HoldemHand.HandTypes.PAIR:
-                        newCardVal = HoldemHand.Evaluate(card)
-                        newTopCard = HoldemHand.TopCard(newCardVal)
+                    if playerNewHandType == Hand.HandTypes.PAIR:
+                        newCardVal = Hand.Evaluate(card)
+                        newTopCard = Hand.TopCard(newCardVal)
                         if boardOrigTopCard < newTopCard and not (discountSuitedBoard or discountSuitedOut) and not discountStraight:
                             isOut = True
                     
@@ -1151,21 +1151,21 @@ class HandAnalysis:
                     # the player already has a pair, either a pocket pair or a pair using the board. 
                     # ie: not drawing to two pair when trips is out - drawing dead.
                     # And not make a 3 suited board and not discounting for a straight. 
-                    elif playerNewHandType == HoldemHand.HandTypes.TWO_PAIR:
-                        playerPocketHandNewCardVal = HoldemHand.Evaluate(player | card)
-                        playerPocketHandNewCardType = HoldemHand.HandType(playerPocketHandNewCardVal)
-                        if (playerPocketHandNewCardType == HoldemHand.HandTypes.PAIR and playerPocketHandType != HoldemHand.HandTypes.PAIR) and (boardOrigHandType != HoldemHand.HandTypes.PAIR or playerOrigHandType == HoldemHand.HandTypes.TWO_PAIR):
+                    elif playerNewHandType == Hand.HandTypes.TWO_PAIR:
+                        playerPocketHandNewCardVal = Hand.Evaluate(player | card)
+                        playerPocketHandNewCardType = Hand.HandType(playerPocketHandNewCardVal)
+                        if (playerPocketHandNewCardType == Hand.HandTypes.PAIR and playerPocketHandType != Hand.HandTypes.PAIR) and (boardOrigHandType != Hand.HandTypes.PAIR or playerOrigHandType == Hand.HandTypes.TWO_PAIR):
                             if not (discountSuitedBoard or discountSuitedOut) and not discountStraight:
                                 isOut = True;
 
                     # New hand better than two pair
-                    elif playerNewHandType > HoldemHand.HandTypes.TWO_PAIR:
+                    elif playerNewHandType > Hand.HandTypes.TWO_PAIR:
                         # Hand imporving trips, must not make a 3 suited board and not discounting for a straight. 
-                        if playerNewHandType == HoldemHand.HandTypes.TRIPS:
+                        if playerNewHandType == Hand.HandTypes.TRIPS:
                             if not (discountSuitedBoard or discountSuitedOut) and not discountStraight:
                                 isOut = True
                         # Hand imporving to a straight, must not make a 3 suited board.
-                        elif playerNewHandType == HoldemHand.HandTypes.STRAIGHT:
+                        elif playerNewHandType == Hand.HandTypes.STRAIGHT:
                             if not (discountSuitedBoard or discountSuitedOut):
                                 isOut = True
                         else:
@@ -1185,25 +1185,25 @@ class HandAnalysis:
     # opponentsList - a list of zero or more opponent cards
     @staticmethod    
     def OutCards(player: str, board: str, opponentsList):
-        playerMask = HoldemHand.ParseHand(player)[0]
-        boardMask = HoldemHand.ParseHand(board)[0]
-        if not HoldemHand.ValidateHand(player) and not HoldemHand.BitCount(player) != 2:
+        playerMask = Hand.ParseHand(player)[0]
+        boardMask = Hand.ParseHand(board)[0]
+        if not Hand.ValidateHand(player) and not Hand.BitCount(player) != 2:
             raise Exception("Invalid player pocket")
-        if not HoldemHand.ValidateHand(board) and not HoldemHand.BitCount(board) != 3 and HoldemHand.BitCount(board) != 4:
+        if not Hand.ValidateHand(board) and not Hand.BitCount(board) != 3 and Hand.BitCount(board) != 4:
             raise Exception("Invalid board")
         
         opponentsMask = []
         i = 0
         while i < len(opponentsList):
-            oppMask = HoldemHand.ParseHand(opponentsList[i])
-            if not HoldemHand.ValidateHand(opponentsList[i]) and not oppMask[1] != 2:
+            oppMask = Hand.ParseHand(opponentsList[i])
+            if not Hand.ValidateHand(opponentsList[i]) and not oppMask[1] != 2:
                 raise Exception("Invalid opponent pocket cards")
             opponentsMask.append(oppMask[0])
             i += 1
         
         mask = HandAnalysis.OutsMask(playerMask, boardMask, opponentsMask)
         retval = ""
-        for s in HoldemHand.Cards(mask):
+        for s in Hand.Cards(mask):
             if len(retval) == 0:
                 retval = s
             else:
@@ -1224,35 +1224,35 @@ class HandAnalysis:
     def OutsMask(player: int, board: int, opponentsList):
         retval = 0
         if __debug__:
-            if HoldemHand.BitCount(player) != 2:
+            if Hand.BitCount(player) != 2:
                 raise Exception("Player must have exactly two cards")
-            if HoldemHand.BitCount(board) != 3 and HoldemHand.BitCount(board) != 4:
+            if Hand.BitCount(board) != 3 and Hand.BitCount(board) != 4:
                 raise Exception("Board must contain 3 or 4 cards")
         
         # Get original mask value
-        playerOrigHandVal = HoldemHand.Evaluate(player | board)
+        playerOrigHandVal = Hand.Evaluate(player | board)
 
         # Look ahead one card
-        for card in HoldemHand.Hands(0, board | player, 1):
+        for card in Hand.Hands(0, board | player, 1):
             # Get new mask value
-            playerNewHandVal = HoldemHand.Evaluate(player | board | card)
+            playerNewHandVal = Hand.Evaluate(player | board | card)
 
             # Get new board value
-            boardHandVal = HoldemHand.Evaluate(board | card)
+            boardHandVal = Hand.Evaluate(board | card)
 
             # Is the new mask better than the old one?
             handImproved = playerNewHandVal > playerOrigHandVal
 
             # This compare ensures we move up in mask type
-            handStrongerThanBoard = HoldemHand.HandType(playerNewHandVal) > HoldemHand.HandType(boardHandVal) \
-                or (HoldemHand.HandType(playerNewHandVal) == HoldemHand.HandType(boardHandVal) \
-                and HoldemHand.TopCard(playerNewHandVal) > HoldemHand.TopCard(boardHandVal))
+            handStrongerThanBoard = Hand.HandType(playerNewHandVal) > Hand.HandType(boardHandVal) \
+                or (Hand.HandType(playerNewHandVal) == Hand.HandType(boardHandVal) \
+                and Hand.TopCard(playerNewHandVal) > Hand.TopCard(boardHandVal))
             
             # Check against opponents cards
             handBeatAllOpponents = True
             if handImproved and handStrongerThanBoard and len(opponentsList) > 0:
                 for opponent in opponentsList:
-                    opponentHandVal = HoldemHand.Evaluate(opponent | board | card)
+                    opponentHandVal = Hand.Evaluate(opponent | board | card)
                     if opponentHandVal > playerNewHandVal:
                         handBeatAllOpponents = False
                         break
@@ -1271,7 +1271,7 @@ class HandAnalysis:
     # Returns the count of the number of single cards that improve the current mask.
     @staticmethod
     def Outs(player: int, board: int, opponentsList):
-        return HoldemHand.BitCount(HandAnalysis.OutsMask(player, board, opponentsList))
+        return Hand.BitCount(HandAnalysis.OutsMask(player, board, opponentsList))
         
     
     __ContiguousCountTable = [

@@ -6,7 +6,7 @@ from timeit import default_timer as timer
 
 
 
-class HoldemHand:
+class Hand:
 
     # Possible types of hands in a texas holdem game
     class HandTypes:
@@ -71,7 +71,7 @@ class HoldemHand:
         if __debug__:
             if not pocketHand: 
                 raise Exception("Pocket Hand must have a value")            
-            if len(pocketHand.strip()) <= 0 or not HoldemHand.ValidateHand(pocketHand):
+            if len(pocketHand.strip()) <= 0 or not Hand.ValidateHand(pocketHand):
                 raise Exception("Invalid pocket hand")
 
         self.__pocket = pocketHand.strip()
@@ -82,7 +82,7 @@ class HoldemHand:
 
     def set_Board(self, board: str):
         if __debug__:
-            if not board or len(board.strip()) <= 0 or not HoldemHand.ValidateHand(board):
+            if not board or len(board.strip()) <= 0 or not Hand.ValidateHand(board):
                 raise Exception("Invalid board")
         self.__board = board
         self.UpdateHandMask()
@@ -91,9 +91,9 @@ class HoldemHand:
         return self.__board
 
     def UpdateHandMask(self):
-        handMaskTuple = HoldemHand.ParseHand(self.get_PocketCards(), self.get_Board())
+        handMaskTuple = Hand.ParseHand(self.get_PocketCards(), self.get_Board())
         self.__handMask = handMaskTuple[0]
-        self.__handVal = HoldemHand.Evaluate(handMaskTuple[0], handMaskTuple[1])
+        self.__handVal = Hand.Evaluate(handMaskTuple[0], handMaskTuple[1])
 
     # default constructor
     @dispatch()
@@ -105,8 +105,8 @@ class HoldemHand:
         if __debug__:
             if not pocket: raise Exception("Pocket hand is not defined")
 
-        HoldemHand.set_PocketCards(self, pocket)
-        HoldemHand.set_Board(self, board)
+        Hand.set_PocketCards(self, pocket)
+        Hand.set_Board(self, board)
     
     def __eq__(self, other):        
         return self.HandValue() == other.HandValue()
@@ -131,13 +131,13 @@ class HoldemHand:
         handmask: numpy.uint64 = 0        
         cards = 0
         try:
-            card = HoldemHand.__NextCard(hand, 0) # return tuple(card, handIteratorIndex)
+            card = Hand.__NextCard(hand, 0) # return tuple(card, handIteratorIndex)
             while card[0] >= 0:
                 if handmask & 1 << card[0] != 0:
                     return False
                 handmask |= 1 << card[0]
                 cards += 1
-                card = HoldemHand.__NextCard(hand, card[1])
+                card = Hand.__NextCard(hand, card[1])
             
             return card[0] == -1 and cards > 0 and card[1] >= len(hand)
         except:
@@ -155,7 +155,7 @@ class HoldemHand:
             if not pocket or len(pocket.strip()) == 0: 
                 raise Exception("Pocket hand is not defined")
 
-        return HoldemHand.ValidateHand(pocket + " " + board)
+        return Hand.ValidateHand(pocket + " " + board)
 
     # Parses card strings (internal)
     # cards - string containing mask definition
@@ -180,38 +180,38 @@ class HoldemHand:
                 try:
                     if (currentCard == '0'):
                         index += 1
-                        rank = HoldemHand.RANK_TEN
+                        rank = Hand.RANK_TEN
                     else:
                         return (-1, index)
                 except: 
                     raise Exception("Bad hand string")
 
             elif currentCard == '2':
-                rank = HoldemHand.RANK2
+                rank = Hand.RANK2
             elif currentCard == '3':
-                rank = HoldemHand.RANK3
+                rank = Hand.RANK3
             elif currentCard == '4':
-                rank = HoldemHand.RANK4
+                rank = Hand.RANK4
             elif currentCard == '5':
-                rank = HoldemHand.RANK5
+                rank = Hand.RANK5
             elif currentCard == '6':
-                rank = HoldemHand.RANK6
+                rank = Hand.RANK6
             elif currentCard == '7':
-                rank = HoldemHand.RANK7
+                rank = Hand.RANK7
             elif currentCard == '8':
-                rank = HoldemHand.RANK8
+                rank = Hand.RANK8
             elif currentCard == '9':
-                rank = HoldemHand.RANK9
+                rank = Hand.RANK9
             elif currentCard == 'T' or currentCard == 't':
-                rank = HoldemHand.RANK_TEN
+                rank = Hand.RANK_TEN
             elif currentCard == 'J' or currentCard == 'j':
-                rank = HoldemHand.RANK_JACK
+                rank = Hand.RANK_JACK
             elif currentCard == 'Q' or currentCard == 'q':
-                rank = HoldemHand.RANK_QUEEN
+                rank = Hand.RANK_QUEEN
             elif currentCard == 'K' or currentCard == 'k':
-                rank = HoldemHand.RANK_KING
+                rank = Hand.RANK_KING
             elif currentCard == 'A' or currentCard == 'a':
-                rank = HoldemHand.RANK_ACE
+                rank = Hand.RANK_ACE
             else:
                 return (-2, index)
         else:
@@ -221,13 +221,13 @@ class HoldemHand:
             currentCard = cards[index]
             index += 1
             if currentCard == 'H' or currentCard == 'h':
-                suit = HoldemHand.HEARTS
+                suit = Hand.HEARTS
             elif currentCard == 'D' or currentCard == 'd':
-                suit = HoldemHand.DIAMONDS
+                suit = Hand.DIAMONDS
             elif currentCard == 'C' or currentCard == 'c':
-                suit = HoldemHand.CLUBS
+                suit = Hand.CLUBS
             elif currentCard == 'S' or currentCard == 's':
-                suit = HoldemHand.SPADES
+                suit = Hand.SPADES
             else:
                 return (-2, index)
         else:
@@ -255,16 +255,16 @@ class HoldemHand:
             return (0, 0)
         
         if __debug__:
-            if not HoldemHand.ValidateHand(hand):
+            if not Hand.ValidateHand(hand):
                 raise Exception("Bad hand definition")
     
         # Parse the mask
         cards = 0
-        card = HoldemHand.__NextCard(hand, 0)
+        card = Hand.__NextCard(hand, 0)
         while card[0] >= 0:
             handmask |= 1 << card[0]
             cards += 1
-            card = HoldemHand.__NextCard(hand, card[1])
+            card = Hand.__NextCard(hand, card[1])
         
         return (handmask, cards)
     #end ParseHand
@@ -276,7 +276,7 @@ class HoldemHand:
     @staticmethod
     @dispatch(str, str)
     def ParseHand(pocket: str, board: str):
-        return HoldemHand.ParseHand(pocket +" "+ board)
+        return Hand.ParseHand(pocket +" "+ board)
 
     # Reads a string definition of a card and returns the Card value.
     # card - card string
@@ -285,7 +285,7 @@ class HoldemHand:
         if __debug__:
             if not card: raise Exception("Card is not defined")
 
-        return HoldemHand.__NextCard(card, 0)[0]
+        return Hand.__NextCard(card, 0)[0]
 
     # Given a card value, return its rank
     # card - card value
@@ -309,11 +309,11 @@ class HoldemHand:
 
     @staticmethod
     def HandType(handValue: int):
-        return handValue >> HoldemHand.HANDTYPE_SHIFT
+        return handValue >> Hand.HANDTYPE_SHIFT
 
     @staticmethod
     def DescriptionFromMask(cards: int):
-        numberOfCards = HoldemHand.BitCount(cards)
+        numberOfCards = Hand.BitCount(cards)
 
         # This function support 1-7 cards
         if __debug__:
@@ -321,43 +321,43 @@ class HoldemHand:
                 raise Exception("Invalid number of cards")
 
         # separate out by suit
-        sc = numpy.uint32(cards >> HoldemHand.GetClubOffset()) & numpy.uint64(0x1FFF)
-        sd = numpy.uint32(cards >> HoldemHand.GetDiamondOffset()) & numpy.uint64(0x1FFF)
-        sh = numpy.uint32(cards >> HoldemHand.GetHeartOffset()) & numpy.uint64(0x1FFF)
-        ss = numpy.uint32(cards >> HoldemHand.GetSpadeOffset()) & numpy.uint64(0x1FFF)
+        sc = numpy.uint32(cards >> Hand.GetClubOffset()) & numpy.uint64(0x1FFF)
+        sd = numpy.uint32(cards >> Hand.GetDiamondOffset()) & numpy.uint64(0x1FFF)
+        sh = numpy.uint32(cards >> Hand.GetHeartOffset()) & numpy.uint64(0x1FFF)
+        ss = numpy.uint32(cards >> Hand.GetSpadeOffset()) & numpy.uint64(0x1FFF)
 
-        handValue = HoldemHand.Evaluate(cards, numberOfCards)
-        handType = HoldemHand.HandType(handValue)
-        if handType == HoldemHand.HandTypes.HIGH_CARD or \
-            handType == HoldemHand.HandTypes.PAIR or \
-            handType == HoldemHand.HandTypes.TWO_PAIR or \
-            handType == HoldemHand.HandTypes.TRIPS or \
-            handType == HoldemHand.HandTypes.STRAIGHT or \
-            handType == HoldemHand.HandTypes.FULLHOUSE or \
-            handType == HoldemHand.HandTypes.FOUR_OF_A_KIND:
-            return HoldemHand.__DescriptionFromHandValueInternal(handValue)
+        handValue = Hand.Evaluate(cards, numberOfCards)
+        handType = Hand.HandType(handValue)
+        if handType == Hand.HandTypes.HIGH_CARD or \
+            handType == Hand.HandTypes.PAIR or \
+            handType == Hand.HandTypes.TWO_PAIR or \
+            handType == Hand.HandTypes.TRIPS or \
+            handType == Hand.HandTypes.STRAIGHT or \
+            handType == Hand.HandTypes.FULLHOUSE or \
+            handType == Hand.HandTypes.FOUR_OF_A_KIND:
+            return Hand.__DescriptionFromHandValueInternal(handValue)
         
-        if handType == HoldemHand.HandTypes.FLUSH:
+        if handType == Hand.HandTypes.FLUSH:
             flushDescription = "Flush ({0}) with {1} high"
-            if HoldemHand.nBitsTable[ss] >= 5:
-                return flushDescription.format("Spades", HoldemHand.__RankTable[HoldemHand.TopCard(handValue)])
-            elif HoldemHand.nBitsTable[sc] >= 5:
-                return flushDescription.format("Clubs", HoldemHand.__RankTable[HoldemHand.TopCard(handValue)])
-            elif HoldemHand.nBitsTable[sd] >= 5:
-                return flushDescription.format("Diamonds", HoldemHand.__RankTable[HoldemHand.TopCard(handValue)])
-            elif HoldemHand.nBitsTable[sh] >= 5:
-                return flushDescription.format("Hearts", HoldemHand.__RankTable[HoldemHand.TopCard(handValue)])
+            if Hand.nBitsTable[ss] >= 5:
+                return flushDescription.format("Spades", Hand.__RankTable[Hand.TopCard(handValue)])
+            elif Hand.nBitsTable[sc] >= 5:
+                return flushDescription.format("Clubs", Hand.__RankTable[Hand.TopCard(handValue)])
+            elif Hand.nBitsTable[sd] >= 5:
+                return flushDescription.format("Diamonds", Hand.__RankTable[Hand.TopCard(handValue)])
+            elif Hand.nBitsTable[sh] >= 5:
+                return flushDescription.format("Hearts", Hand.__RankTable[Hand.TopCard(handValue)])
         
-        if handType == HoldemHand.HandTypes.STRAIGHT_FLUSH:
+        if handType == Hand.HandTypes.STRAIGHT_FLUSH:
             flushDescription = "Straight Flush ({0}) with {1} high"
-            if HoldemHand.nBitsTable[ss] >= 5:
-                return flushDescription.format("Spades", HoldemHand.__RankTable[HoldemHand.TopCard(handValue)])
-            elif HoldemHand.nBitsTable[sc] >= 5:
-                return flushDescription.format("Clubs", HoldemHand.__RankTable[HoldemHand.TopCard(handValue)])
-            elif HoldemHand.nBitsTable[sd] >= 5:
-                return flushDescription.format("Diamonds", HoldemHand.__RankTable[HoldemHand.TopCard(handValue)])
-            elif HoldemHand.nBitsTable[sh] >= 5:
-                return flushDescription.format("Hearts", HoldemHand.__RankTable[HoldemHand.TopCard(handValue)])
+            if Hand.nBitsTable[ss] >= 5:
+                return flushDescription.format("Spades", Hand.__RankTable[Hand.TopCard(handValue)])
+            elif Hand.nBitsTable[sc] >= 5:
+                return flushDescription.format("Clubs", Hand.__RankTable[Hand.TopCard(handValue)])
+            elif Hand.nBitsTable[sd] >= 5:
+                return flushDescription.format("Diamonds", Hand.__RankTable[Hand.TopCard(handValue)])
+            elif Hand.nBitsTable[sh] >= 5:
+                return flushDescription.format("Hearts", Hand.__RankTable[Hand.TopCard(handValue)])
 
         raise Exception("Invalid hand type") # should never get here
         
@@ -369,8 +369,8 @@ class HoldemHand:
         if __debug__:
             if not hand:
                 raise Exception("Hand is not defined")
-        mask = HoldemHand.ParseHand(hand)
-        return HoldemHand.DescriptionFromMask(mask[0])
+        mask = Hand.ParseHand(hand)
+        return Hand.DescriptionFromMask(mask[0])
     
     # Returns the string representing the mask
     def ToString(self):
@@ -384,14 +384,14 @@ class HoldemHand:
         self.set_PocketCards(self.MaskToString(value))
     
     def get_PocketMask(self):
-        mask = HoldemHand.ParseHand(self.get_PocketCards())
+        mask = Hand.ParseHand(self.get_PocketCards())
         return mask[0]
     
     @staticmethod
     def MaskToString(mask: int):
         result = []
         count = 0
-        for s in HoldemHand.Cards(mask):
+        for s in Hand.Cards(mask):
             if count != 0:
                 result.append(" ")
             result.append(s)
@@ -401,11 +401,11 @@ class HoldemHand:
     
     # Represents the mask of the Board cards for this instance
     def get_BoardMask(self):
-        mask = HoldemHand.ParseHand(self.get_Board())
+        mask = Hand.ParseHand(self.get_Board())
         return mask[0]
 
     def set_BoardMask(self, value: str):
-        self.__board = HoldemHand.MaskToString(value)
+        self.__board = Hand.MaskToString(value)
     
     # Returns the mask value. This value may be used
     # to compare one mask to another using standard numeric
@@ -415,32 +415,32 @@ class HoldemHand:
     
     # Returns a textual description of the current mask
     def Description(self):
-        return HoldemHand.DescriptionFromMask(self.MaskValue())
+        return Hand.DescriptionFromMask(self.MaskValue())
     
     # Returns the current mask type    
     def HandTypeDescription(self):
-        handType = HoldemHand.HandType(self.HandValue())
-        return HoldemHand.GetHandTypeDescription(handType)
+        handType = Hand.HandType(self.HandValue())
+        return Hand.GetHandTypeDescription(handType)
 
     @staticmethod
     def GetHandTypeDescription(handType: int):
-        if handType == HoldemHand.HandTypes.HIGH_CARD:
+        if handType == Hand.HandTypes.HIGH_CARD:
             return "High Card"
-        elif handType == HoldemHand.HandTypes.FLUSH:
+        elif handType == Hand.HandTypes.FLUSH:
             return "Flush"
-        elif handType == HoldemHand.HandTypes.FOUR_OF_A_KIND:
+        elif handType == Hand.HandTypes.FOUR_OF_A_KIND:
             return "Four Of a Kind"
-        elif handType == HoldemHand.HandTypes.FULLHOUSE:
+        elif handType == Hand.HandTypes.FULLHOUSE:
             return "Fullhouse"
-        elif handType == HoldemHand.HandTypes.PAIR:
+        elif handType == Hand.HandTypes.PAIR:
             return "Pair"
-        elif handType == HoldemHand.HandTypes.TWO_PAIR:
+        elif handType == Hand.HandTypes.TWO_PAIR:
             return "Two Pair"
-        elif handType == HoldemHand.HandTypes.TRIPS:
+        elif handType == Hand.HandTypes.TRIPS:
             return "Trips"
-        elif handType == HoldemHand.HandTypes.STRAIGHT:
+        elif handType == Hand.HandTypes.STRAIGHT:
             return "Straight"
-        elif handType == HoldemHand.HandTypes.STRAIGHT_FLUSH:
+        elif handType == Hand.HandTypes.STRAIGHT_FLUSH:
             return "Straight Flush"
         
         raise Exception("Invalid hand type") # should not get here
@@ -448,7 +448,7 @@ class HoldemHand:
     # This is a fast way to look up the index mask.
     @staticmethod
     def Mask(index: int):
-        return HoldemHand.__CardMasksTable[index]
+        return Hand.__CardMasksTable[index]
     
     @staticmethod
     def CardMask(cards: int, suit: int):
@@ -467,46 +467,46 @@ class HoldemHand:
                 raise Exception("Invalid number of cards")
 
         # separate out by suit
-        sc = numpy.uint32(cards >> HoldemHand.GetClubOffset()) & numpy.uint64(0x1FFF)
-        sd = numpy.uint32(cards >> HoldemHand.GetDiamondOffset()) & numpy.uint64(0x1FFF)
-        sh = numpy.uint32(cards >> HoldemHand.GetHeartOffset()) & numpy.uint64(0x1FFF)
-        ss = numpy.uint32(cards >> HoldemHand.GetSpadeOffset()) & numpy.uint64(0x1FFF)
+        sc = numpy.uint32(cards >> Hand.GetClubOffset()) & numpy.uint64(0x1FFF)
+        sd = numpy.uint32(cards >> Hand.GetDiamondOffset()) & numpy.uint64(0x1FFF)
+        sh = numpy.uint32(cards >> Hand.GetHeartOffset()) & numpy.uint64(0x1FFF)
+        ss = numpy.uint32(cards >> Hand.GetSpadeOffset()) & numpy.uint64(0x1FFF)
 
         ranks = sc | sd | sh | ss
-        n_ranks = HoldemHand.nBitsTable[ranks]
+        n_ranks = Hand.nBitsTable[ranks]
         n_dups = numpy.uint32(numberOfCards - n_ranks)
 
         # Check for straight, flush, or straight flush, and return if we can
         # determine immediately that this is the best possible mask 
         if n_ranks >= 5:
-            if HoldemHand.nBitsTable[ss] >= 5:
-                if HoldemHand.__StraightTable[ss] != 0:
-                    return HoldemHand.__HandTypeValueStraightFlush() + (HoldemHand.__StraightTable[ss] << HoldemHand.TOP_CARD_SHIFT)
+            if Hand.nBitsTable[ss] >= 5:
+                if Hand.__StraightTable[ss] != 0:
+                    return Hand.__HandTypeValueStraightFlush() + (Hand.__StraightTable[ss] << Hand.TOP_CARD_SHIFT)
                 else:
-                    retval = HoldemHand.__HandTypeValueFlush() + HoldemHand.__TopFiveCardsTable[ss]
+                    retval = Hand.__HandTypeValueFlush() + Hand.__TopFiveCardsTable[ss]
             
-            elif HoldemHand.nBitsTable[sc] >= 5:
-                if (HoldemHand.__StraightTable[sc] != 0):
-                    return HoldemHand.__HandTypeValueStraightFlush() + (HoldemHand.__StraightTable[sc] << HoldemHand.TOP_CARD_SHIFT)
+            elif Hand.nBitsTable[sc] >= 5:
+                if (Hand.__StraightTable[sc] != 0):
+                    return Hand.__HandTypeValueStraightFlush() + (Hand.__StraightTable[sc] << Hand.TOP_CARD_SHIFT)
                 else:
-                    retval = HoldemHand.__HandTypeValueFlush() + HoldemHand.__TopFiveCardsTable[sc]
+                    retval = Hand.__HandTypeValueFlush() + Hand.__TopFiveCardsTable[sc]
 
-            elif HoldemHand.nBitsTable[sd] >= 5:
-                if (HoldemHand.__StraightTable[sd] != 0):
-                    return HoldemHand.__HandTypeValueStraightFlush() + (HoldemHand.__StraightTable[sd] << HoldemHand.TOP_CARD_SHIFT)
+            elif Hand.nBitsTable[sd] >= 5:
+                if (Hand.__StraightTable[sd] != 0):
+                    return Hand.__HandTypeValueStraightFlush() + (Hand.__StraightTable[sd] << Hand.TOP_CARD_SHIFT)
                 else:
-                    retval = HoldemHand.__HandTypeValueFlush() + HoldemHand.__TopFiveCardsTable[sd]
+                    retval = Hand.__HandTypeValueFlush() + Hand.__TopFiveCardsTable[sd]
                     
-            elif HoldemHand.nBitsTable[sh] >= 5:
-                if (HoldemHand.__StraightTable[sh] != 0):
-                    return HoldemHand.__HandTypeValueStraightFlush() + (HoldemHand.__StraightTable[sh] << HoldemHand.TOP_CARD_SHIFT)
+            elif Hand.nBitsTable[sh] >= 5:
+                if (Hand.__StraightTable[sh] != 0):
+                    return Hand.__HandTypeValueStraightFlush() + (Hand.__StraightTable[sh] << Hand.TOP_CARD_SHIFT)
                 else:
-                    retval = HoldemHand.__HandTypeValueFlush() + HoldemHand.__TopFiveCardsTable[sh]
+                    retval = Hand.__HandTypeValueFlush() + Hand.__TopFiveCardsTable[sh]
 
             else:
-                st: numpy.uint32 = HoldemHand.__StraightTable[ranks]
+                st: numpy.uint32 = Hand.__StraightTable[ranks]
                 if st != 0:
-                    retval = HoldemHand.__HandTypeValueStraight() + (st << HoldemHand.TOP_CARD_SHIFT)
+                    retval = Hand.__HandTypeValueStraight() + (st << Hand.TOP_CARD_SHIFT)
 
              
             # Another win -- if there can't be a FH/Quads (n_dups < 3), 
@@ -521,17 +521,17 @@ class HoldemHand:
         #   2) there's a flush or straight, but we know that there are enough
         #       duplicates to make a full house / quads possible.  
         if n_dups == 0:
-            return HoldemHand.__HandTypeValueHighCard() + HoldemHand.__TopFiveCardsTable[ranks]    
+            return Hand.__HandTypeValueHighCard() + Hand.__TopFiveCardsTable[ranks]    
         elif n_dups == 1:
             kickers: numpy.uint32
             t: numpy.uint32
 
             two_mask = ranks ^ (sc ^ sd ^ sh ^ ss)
-            retval = numpy.uint32(HoldemHand.__HandTypeValuePair() + (HoldemHand.__TopCardTable[two_mask] << HoldemHand.TOP_CARD_SHIFT))
+            retval = numpy.uint32(Hand.__HandTypeValuePair() + (Hand.__TopCardTable[two_mask] << Hand.TOP_CARD_SHIFT))
             t = ranks ^ two_mask # Only one bit set in two_mask
             # Get the top five cards in what is left, drop all but the top three
             # cards, and shift them by one to get the three desired kickers
-            kickers = (HoldemHand.__TopFiveCardsTable[t] >> HoldemHand.CARD_WIDTH) & ~HoldemHand.FIFTH_CARD_MASK
+            kickers = (Hand.__TopFiveCardsTable[t] >> Hand.CARD_WIDTH) & ~Hand.FIFTH_CARD_MASK
             retval += kickers
             return retval
 
@@ -540,31 +540,31 @@ class HoldemHand:
             two_mask = ranks ^ (sc ^ sd ^ sh ^ ss)
             if two_mask != 0:
                 t = ranks ^ two_mask # exactly two bits set in two_mask
-                retval = numpy.uint32(HoldemHand.__HandTypeValueTwoPair() \
-                    + (HoldemHand.__TopFiveCardsTable[two_mask] \
-                    & (HoldemHand.TOP_CARD_MASK | HoldemHand.SECOND_CARD_MASK)) \
-                    + (HoldemHand.__TopCardTable[t] << HoldemHand.THIRD_CARD_SHIFT))
+                retval = numpy.uint32(Hand.__HandTypeValueTwoPair() \
+                    + (Hand.__TopFiveCardsTable[two_mask] \
+                    & (Hand.TOP_CARD_MASK | Hand.SECOND_CARD_MASK)) \
+                    + (Hand.__TopCardTable[t] << Hand.THIRD_CARD_SHIFT))
                 
                 return retval
             else:
                 t: numpy.uint32
                 second: numpy.uint32
                 three_mask = ((sc & sd) | (sh & ss)) & ((sc & sh) | (sd & ss))
-                retval = HoldemHand.__HandTypeValueTrips() + (HoldemHand.__TopCardTable[three_mask] << HoldemHand.TOP_CARD_SHIFT)
+                retval = Hand.__HandTypeValueTrips() + (Hand.__TopCardTable[three_mask] << Hand.TOP_CARD_SHIFT)
                 t = ranks ^ three_mask # Only one bit set in three_mask
-                second = numpy.uint32(HoldemHand.__TopCardTable[t])
-                retval += (second << HoldemHand.SECOND_CARD_SHIFT)
+                second = numpy.uint32(Hand.__TopCardTable[t])
+                retval += (second << Hand.SECOND_CARD_SHIFT)
                 t ^= (numpy.uint32(1) << second)
-                retval += HoldemHand.__TopCardTable[t] << HoldemHand.THIRD_CARD_SHIFT
+                retval += Hand.__TopCardTable[t] << Hand.THIRD_CARD_SHIFT
                 return retval
         else:
             # possible quads, fullhouse, straight or flush, or two pair
             four_mask = sh & sd & sc & ss
             if four_mask != 0:
-                tc = HoldemHand.__TopCardTable[four_mask]
-                retval = numpy.uint32(HoldemHand.__HandTypeValueFourOfAKind() \
-                    + (tc << HoldemHand.TOP_CARD_SHIFT) \
-                    + ((HoldemHand.__TopCardTable[ranks ^ (numpy.uint64(1) << numpy.uint32(tc)) ]) << HoldemHand.SECOND_CARD_SHIFT))
+                tc = Hand.__TopCardTable[four_mask]
+                retval = numpy.uint32(Hand.__HandTypeValueFourOfAKind() \
+                    + (tc << Hand.TOP_CARD_SHIFT) \
+                    + ((Hand.__TopCardTable[ranks ^ (numpy.uint64(1) << numpy.uint32(tc)) ]) << Hand.SECOND_CARD_SHIFT))
                 return retval
             
             # Technically, three_mask as defined below is really the set of
@@ -574,17 +574,17 @@ class HoldemHand:
             #    already eliminated quads, we can use this shortcut */
 
             two_mask = ranks ^ (sc ^ sd ^ sh ^ ss)
-            if HoldemHand.nBitsTable[two_mask] != n_dups:
+            if Hand.nBitsTable[two_mask] != n_dups:
                 # Must be some trips then, which really means there is a 
                 # full house since n_dups >= 3 
                 tc: numpy.uint32
                 t: numpy.uint32
                 three_mask = ((sc & sd) | (sh & ss)) & ((sc & sh) | (sd & ss))
-                retval = HoldemHand.__HandTypeValueFullhouse()
-                tc = HoldemHand.__TopCardTable[three_mask]
-                retval += (tc << HoldemHand.TOP_CARD_SHIFT)
+                retval = Hand.__HandTypeValueFullhouse()
+                tc = Hand.__TopCardTable[three_mask]
+                retval += (tc << Hand.TOP_CARD_SHIFT)
                 t = (two_mask | three_mask) ^ (numpy.uint64(1) << numpy.uint32(tc))
-                retval += numpy.uint32(HoldemHand.__TopCardTable[t] << HoldemHand.SECOND_CARD_SHIFT)
+                retval += numpy.uint32(Hand.__TopCardTable[t] << Hand.SECOND_CARD_SHIFT)
                 
                 return retval
             
@@ -595,12 +595,12 @@ class HoldemHand:
                 top: numpy.uint32
                 second: numpy.uint32
 
-                retval = HoldemHand.__HandTypeValueTwoPair()
-                top = HoldemHand.__TopCardTable[two_mask]
-                retval += (top << HoldemHand.TOP_CARD_SHIFT)
-                second = HoldemHand.__TopCardTable[two_mask ^ (numpy.uint64(1) << numpy.uint32(top))]
-                retval += (second << HoldemHand.SECOND_CARD_SHIFT)
-                retval += numpy.uint32( (HoldemHand.__TopCardTable[ranks ^ ( numpy.uint64(1) << numpy.uint32(top) ) ^ (numpy.uint64(1) << numpy.uint32(second) )]) << HoldemHand.THIRD_CARD_SHIFT )
+                retval = Hand.__HandTypeValueTwoPair()
+                top = Hand.__TopCardTable[two_mask]
+                retval += (top << Hand.TOP_CARD_SHIFT)
+                second = Hand.__TopCardTable[two_mask ^ (numpy.uint64(1) << numpy.uint32(top))]
+                retval += (second << Hand.SECOND_CARD_SHIFT)
+                retval += numpy.uint32( (Hand.__TopCardTable[ranks ^ ( numpy.uint64(1) << numpy.uint32(top) ) ^ (numpy.uint64(1) << numpy.uint32(second) )]) << Hand.THIRD_CARD_SHIFT )
                 return retval
             
     #end Evaluate()
@@ -611,8 +611,8 @@ class HoldemHand:
     @staticmethod
     @dispatch(str)
     def Evaluate(hand: str):
-        handMask = HoldemHand.ParseHand(hand)
-        return HoldemHand.Evaluate(handMask[0], handMask[1])
+        handMask = Hand.ParseHand(hand)
+        return Hand.Evaluate(handMask[0], handMask[1])
     
     # Evaluates a mask (passed as a mask mask) and returns a mask value.
     # A mask value can be compared against another mask value to
@@ -620,7 +620,7 @@ class HoldemHand:
     @staticmethod
     @dispatch(int)
     def Evaluate(cards: int):
-        return HoldemHand.Evaluate(cards, HoldemHand.BitCount(cards))
+        return Hand.Evaluate(cards, Hand.BitCount(cards))
     
     # Evaluates the card mask and returns the type of mask it is. This function is
     # faster (but provides less information) than Evaluate or Evaluate.
@@ -629,11 +629,11 @@ class HoldemHand:
     @staticmethod
     @dispatch(int)
     def EvaluateType(mask: int):
-        numberOfCards = HoldemHand.BitCount(mask)
+        numberOfCards = Hand.BitCount(mask)
         if __debug__:            
             if numberOfCards <= 0 or numberOfCards > 7:
                 raise Exception("Invalid mask")
-        return HoldemHand.EvaluateType(mask, numberOfCards)
+        return Hand.EvaluateType(mask, numberOfCards)
 
     # This function is faster (but provides less information) than Evaluate or Evaluate.
     # mask - card mask
@@ -642,105 +642,105 @@ class HoldemHand:
     @staticmethod
     @dispatch(int, int)
     def EvaluateType(mask: int, numberOfCards: int):
-        is_st_or_fl = HoldemHand.HandTypes.HIGH_CARD
-        ss = (mask >> HoldemHand.GetSpadeOffset()) & 0x1fff
-        sc = (mask >> HoldemHand.GetClubOffset()) & 0x1fff
-        sd = (mask >> HoldemHand.GetDiamondOffset()) & 0x1fff
-        sh = (mask >> HoldemHand.GetHeartOffset()) & 0x1fff
+        is_st_or_fl = Hand.HandTypes.HIGH_CARD
+        ss = (mask >> Hand.GetSpadeOffset()) & 0x1fff
+        sc = (mask >> Hand.GetClubOffset()) & 0x1fff
+        sd = (mask >> Hand.GetDiamondOffset()) & 0x1fff
+        sh = (mask >> Hand.GetHeartOffset()) & 0x1fff
 
         ranks = sc | sd | sh | ss
-        rankinfo = HoldemHand.__nBitsAndStrTable[ranks]
+        rankinfo = Hand.__nBitsAndStrTable[ranks]
         n_dups = (numberOfCards - (rankinfo >> 2))
 
         if (rankinfo & 0x01) != 0:
             if (rankinfo & 0x02) != 0:
-                is_st_or_fl = HoldemHand.HandTypes.STRAIGHT
+                is_st_or_fl = Hand.HandTypes.STRAIGHT
             
-            t = HoldemHand.__nBitsAndStrTable[ss] | HoldemHand.__nBitsAndStrTable[sc] | HoldemHand.__nBitsAndStrTable[sd] | HoldemHand.__nBitsAndStrTable[sh]
+            t = Hand.__nBitsAndStrTable[ss] | Hand.__nBitsAndStrTable[sc] | Hand.__nBitsAndStrTable[sd] | Hand.__nBitsAndStrTable[sh]
             if (t & 0x01) != 0:
                 if (t & 0x02) != 0:
-                    return (HoldemHand.HandTypes.STRAIGHT_FLUSH, HoldemHand.GetHandTypeDescription(HoldemHand.HandTypes.STRAIGHT_FLUSH))
+                    return (Hand.HandTypes.STRAIGHT_FLUSH, Hand.GetHandTypeDescription(Hand.HandTypes.STRAIGHT_FLUSH))
                 else:
-                    is_st_or_fl = HoldemHand.HandTypes.FLUSH
+                    is_st_or_fl = Hand.HandTypes.FLUSH
             
             if is_st_or_fl != 0 and n_dups < 3:
-                return (is_st_or_fl, HoldemHand.GetHandTypeDescription(is_st_or_fl));
+                return (is_st_or_fl, Hand.GetHandTypeDescription(is_st_or_fl));
         
         if n_dups == 0:
-            return (HoldemHand.HandTypes.HIGH_CARD, HoldemHand.GetHandTypeDescription(HoldemHand.HandTypes.HIGH_CARD))
+            return (Hand.HandTypes.HIGH_CARD, Hand.GetHandTypeDescription(Hand.HandTypes.HIGH_CARD))
         elif n_dups == 1:
-            return (HoldemHand.HandTypes.PAIR, HoldemHand.GetHandTypeDescription(HoldemHand.HandTypes.PAIR))
+            return (Hand.HandTypes.PAIR, Hand.GetHandTypeDescription(Hand.HandTypes.PAIR))
         elif n_dups == 2:
             if (ranks ^ (sc ^ sd ^ sh ^ ss)) != 0:
-                return (HoldemHand.HandTypes.TWO_PAIR, HoldemHand.GetHandTypeDescription(HoldemHand.HandTypes.TWO_PAIR))
+                return (Hand.HandTypes.TWO_PAIR, Hand.GetHandTypeDescription(Hand.HandTypes.TWO_PAIR))
             else:
-                return (HoldemHand.HandTypes.TRIPS, HoldemHand.GetHandTypeDescription(HoldemHand.HandTypes.TRIPS))
+                return (Hand.HandTypes.TRIPS, Hand.GetHandTypeDescription(Hand.HandTypes.TRIPS))
         else:
             if (((sc & sd) & (sh & ss)) != 0): 
-                return (HoldemHand.HandTypes.FOUR_OF_A_KIND, HoldemHand.GetHandTypeDescription(HoldemHand.HandTypes.FOUR_OF_A_KIND))
+                return (Hand.HandTypes.FOUR_OF_A_KIND, Hand.GetHandTypeDescription(Hand.HandTypes.FOUR_OF_A_KIND))
             elif ((((sc & sd) | (sh & ss)) & ((sc & sh) | (sd & ss))) != 0): 
-                return (HoldemHand.HandTypes.FULLHOUSE, HoldemHand.GetHandTypeDescription(HoldemHand.HandTypes.FULLHOUSE));
+                return (Hand.HandTypes.FULLHOUSE, Hand.GetHandTypeDescription(Hand.HandTypes.FULLHOUSE));
             elif (is_st_or_fl != 0): 
-                return (is_st_or_fl, HoldemHand.GetHandTypeDescription(is_st_or_fl));
+                return (is_st_or_fl, Hand.GetHandTypeDescription(is_st_or_fl));
             else: 
-                return (HoldemHand.HandTypes.TwoPair, HoldemHand.GetHandTypeDescription(HoldemHand.HandTypes.TWO_PAIR));    
+                return (Hand.HandTypes.TwoPair, Hand.GetHandTypeDescription(Hand.HandTypes.TWO_PAIR));    
     #end EvaluateType    
     
     @staticmethod
     def __DescriptionFromHandValueInternal(handValue: numpy.uint32):
         result = []
-        handType = HoldemHand.HandType(handValue)
-        if handType == HoldemHand.HandTypes.HIGH_CARD:
+        handType = Hand.HandType(handValue)
+        if handType == Hand.HandTypes.HIGH_CARD:
             result.append("High card: ")
-            result.append(HoldemHand.__RankTable[HoldemHand.TopCard(handValue)])
+            result.append(Hand.__RankTable[Hand.TopCard(handValue)])
             return "".join(result)
 
-        if handType == HoldemHand.HandTypes.PAIR:
+        if handType == Hand.HandTypes.PAIR:
             result.append("One pair, ")
-            result.append(HoldemHand.__RankTable[HoldemHand.TopCard(handValue)])
+            result.append(Hand.__RankTable[Hand.TopCard(handValue)])
             return "".join(result)
         
-        if handType == HoldemHand.HandTypes.TWO_PAIR:
+        if handType == Hand.HandTypes.TWO_PAIR:
             result.append("Two pair, ")
-            result.append(HoldemHand.__RankTable[HoldemHand.TopCard(handValue)])
+            result.append(Hand.__RankTable[Hand.TopCard(handValue)])
             result.append("'s and ")
-            result.append(HoldemHand.__RankTable[HoldemHand.SecondCard(handValue)])
+            result.append(Hand.__RankTable[Hand.SecondCard(handValue)])
             result.append("'s with a")
-            result.append(HoldemHand.__RankTable[HoldemHand.ThirdCard(handValue)])
+            result.append(Hand.__RankTable[Hand.ThirdCard(handValue)])
             result.append(" for a kicker")
             return "".join(result)
         
-        if handType == HoldemHand.HandTypes.TRIPS:
+        if handType == Hand.HandTypes.TRIPS:
             result.append("Three of a kind, ")
-            result.append(HoldemHand.__RankTable[HoldemHand.TopCard(handValue)])
+            result.append(Hand.__RankTable[Hand.TopCard(handValue)])
             result.append("'s")
             return "".join(result)
 
-        if handType == HoldemHand.HandTypes.STRAIGHT:
+        if handType == Hand.HandTypes.STRAIGHT:
             result.append("A straight, ")
-            result.append(HoldemHand.__RankTable[HoldemHand.TopCard(handValue)])
+            result.append(Hand.__RankTable[Hand.TopCard(handValue)])
             result.append(" high")
             return "".join(result)
         
-        if handType == HoldemHand.HandTypes.FLUSH:
+        if handType == Hand.HandTypes.FLUSH:
             result.append("A flush")
             return "".join(result)
         
-        if handType == HoldemHand.HandTypes.FULLHOUSE:
+        if handType == Hand.HandTypes.FULLHOUSE:
             result.append("A fullhouse, ")
-            result.append(HoldemHand.__RankTable[HoldemHand.TopCard(handValue)])
+            result.append(Hand.__RankTable[Hand.TopCard(handValue)])
             result.append("'s and ")
-            result.append(HoldemHand.__RankTable[HoldemHand.SecondCard(handValue)])
+            result.append(Hand.__RankTable[Hand.SecondCard(handValue)])
             result.append("'s")
             return "".join(result)
 
-        if handType == HoldemHand.HandTypes.FOUR_OF_A_KIND:
+        if handType == Hand.HandTypes.FOUR_OF_A_KIND:
             result.append("Four of a kind, ")
-            result.append(HoldemHand.__RankTable[HoldemHand.TopCard(handValue)])
+            result.append(Hand.__RankTable[Hand.TopCard(handValue)])
             result.append("'s")
             return "".join(result)
 
-        if handType == HoldemHand.HandTypes.STRAIGHT_FLUSH:
+        if handType == Hand.HandTypes.STRAIGHT_FLUSH:
             result.append("A straight flush")
             return "".join(result)
         
@@ -750,37 +750,37 @@ class HoldemHand:
     # Count bits. Optimized for cards so only works with 52 bits
     @staticmethod
     def BitCount(bitField: numpy.uint64):
-        return HoldemHand.nBitsTable[bitField & 0x1FFF] + \
-            HoldemHand.nBitsTable[(bitField >> 13) & 0x1FFF] + \
-            HoldemHand.nBitsTable[(bitField >> 26) & 0x1FFF] + \
-            HoldemHand.nBitsTable[(bitField >> 39) & 0x1FFF]
+        return Hand.nBitsTable[bitField & 0x1FFF] + \
+            Hand.nBitsTable[(bitField >> 13) & 0x1FFF] + \
+            Hand.nBitsTable[(bitField >> 26) & 0x1FFF] + \
+            Hand.nBitsTable[(bitField >> 39) & 0x1FFF]
 
     
     # returns uint32
     @staticmethod
     def TopCard(handValue: numpy.uint32):
-        return (handValue >> HoldemHand.TOP_CARD_SHIFT) & HoldemHand.CARD_MASK
+        return (handValue >> Hand.TOP_CARD_SHIFT) & Hand.CARD_MASK
     
     @staticmethod
     def SecondCard(handValue: numpy.uint32):
-        return (handValue >> HoldemHand.SECOND_CARD_SHIFT) & HoldemHand.CARD_MASK
+        return (handValue >> Hand.SECOND_CARD_SHIFT) & Hand.CARD_MASK
 
     @staticmethod
     def ThirdCard(handValue: numpy.uint32):
-        return (handValue >> HoldemHand.THIRD_CARD_SHIFT) & HoldemHand.CARD_MASK
+        return (handValue >> Hand.THIRD_CARD_SHIFT) & Hand.CARD_MASK
     
     @staticmethod
     def FourthCard(handValue: numpy.uint32):
-        return (handValue >> HoldemHand.FOURTH_CARD_SHIFT) & HoldemHand.CARD_MASK
+        return (handValue >> Hand.FOURTH_CARD_SHIFT) & Hand.CARD_MASK
     
     @staticmethod
     def FifthCard(handValue: numpy.uint32):
-        return (handValue >> HoldemHand.FIFT_CARD_SHIFT) & HoldemHand.CARD_MASK
+        return (handValue >> Hand.FIFT_CARD_SHIFT) & Hand.CARD_MASK
     
     @staticmethod
     @dispatch(int)
     def HandTypeValue(handType: int):
-        return numpy.uint32(handType) << HoldemHand.HANDTYPE_SHIFT
+        return numpy.uint32(handType) << Hand.HANDTYPE_SHIFT
 
     # Converts card number into the card rank text string    
     __RankTable = ["Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Jack", "Queen", "King", "Ace",
@@ -790,56 +790,56 @@ class HoldemHand:
 
     @staticmethod
     def __HandTypeValueStraightFlush():
-        return HoldemHand.HandTypes.STRAIGHT_FLUSH << HoldemHand.HANDTYPE_SHIFT
+        return Hand.HandTypes.STRAIGHT_FLUSH << Hand.HANDTYPE_SHIFT
     
     @staticmethod
     def __HandTypeValueStraight():
-        return numpy.uint32(HoldemHand.HandTypes.STRAIGHT) << HoldemHand.HANDTYPE_SHIFT
+        return numpy.uint32(Hand.HandTypes.STRAIGHT) << Hand.HANDTYPE_SHIFT
 
     @staticmethod
     def __HandTypeValueFlush():
-        return numpy.uint32(HoldemHand.HandTypes.FLUSH) << HoldemHand.HANDTYPE_SHIFT
+        return numpy.uint32(Hand.HandTypes.FLUSH) << Hand.HANDTYPE_SHIFT
 
     @staticmethod
     def __HandTypeValueFullhouse():
-        return numpy.uint32(HoldemHand.HandTypes.FULLHOUSE) << HoldemHand.HANDTYPE_SHIFT
+        return numpy.uint32(Hand.HandTypes.FULLHOUSE) << Hand.HANDTYPE_SHIFT
 
     @staticmethod
     def __HandTypeValueFourOfAKind():
-        return numpy.uint32(HoldemHand.HandTypes.FOUR_OF_A_KIND) << HoldemHand.HANDTYPE_SHIFT
+        return numpy.uint32(Hand.HandTypes.FOUR_OF_A_KIND) << Hand.HANDTYPE_SHIFT
 
     @staticmethod
     def __HandTypeValueTrips():
-        return numpy.uint32(HoldemHand.HandTypes.TRIPS) << HoldemHand.HANDTYPE_SHIFT
+        return numpy.uint32(Hand.HandTypes.TRIPS) << Hand.HANDTYPE_SHIFT
 
     @staticmethod
     def __HandTypeValueTwoPair():
-        return numpy.uint32(HoldemHand.HandTypes.TWO_PAIR) << HoldemHand.HANDTYPE_SHIFT
+        return numpy.uint32(Hand.HandTypes.TWO_PAIR) << Hand.HANDTYPE_SHIFT
     
     @staticmethod
     def __HandTypeValuePair():
-        return numpy.uint32(HoldemHand.HandTypes.PAIR) << HoldemHand.HANDTYPE_SHIFT
+        return numpy.uint32(Hand.HandTypes.PAIR) << Hand.HANDTYPE_SHIFT
     
 
     @staticmethod
     def __HandTypeValueHighCard():
-        return numpy.uint32(HoldemHand.HandTypes.HIGH_CARD) << HoldemHand.HANDTYPE_SHIFT
+        return numpy.uint32(Hand.HandTypes.HIGH_CARD) << Hand.HANDTYPE_SHIFT
 
     @staticmethod
     def GetSpadeOffset():
-        return 13 * HoldemHand.SPADES
+        return 13 * Hand.SPADES
     
     @staticmethod
     def GetClubOffset():
-        return 13 * HoldemHand.CLUBS
+        return 13 * Hand.CLUBS
     
     @staticmethod
     def GetDiamondOffset():
-        return 13 * HoldemHand.DIAMONDS
+        return 13 * Hand.DIAMONDS
     
     @staticmethod
     def GetHeartOffset():
-        return 13 * HoldemHand.HEARTS    
+        return 13 * Hand.HEARTS    
 
     __nBitsAndStrTable = [0x0, 0x4, 0x4, 0x8, 0x4, 0x8, 0x8, 0xc, 0x4, 0x8, 0x8, 0xc, 0x8, 0xc, 0xc, 0x10, 0x4, 0x8, 0x8, 0xc, 
             0x8, 0xc, 0xc, 0x10, 0x8, 0xc, 0xc, 0x10, 0xc, 0x10, 0x10, 0x17, 0x4, 0x8, 0x8, 0xc, 0x8, 0xc, 0xc, 0x10, 
@@ -4761,22 +4761,22 @@ class HoldemHand:
     @staticmethod
     def PocketHand169Type(mask: numpy.uint64):
         if __debug__:
-            if (HoldemHand.BitCount(mask) != 2):
+            if (Hand.BitCount(mask) != 2):
                 raise Exception("Invalid mask")
                 
         # Fill in dictionary
-        if len(HoldemHand.pocketdict) == 0:
+        if len(Hand.pocketdict) == 0:
             i = 0
-            while i < len(HoldemHand.Pocket169Table):
-                for tmask in HoldemHand.Pocket169Table[i]:
-                    HoldemHand.pocketdict[numpy.uint64(tmask)] = HoldemHand.PocketHand169(i)
+            while i < len(Hand.Pocket169Table):
+                for tmask in Hand.Pocket169Table[i]:
+                    Hand.pocketdict[numpy.uint64(tmask)] = Hand.PocketHand169(i)
                 i += 1
         
-        result = HoldemHand.pocketdict[mask]
+        result = Hand.pocketdict[mask]
         if result:
             return result
             
-        return HoldemHand.PocketHand169.NONE
+        return Hand.PocketHand169.NONE
     
     # Enables a foreach command to enumerate all possible ncard hands.
     # numberOfCards - the number of cards in the mask (must be between 1 and 7)
@@ -4791,26 +4791,26 @@ class HoldemHand:
                 raise Exception("Invalid number of cards")
         
         if numberOfCards == 7:
-            while a < HoldemHand.CARD_MASKS_TABLE_SIZE - 6:
-                _card1 = HoldemHand.__CardMasksTable[a]
+            while a < Hand.CARD_MASKS_TABLE_SIZE - 6:
+                _card1 = Hand.__CardMasksTable[a]
                 b = a + 1
-                while b < HoldemHand.CARD_MASKS_TABLE_SIZE - 5:
-                    _n2 = _card1 | HoldemHand.__CardMasksTable[b]
+                while b < Hand.CARD_MASKS_TABLE_SIZE - 5:
+                    _n2 = _card1 | Hand.__CardMasksTable[b]
                     c = b + 1
-                    while c < HoldemHand.CARD_MASKS_TABLE_SIZE - 4:
-                        _n3 = _n2 | HoldemHand.__CardMasksTable[c]
+                    while c < Hand.CARD_MASKS_TABLE_SIZE - 4:
+                        _n3 = _n2 | Hand.__CardMasksTable[c]
                         d = c + 1
-                        while d < HoldemHand.CARD_MASKS_TABLE_SIZE - 3:
-                            _n4 = _n3 | HoldemHand.__CardMasksTable[d]
+                        while d < Hand.CARD_MASKS_TABLE_SIZE - 3:
+                            _n4 = _n3 | Hand.__CardMasksTable[d]
                             e = d + 1
-                            while e < HoldemHand.CARD_MASKS_TABLE_SIZE - 2:
-                                _n5 = _n4 | HoldemHand.__CardMasksTable[e]
+                            while e < Hand.CARD_MASKS_TABLE_SIZE - 2:
+                                _n5 = _n4 | Hand.__CardMasksTable[e]
                                 f = e + 1
-                                while f < HoldemHand.CARD_MASKS_TABLE_SIZE - 1:
-                                    _n6 = _n5 | HoldemHand.__CardMasksTable[f]
+                                while f < Hand.CARD_MASKS_TABLE_SIZE - 1:
+                                    _n6 = _n5 | Hand.__CardMasksTable[f]
                                     g = f + 1
-                                    while g < HoldemHand.CARD_MASKS_TABLE_SIZE:
-                                        yield _n6 | HoldemHand.__CardMasksTable[g]
+                                    while g < Hand.CARD_MASKS_TABLE_SIZE:
+                                        yield _n6 | Hand.__CardMasksTable[g]
                                         g += 1
 
                                     f += 1
@@ -4827,23 +4827,23 @@ class HoldemHand:
         
         elif numberOfCards == 6:
             a = 0
-            while a < HoldemHand.CARD_MASKS_TABLE_SIZE - 5:
-                _card1 = HoldemHand.__CardMasksTable[a]
+            while a < Hand.CARD_MASKS_TABLE_SIZE - 5:
+                _card1 = Hand.__CardMasksTable[a]
                 b = a + 1
-                while b < HoldemHand.CARD_MASKS_TABLE_SIZE - 4:
-                    _n2 = _card1 | HoldemHand.__CardMasksTable[b]
+                while b < Hand.CARD_MASKS_TABLE_SIZE - 4:
+                    _n2 = _card1 | Hand.__CardMasksTable[b]
                     c = b + 1
-                    while c < HoldemHand.CARD_MASKS_TABLE_SIZE - 3:
-                        _n3 = _n2 | HoldemHand.__CardMasksTable[c]
+                    while c < Hand.CARD_MASKS_TABLE_SIZE - 3:
+                        _n3 = _n2 | Hand.__CardMasksTable[c]
                         d = c + 1
-                        while d < HoldemHand.CARD_MASKS_TABLE_SIZE - 2:
-                            _n4 = _n3 | HoldemHand.__CardMasksTable[d]
+                        while d < Hand.CARD_MASKS_TABLE_SIZE - 2:
+                            _n4 = _n3 | Hand.__CardMasksTable[d]
                             e = d + 1
-                            while e < HoldemHand.CARD_MASKS_TABLE_SIZE - 1:
-                                _n5 = _n4 | HoldemHand.__CardMasksTable[e]
+                            while e < Hand.CARD_MASKS_TABLE_SIZE - 1:
+                                _n5 = _n4 | Hand.__CardMasksTable[e]
                                 f = e + 1
-                                while f < HoldemHand.CARD_MASKS_TABLE_SIZE:                                    
-                                    yield _n5 | HoldemHand.__CardMasksTable[f]
+                                while f < Hand.CARD_MASKS_TABLE_SIZE:                                    
+                                    yield _n5 | Hand.__CardMasksTable[f]
                                     f += 1
 
                                 e += 1
@@ -4858,20 +4858,20 @@ class HoldemHand:
         
         elif numberOfCards == 5:
             a = 0
-            while a < HoldemHand.CARD_MASKS_TABLE_SIZE - 4:
-                _card1 = HoldemHand.__CardMasksTable[a]
+            while a < Hand.CARD_MASKS_TABLE_SIZE - 4:
+                _card1 = Hand.__CardMasksTable[a]
                 b = a + 1
-                while b < HoldemHand.CARD_MASKS_TABLE_SIZE - 3:
-                    _n2 = _card1 | HoldemHand.__CardMasksTable[b]
+                while b < Hand.CARD_MASKS_TABLE_SIZE - 3:
+                    _n2 = _card1 | Hand.__CardMasksTable[b]
                     c = b + 1
-                    while c < HoldemHand.CARD_MASKS_TABLE_SIZE - 2:
-                        _n3 = _n2 | HoldemHand.__CardMasksTable[c]
+                    while c < Hand.CARD_MASKS_TABLE_SIZE - 2:
+                        _n3 = _n2 | Hand.__CardMasksTable[c]
                         d = c + 1
-                        while d < HoldemHand.CARD_MASKS_TABLE_SIZE - 1:
-                            _n4 = _n3 | HoldemHand.__CardMasksTable[d]
+                        while d < Hand.CARD_MASKS_TABLE_SIZE - 1:
+                            _n4 = _n3 | Hand.__CardMasksTable[d]
                             e = d + 1
-                            while e < HoldemHand.CARD_MASKS_TABLE_SIZE:                                
-                                yield _n4 | HoldemHand.__CardMasksTable[e]
+                            while e < Hand.CARD_MASKS_TABLE_SIZE:                                
+                                yield _n4 | Hand.__CardMasksTable[e]
                                 e += 1
 
                             d += 1
@@ -4884,17 +4884,17 @@ class HoldemHand:
         
         elif numberOfCards == 4:
             a = 0
-            while a < HoldemHand.CARD_MASKS_TABLE_SIZE - 3:
-                _card1 = HoldemHand.__CardMasksTable[a]
+            while a < Hand.CARD_MASKS_TABLE_SIZE - 3:
+                _card1 = Hand.__CardMasksTable[a]
                 b = a + 1
-                while b < HoldemHand.CARD_MASKS_TABLE_SIZE - 2:
-                    _n2 = _card1 | HoldemHand.__CardMasksTable[b]
+                while b < Hand.CARD_MASKS_TABLE_SIZE - 2:
+                    _n2 = _card1 | Hand.__CardMasksTable[b]
                     c = b + 1
-                    while c < HoldemHand.CARD_MASKS_TABLE_SIZE - 1:
-                        _n3 = _n2 | HoldemHand.__CardMasksTable[c]
+                    while c < Hand.CARD_MASKS_TABLE_SIZE - 1:
+                        _n3 = _n2 | Hand.__CardMasksTable[c]
                         d = c + 1
-                        while d < HoldemHand.CARD_MASKS_TABLE_SIZE:                            
-                            yield _n3 | HoldemHand.__CardMasksTable[d]
+                        while d < Hand.CARD_MASKS_TABLE_SIZE:                            
+                            yield _n3 | Hand.__CardMasksTable[d]
                             d += 1
 
                         c += 1
@@ -4905,14 +4905,14 @@ class HoldemHand:
         
         elif numberOfCards == 3:
             a = 0
-            while a < HoldemHand.CARD_MASKS_TABLE_SIZE - 2:
-                _card1 = HoldemHand.__CardMasksTable[a]
+            while a < Hand.CARD_MASKS_TABLE_SIZE - 2:
+                _card1 = Hand.__CardMasksTable[a]
                 b = a + 1
-                while b < HoldemHand.CARD_MASKS_TABLE_SIZE - 1:
-                    _n2 = _card1 | HoldemHand.__CardMasksTable[b]
+                while b < Hand.CARD_MASKS_TABLE_SIZE - 1:
+                    _n2 = _card1 | Hand.__CardMasksTable[b]
                     c = b + 1
-                    while c < HoldemHand.CARD_MASKS_TABLE_SIZE:
-                        yield _n2 | HoldemHand.__CardMasksTable[c]
+                    while c < Hand.CARD_MASKS_TABLE_SIZE:
+                        yield _n2 | Hand.__CardMasksTable[c]
                         c += 1
 
                     b += 1
@@ -4921,14 +4921,14 @@ class HoldemHand:
         
         elif numberOfCards == 2:
             a = 0
-            while a < HoldemHand.TwoCardMaskTableSize:
-                yield HoldemHand.TwoCardMaskTable[a]
+            while a < Hand.TwoCardMaskTableSize:
+                yield Hand.TwoCardMaskTable[a]
                 a += 1
         
         elif numberOfCards == 1:
             a = 0
-            while a < HoldemHand.CARD_MASKS_TABLE_SIZE:
-                yield HoldemHand.__CardMasksTable[a]
+            while a < Hand.CARD_MASKS_TABLE_SIZE:
+                yield Hand.__CardMasksTable[a]
                 a += 1
         
         else:
@@ -4947,52 +4947,52 @@ class HoldemHand:
 
         dead |= shared
 
-        numberOfCards -= HoldemHand.BitCount(shared)
+        numberOfCards -= Hand.BitCount(shared)
         if numberOfCards == 7:
-            while a < HoldemHand.CARD_MASKS_TABLE_SIZE - 6:
-                _card1 = HoldemHand.__CardMasksTable[a]
+            while a < Hand.CARD_MASKS_TABLE_SIZE - 6:
+                _card1 = Hand.__CardMasksTable[a]
                 if (dead & _card1) != 0: 
                     a += 1
                     continue
                 b = a + 1
-                while b < HoldemHand.CARD_MASKS_TABLE_SIZE - 5:
-                    _card2 = HoldemHand.__CardMasksTable[b]
+                while b < Hand.CARD_MASKS_TABLE_SIZE - 5:
+                    _card2 = Hand.__CardMasksTable[b]
                     if (dead & _card2) != 0:                        
                         b += 1
                         continue
                     _n2 = _card1 | _card2
                     c = b + 1
-                    while c < HoldemHand.CARD_MASKS_TABLE_SIZE - 4:
-                        _card3 = HoldemHand.__CardMasksTable[c]
+                    while c < Hand.CARD_MASKS_TABLE_SIZE - 4:
+                        _card3 = Hand.__CardMasksTable[c]
                         if (dead & _card3) != 0:
                             c += 1
                             continue
                         _n3 = _n2 | _card3
                         d = c + 1
-                        while d < HoldemHand.CARD_MASKS_TABLE_SIZE - 3:
-                            _card4 = HoldemHand.__CardMasksTable[d]
+                        while d < Hand.CARD_MASKS_TABLE_SIZE - 3:
+                            _card4 = Hand.__CardMasksTable[d]
                             if (dead & _card4) != 0:
                                 d += 1
                                 continue
                             _n4 = _n3 | _card4
                             e = d + 1
-                            while e < HoldemHand.CARD_MASKS_TABLE_SIZE - 2:
-                                _card5 = HoldemHand.__CardMasksTable[e]
+                            while e < Hand.CARD_MASKS_TABLE_SIZE - 2:
+                                _card5 = Hand.__CardMasksTable[e]
                                 if (dead & _card5) != 0: 
                                     e += 1
                                     continue
                                 _n5 = _n4 | _card5
 
                                 f = e + 1
-                                while f < HoldemHand.CARD_MASKS_TABLE_SIZE - 1:
-                                    _card6 = HoldemHand.__CardMasksTable[f]
+                                while f < Hand.CARD_MASKS_TABLE_SIZE - 1:
+                                    _card6 = Hand.__CardMasksTable[f]
                                     if (dead & _card6) != 0:
                                         f += 1
                                         continue
                                     _n6 = _n5 | _card6
                                     g = f + 1
-                                    while g < HoldemHand.CARD_MASKS_TABLE_SIZE:
-                                        _card7 = HoldemHand.__CardMasksTable[g]
+                                    while g < Hand.CARD_MASKS_TABLE_SIZE:
+                                        _card7 = Hand.__CardMasksTable[g]
                                         if (dead & _card7) != 0:
                                             g += 1
                                             continue
@@ -5007,43 +5007,43 @@ class HoldemHand:
 
         elif numberOfCards == 6:
             a = 0
-            while a < HoldemHand.CARD_MASKS_TABLE_SIZE - 5:
-                _card1 = HoldemHand.__CardMasksTable[a]
+            while a < Hand.CARD_MASKS_TABLE_SIZE - 5:
+                _card1 = Hand.__CardMasksTable[a]
                 if (dead & _card1) != 0: 
                     a += 1
                     continue
                 b = a + 1
-                while b < HoldemHand.CARD_MASKS_TABLE_SIZE - 4:
-                    _card2 = HoldemHand.__CardMasksTable[b]
+                while b < Hand.CARD_MASKS_TABLE_SIZE - 4:
+                    _card2 = Hand.__CardMasksTable[b]
                     if (dead & _card2) != 0:                        
                         b += 1
                         continue
                     _n2 = _card1 | _card2
                     c = b + 1
-                    while c < HoldemHand.CARD_MASKS_TABLE_SIZE - 3:
-                        _card3 = HoldemHand.__CardMasksTable[c]
+                    while c < Hand.CARD_MASKS_TABLE_SIZE - 3:
+                        _card3 = Hand.__CardMasksTable[c]
                         if (dead & _card3) != 0:
                             c += 1
                             continue
                         _n3 = _n2 | _card3
                         d = c + 1
-                        while d < HoldemHand.CARD_MASKS_TABLE_SIZE - 2:
-                            _card4 = HoldemHand.__CardMasksTable[d]
+                        while d < Hand.CARD_MASKS_TABLE_SIZE - 2:
+                            _card4 = Hand.__CardMasksTable[d]
                             if (dead & _card4) != 0:
                                 d += 1
                                 continue
                             _n4 = _n3 | _card4
                             e = d + 1
-                            while e < HoldemHand.CARD_MASKS_TABLE_SIZE - 1:
-                                _card5 = HoldemHand.__CardMasksTable[e]
+                            while e < Hand.CARD_MASKS_TABLE_SIZE - 1:
+                                _card5 = Hand.__CardMasksTable[e]
                                 if (dead & _card5) != 0: 
                                     e += 1
                                     continue
                                 _n5 = _n4 | _card5
 
                                 f = e + 1
-                                while f < HoldemHand.CARD_MASKS_TABLE_SIZE:
-                                    _card6 = HoldemHand.__CardMasksTable[f]
+                                while f < Hand.CARD_MASKS_TABLE_SIZE:
+                                    _card6 = Hand.__CardMasksTable[f]
                                     if (dead & _card6) != 0:
                                         f += 1
                                         continue
@@ -5058,35 +5058,35 @@ class HoldemHand:
 
         elif numberOfCards == 5:
             a = 0
-            while a < HoldemHand.CARD_MASKS_TABLE_SIZE - 4:
-                _card1 = HoldemHand.__CardMasksTable[a]
+            while a < Hand.CARD_MASKS_TABLE_SIZE - 4:
+                _card1 = Hand.__CardMasksTable[a]
                 if (dead & _card1) != 0: 
                     a += 1
                     continue
                 b = a + 1
-                while b < HoldemHand.CARD_MASKS_TABLE_SIZE - 3:
-                    _card2 = HoldemHand.__CardMasksTable[b]
+                while b < Hand.CARD_MASKS_TABLE_SIZE - 3:
+                    _card2 = Hand.__CardMasksTable[b]
                     if (dead & _card2) != 0:                        
                         b += 1
                         continue
                     _n2 = _card1 | _card2
                     c = b + 1
-                    while c < HoldemHand.CARD_MASKS_TABLE_SIZE - 2:
-                        _card3 = HoldemHand.__CardMasksTable[c]
+                    while c < Hand.CARD_MASKS_TABLE_SIZE - 2:
+                        _card3 = Hand.__CardMasksTable[c]
                         if (dead & _card3) != 0:
                             c += 1
                             continue
                         _n3 = _n2 | _card3
                         d = c + 1
-                        while d < HoldemHand.CARD_MASKS_TABLE_SIZE - 1:
-                            _card4 = HoldemHand.__CardMasksTable[d]
+                        while d < Hand.CARD_MASKS_TABLE_SIZE - 1:
+                            _card4 = Hand.__CardMasksTable[d]
                             if (dead & _card4) != 0:
                                 d += 1
                                 continue
                             _n4 = _n3 | _card4
                             e = d + 1
-                            while e < HoldemHand.CARD_MASKS_TABLE_SIZE:
-                                _card5 = HoldemHand.__CardMasksTable[e]
+                            while e < Hand.CARD_MASKS_TABLE_SIZE:
+                                _card5 = Hand.__CardMasksTable[e]
                                 if (dead & _card5) != 0: 
                                     e += 1
                                     continue
@@ -5100,28 +5100,28 @@ class HoldemHand:
             
         elif numberOfCards == 4:
             a = 0
-            while a < HoldemHand.CARD_MASKS_TABLE_SIZE - 3:
-                _card1 = HoldemHand.__CardMasksTable[a]
+            while a < Hand.CARD_MASKS_TABLE_SIZE - 3:
+                _card1 = Hand.__CardMasksTable[a]
                 if (dead & _card1) != 0: 
                     a += 1
                     continue
                 b = a + 1
-                while b < HoldemHand.CARD_MASKS_TABLE_SIZE - 2:
-                    _card2 = HoldemHand.__CardMasksTable[b]
+                while b < Hand.CARD_MASKS_TABLE_SIZE - 2:
+                    _card2 = Hand.__CardMasksTable[b]
                     if (dead & _card2) != 0:                        
                         b += 1
                         continue
                     _n2 = _card1 | _card2
                     c = b + 1
-                    while c < HoldemHand.CARD_MASKS_TABLE_SIZE - 1:
-                        _card3 = HoldemHand.__CardMasksTable[c]
+                    while c < Hand.CARD_MASKS_TABLE_SIZE - 1:
+                        _card3 = Hand.__CardMasksTable[c]
                         if (dead & _card3) != 0:
                             c += 1
                             continue
                         _n3 = _n2 | _card3
                         d = c + 1
-                        while d < HoldemHand.CARD_MASKS_TABLE_SIZE:
-                            _card4 = HoldemHand.__CardMasksTable[d]
+                        while d < Hand.CARD_MASKS_TABLE_SIZE:
+                            _card4 = Hand.__CardMasksTable[d]
                             if (dead & _card4) != 0:
                                 d += 1
                                 continue
@@ -5134,21 +5134,21 @@ class HoldemHand:
 
         elif numberOfCards == 3:
             a = 0
-            while a < HoldemHand.CARD_MASKS_TABLE_SIZE - 2:
-                _card1 = HoldemHand.__CardMasksTable[a]
+            while a < Hand.CARD_MASKS_TABLE_SIZE - 2:
+                _card1 = Hand.__CardMasksTable[a]
                 if (dead & _card1) != 0: 
                     a += 1
                     continue
                 b = a + 1
-                while b < HoldemHand.CARD_MASKS_TABLE_SIZE - 1:
-                    _card2 = HoldemHand.__CardMasksTable[b]
+                while b < Hand.CARD_MASKS_TABLE_SIZE - 1:
+                    _card2 = Hand.__CardMasksTable[b]
                     if (dead & _card2) != 0:                        
                         b += 1
                         continue
                     _n2 = _card1 | _card2
                     c = b + 1
-                    while c < HoldemHand.CARD_MASKS_TABLE_SIZE:
-                        _card3 = HoldemHand.__CardMasksTable[c]
+                    while c < Hand.CARD_MASKS_TABLE_SIZE:
+                        _card3 = Hand.__CardMasksTable[c]
                         if (dead & _card3) != 0:
                             c += 1
                             continue
@@ -5160,14 +5160,14 @@ class HoldemHand:
 
         elif numberOfCards == 2:
             a = 0
-            while a < HoldemHand.CARD_MASKS_TABLE_SIZE - 1:
-                _card1 = HoldemHand.__CardMasksTable[a]
+            while a < Hand.CARD_MASKS_TABLE_SIZE - 1:
+                _card1 = Hand.__CardMasksTable[a]
                 if (dead & _card1) != 0:
                     a += 1
                     continue
                 b = a + 1
-                while b < HoldemHand.CARD_MASKS_TABLE_SIZE:
-                    _card2 = HoldemHand.__CardMasksTable[b]
+                while b < Hand.CARD_MASKS_TABLE_SIZE:
+                    _card2 = Hand.__CardMasksTable[b]
                     if (dead & _card2) != 0:
                         b += 1
                         continue
@@ -5177,8 +5177,8 @@ class HoldemHand:
 
         elif numberOfCards == 1:
             a = 0
-            while a < HoldemHand.CARD_MASKS_TABLE_SIZE:
-                _card1 = HoldemHand.__CardMasksTable[a]
+            while a < Hand.CARD_MASKS_TABLE_SIZE:
+                _card1 = Hand.__CardMasksTable[a]
                 if (dead & _card1) != 0:
                     a += 1
                     continue
@@ -5196,7 +5196,7 @@ class HoldemHand:
         i = 51
         while i >= 0:
             if ((1 << i) & mask) != 0:
-                yield HoldemHand.__CardTable[i]
+                yield Hand.__CardTable[i]
             i -= 1
         
     # This method randomly picks from a list of possible masks
@@ -5219,10 +5219,10 @@ class HoldemHand:
             mask = list[random.randint(0, len(list) - 1)]
         
         if __debug__:
-            if HoldemHand.BitCount(mask) > ncards:
+            if Hand.BitCount(mask) > ncards:
                 raise Exception("Invalid ncards")
         
-        return HoldemHand.RandomHand(mask, dead, ncards)
+        return Hand.RandomHand(mask, dead, ncards)
     
     # Returns a random mask with the specified number of cards and constrained
     # to not contain any of the passed dead cards
@@ -5234,7 +5234,7 @@ class HoldemHand:
     def RandomHand(shared: int, dead: int, ncards: int):
         mask = shared
         card = 0
-        count = ncards - HoldemHand.BitCount(shared)
+        count = ncards - Hand.BitCount(shared)
 
         i = 0
         while i < count:
@@ -5253,7 +5253,7 @@ class HoldemHand:
     @staticmethod
     @dispatch(int, int)
     def RandomHand(dead: int, ncards: int):
-        return HoldemHand.RandomHand(0, dead, ncards)
+        return Hand.RandomHand(0, dead, ncards)
 
     # Iterates through random hands that meets the specified requirements until the specified
     # time duration has elapse. 
@@ -5277,9 +5277,9 @@ class HoldemHand:
             if duration < 0:
                 raise Exception("Duration must not be negative")
         
-        yield HoldemHand.RandomHand(shared, dead, ncards)
+        yield Hand.RandomHand(shared, dead, ncards)
         while (timer() - start) < duration:
-            yield HoldemHand.RandomHand(shared, dead, ncards)
+            yield Hand.RandomHand(shared, dead, ncards)
     
     # Iterates through random hands that meets the specified requirements until the specified
     # time duration has elapse. 
@@ -5294,4 +5294,4 @@ class HoldemHand:
     @staticmethod
     @dispatch(int, float)
     def RandomHand(ncards: int, duration: float):
-        return HoldemHand.RandomHand(0, 0, ncards, duration)
+        return Hand.RandomHand(0, 0, ncards, duration)
