@@ -1,4 +1,5 @@
 from os import stat
+import numpy
 
 from numpy.lib.shape_base import expand_dims
 from HandEvaluator import Hand
@@ -1346,7 +1347,73 @@ class HandAnalysis:
     def OutsEx(pocket: str, board: str, dead: str):
         return HandAnalysis.OutsEx(Hand.ParseHand(pocket), Hand.ParseHand(board), Hand.ParseHand(dead))
     
-    
+    # This function returns true if the cards in the mask are all one suit. This method
+    # calculates the results. Because of the equivelent call in PocketHands is preferred
+    # because it uses a lookup table and is faster. This function remains to allow for automated
+    # testing.
+    # mask - mask to check for "suited-ness"
+    # Returns true if all hands are of the same suit, false otherwise
+    @staticmethod
+    def IsSuited(mask: int):
+        cards = Hand.BitCount(mask)
+        sc = Hand.CardMask(mask, Hand.CLUBS)
+        sd = Hand.CardMask(mask, Hand.DIAMONDS)
+        sh = Hand.CardMask(mask, Hand.HEARTS)
+        ss = Hand.CardMask(mask, Hand.SPADES)
+
+        return Hand.BitCount(sc) == cards or Hand.BitCount(sd) == cards \
+            or Hand.BitCount(sh) == cards or Hand.BitCount(ss) == cards
+
+    # Returns true if the cards in the two card mask are connected. This method
+    # calculates the results. Because of that equivelent call in PocketHands is preferred
+    # because it uses a lookup table and is faster. This function remains to allow for automated
+    # testing.
+    # mask - the mask to check
+    # returns true of all the cards are next to each other
+    @staticmethod
+    def IsConnected(mask: int):
+        return HandAnalysis.GapCount(mask) == 0
+
+    # Counts the number of empty space between adjacent cards. 0 means connected, 1 means a gap
+    # of one, 2 means a gap of two and 3 means a gap of three. This method
+    # calculates the results. Because of that equivelent call in PocketHands is preferred
+    # because it uses a lookup table and is faster. This function remains to allow for automated
+    # testing.
+    # mask - two card mask mask
+    # Returns number of spaces between two cards
+    @staticmethod
+    def GapCount(mask: int):
+        start = end = 0
+        if Hand.BitCount(mask) != 2:
+            return -1
+        
+        bf = Hand.CardMask(mask, Hand.CLUBS) or Hand.CardMask(mask, Hand.DIAMONDS) \
+            or Hand.CardMask(mask, Hand.HEARTS) or Hand.CardMask(mask, Hand.SPADES)
+        
+        start = 12
+        while start >= 0:
+            if bf & (1 << start) != 0:
+                break
+            start -= 1
+        
+        end = start - 1
+        while end >= 0:
+            if bf & (1 << end) != 0:
+                break
+            end -= 1
+        
+        if start == 12 and end == 0: return 0
+        if start == 12 and end == 1: return 1
+        if start == 12 and end == 2: return 2
+        if start == 12 and end == 3: return 3
+
+        result = start - end - 1
+        if result > 3:
+            return -1
+        else:
+            return result
+
+
     __ContiguousCountTable = [
         0, 0, 0, 2, 0, 0, 2, 3, 0, 0, 0, 2, 2, 2, 3, 4, 0, 0, 0, 2,
             0, 0, 2, 3, 2, 2, 2, 2, 3, 3, 4, 5, 0, 0, 0, 2, 0, 0, 2, 3,

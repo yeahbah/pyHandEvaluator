@@ -153,6 +153,23 @@ class HandEvaluatorTest(unittest.TestCase):
         opponents = [Hand.ParseHand("6s 7s")[0]]
         expectedOuts = 15 # opponent out is not discounted
         self.assertTrue(expectedOuts == HandAnalysis.Outs(Hand.ParseHand(pocket)[0], Hand.ParseHand(board)[0], opponents))
+    
+    def test_Suitedness(self):
+        pocket = Hand.ParseHand("2d 3d")[0]
+        self.assertTrue(HandAnalysis.IsSuited(pocket))
+
+    def test_Connectivity(self):
+        pocket = Hand.ParseHand("6h 7h")[0]
+        self.assertTrue(HandAnalysis.GapCount(pocket) == 0)
+
+        pocket = Hand.ParseHand("6h 8h")[0]
+        self.assertTrue(HandAnalysis.GapCount(pocket) == 1)
+
+        pocket = Hand.ParseHand("6h 9h")[0]     
+        self.assertTrue(HandAnalysis.GapCount(pocket) == 2)
+
+        pocket = Hand.ParseHand("6h Th")[0]      
+        self.assertTrue(HandAnalysis.GapCount(pocket) == 3)
 
 
 if __name__ == '__main__':
