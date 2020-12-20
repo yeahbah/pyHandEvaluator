@@ -1273,6 +1273,79 @@ class HandAnalysis:
     def Outs(player: int, board: int, opponentsList):
         return Hand.BitCount(HandAnalysis.OutsMask(player, board, opponentsList))
         
+    # Creates a Hand mask with the cards that will improve the specified players mask.
+    #
+    # Please note that this only looks at single cards that improve the mask and will not specifically
+    # look at runner-runner possiblities.
+    # 
+    # This version of outs contributed by Matt Baker
+    # player - Player pocket cards
+    # board - The board (must contain either 3 or 4 cards)
+    # dead - dead cards
+    # Returns a mask of all of the cards that improve the mask
+    @staticmethod
+    @dispatch(int, int, int)
+    def OutsMaskEx(player: int, board: int, dead: int):
+        retval = 0
+        ncards = Hand.BitCount(player | board)
+        if __debug__:
+            if Hand.BitCount(player) != 2:
+                raise Exception("Player pocket must exactly have two cards.")
+            if ncards != 5 and ncards != 6:
+                raise Exception("Outs only make sense after the flop and before the River")
+        
+        # Look at the cards that improve the mask
+        playerOrigHandVal = Hand.Evaluate(player | board | ncards)
+        playerOrigHandType = Hand.HandType(playerOrigHandVal)
+        playerOrigTopCard = Hand.TopCard(playerOrigHandVal)
+        boardOrigHandVal = Hand.Evaluate(board)
+        boardOrigHandType = Hand.HandType(boardOrigHandVal)
+        boardOrigTopCard = Hand.TopCard(boardOrigHandVal)
+
+        # Look at players pocket cards for special cases
+        playerPocketHandVal = Hand.Evaluate(player)
+        playerPocketHandType = Hand.HandType(playerPocketHandVal)
+
+        # Look ahead one card
+        for card in Hand.Hands(0, dead | board | player, 1):
+            boardNewHandVal = Hand.Evaluate(board | card)
+            boardNewHandType = Hand.HandType(boardNewHandVal)
+            boardNewTopCard = Hand.TopCard(boardNewHandVal)
+            playerNewHandVal = Hand.Evaluate(player | board | card, ncards + 1)
+            playerNewHandType = Hand.HandType(playerNewHandVal)
+            playerNewTopCard = Hand.TopCard(playerNewHandVal)
+            playerImproved = playerNewHandType > playerOrigHandType or (playerNewHandType == playerOrigHandType and playerNewTopCard > playerOrigTopCard) \
+                or (playerNewHandType == playerOrigHandType and playerNewHandType == Hand.HandTypes.TWO_PAIR and playerNewHandVal > playerOrigHandVal)
+            playerStrongerThanBoard = playerNewHandType > boardNewHandType or (playerNewHandType == boardNewHandType and playerNewTopCard > boardNewTopCard)
+
+            if playerImproved and playerStrongerThanBoard:
+                # New mask better than two pair and special case pocket pair improving to full house
+                if playerNewHandType > Hand.HandTypes.TWO_PAIR or (playerPocketHandType == Hand.HandTypes.PAIR and playerNewHandType > Hand.HandTypes.TWO_PAIR):
+                    retval |= card
+                else:
+                    # Special case pair improving to two pair must use one of the players cards.
+                    playerPocketHandNewCardVal = Hand.Evaluate(player | card)
+                    playerPocketHandNewCardType = Hand.Evaluate(playerPocketHandNewCardVal)
+                    if playerPocketHandNewCardType == Hand.HandTypes.PAIR and playerPocketHandType != Hand.HandTypes.PAIR:
+                        retval |= card
+
+        return retval
+
+    @staticmethod
+    @dispatch(str, str, str)
+    def OutsMaskEx(pocket: str, board: str, dead: str):
+        return HandAnalysis.OutsMaskEx(Hand.ParseHand(pocket), Hand.ParseHand(board), Hand.ParseHand(dead))
+
+    @staticmethod
+    @dispatch(int, int, int)
+    def OutsEx(pocket: int, board: int, dead: int):
+        return Hand.BitCount(HandAnalysis.OutsMaskEx(pocket, board, dead))
+    
+    @staticmethod
+    @dispatch(str, str, str)
+    def OutsEx(pocket: str, board: str, dead: str):
+        return HandAnalysis.OutsEx(Hand.ParseHand(pocket), Hand.ParseHand(board), Hand.ParseHand(dead))
+    
     
     __ContiguousCountTable = [
         0, 0, 0, 2, 0, 0, 2, 3, 0, 0, 0, 2, 2, 2, 3, 4, 0, 0, 0, 2,

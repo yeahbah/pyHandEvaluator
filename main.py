@@ -133,6 +133,12 @@ print(HandAnalysis.Outs(pocket, board, opponents))
 cards =  HandAnalysis.OutCards("As Ks", "2s 3s 5c 6d", ["5s 6c"])
 print(cards)
 
+board = Hand.ParseHand("2s 3s 5c")[0]
+print(HandAnalysis.OutsEx(pocket, board, 0))
+
+mask = HandAnalysis.OutsMaskEx(pocket, board, 0)
+print(Hand.MaskToString(mask))
+
 
 # handValue = HoldemHand.Evaluate(mask[0], 5)
 # print(handValue)
