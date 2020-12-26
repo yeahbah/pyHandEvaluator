@@ -139,6 +139,32 @@ print(HandAnalysis.OutsEx(pocket, board, 0))
 mask = HandAnalysis.OutsMaskEx(pocket, board, 0)
 print(Hand.MaskToString(mask))
 
+ourCards = [Hand.ParseHand("Ad Kd")[0]]
+oppCards = [Hand.ParseHand("Jc Jh")[0]]
+board = Hand.ParseHand("Jd Qd 2c")[0]
+result = HandAnalysis.HandWinOdds(ourCards, oppCards, board)
+print("Player odds: " + str(result[0]))
+print("Opponent odds: " + str(result[1]))
+print("Is approximate: " + str(result[2]))
+
+# versus random opponent - no board
+result = HandAnalysis.HandWinOdds(Hand.ParseHand("As Ks")[0], 0)
+print("Player Odds: " + str(result[0]))
+print("Opponent Odds: " + str(result[1]))
+
+# versus random opponent with board
+# result = HandAnalysis.HandWinOdds(Hand.ParseHand("As Ks")[0], board)
+# print("Player Odds: " + str(result[0]))
+# print("Opponent Odds: " + str(result[1]))
+
+# versus specific number of opponents and duration
+result = HandAnalysis.HandWinOdds(Hand.ParseHand("QsQc")[0], board, 6, 0.5)
+print("Player Odds: " + str(result[0]))
+print("Opponent Odds: " + str(result[1]))
+
+result = HandAnalysis.HandWinOdds(["As Ks", "QcQh"], "2s 3c 5d", "7h 7d")
+print(result)
+
 
 # handValue = HoldemHand.Evaluate(mask[0], 5)
 # print(handValue)
