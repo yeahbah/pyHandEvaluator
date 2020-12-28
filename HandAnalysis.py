@@ -2142,6 +2142,95 @@ class HandAnalysis:
             totalHands += 1
 
         return (wins, ties, losses, totalHands)
+    
+    # Returns the normalized, positive and negative potential of the current mask. This funciton
+    # is described in Aaron Davidson's masters thesis on page 23.
+    # pocket - Hold cards
+    # board - Community cards
+    # Returns a Tuple<ppot, npot>
+    #   ppot - Positive Potential
+    #   npot - Negative Potential
+    @staticmethod
+    @dispatch(int, int)
+    def HandPotential(pocket: int, board: int):
+        ahead = 2
+        tied = 1
+        behind = 0
+
+        if __debug__:
+            if Hand.BitCount(pocket) != 2:
+                raise Exception("Pocket must contain exactly two cards.")
+            if Hand.BitCount(board) != 3 and Hand.BitCount(board) != 4:
+                raise Exception("Board must contain only 3 or 4 cards")
+        
+        hp = [[0] * 3] * 3
+        hpTotal = [0] * 3
+        ncards = Hand.BitCount(pocket | board)
+        if ncards == 5:
+            mult = 990.0
+        else:
+            mult = 45.0
+        
+        if __debug__:
+            if ncards < 5 or ncards >7:
+                raise Exception("Invalid number of cards")
+        # rank our mask
+        ourRank = Hand.Evaluate(pocket | board, ncards)
+
+        # iterate through all possible opponent pocket cards
+        for oppPocket in Hand.Hands(0, pocket | board, 2):
+            oppRank = Hand.Evaluate(oppPocket | board, ncards)
+            if ourRank > oppRank:
+                index = ahead
+            elif ourRank == oppRank:
+                index = tied
+            else:
+                index = behind
+            
+            for boardMask in Hand.Hands(board, pocket | oppPocket, 5):
+                ourBest = Hand.Evaluate(pocket | boardMask, 7)
+                oppBest = Hand.Evaluate(oppPocket | boardMask, 7)
+                if ourBest > oppBest:
+                    hp[index][ahead] += 1
+                elif ourBest == oppBest:
+                    hp[index][tied] += 1
+                else:
+                    hp[index][behind] += 1
+            
+            hpTotal[index] += 1
+
+        den1 = mult * (hpTotal[behind] + (hpTotal[tied] / 2.0))
+        den2 = mult * (hpTotal[ahead] + (hpTotal[tied] / 2.0))
+        if den1 > 0:
+            ppot = (hp[behind][ahead] + (hp[behind][tied] / 2) + (hp[tied][ahead] / 2)) / den1
+        else:
+            ppot = 0
+        
+        if den2 > 0:
+            npot = (hp[ahead][behind] + (hp[ahead][tied] / 2) + (hp[tied][behind] / 2)) / den2
+        else:
+            npot = 0
+            
+        return (ppot, npot)
+    
+    # This method is similar to the HandPotential algorithm described in Aaron Davidson's
+    # masters thesis, however if differs in several significant ways. First, it makes the calculation
+    # while accounting for one or more opponents. Second, it uses the Monte Carlo technique to get 
+    # answers in a reasonable amount of time (a duration of 0.1 seems to give reasonable results). And
+    # finally, the results are not normalized; the positive and negative potential is the actual odds of improvement
+    # or worsening of a mask.
+    # pocket - player's pocket card mask
+    # board - The current board mask
+    # numberOfOpponents - The number of opponents
+    # duration - The length of time (in seconds) to spend on this calculation
+    # Returns a Tuple<ppot, npot>
+    #   ppot - The resultant positive potential
+    #   npot - The resultant negative potential
+    @staticmethod
+    @dispatch(int, int, int, float)
+    def HandPotential(pocket: int, board: int, numberOfOpponents: int, duration: float):
+        pass
+
 
     # This table is used by HandPlayerOpponentOdds and contains the odds of each type of 
     # mask occuring against a random player when the board is currently empty. This calculation
