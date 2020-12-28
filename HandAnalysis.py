@@ -4,7 +4,7 @@ import numpy
 from numpy.lib.shape_base import expand_dims
 from HandEvaluator import Hand
 from multipledispatch import dispatch
-from timeit import default_timer as timer
+from timeit import Timer, default_timer as timer
 import random
 
 class HandAnalysis:
@@ -2229,7 +2229,433 @@ class HandAnalysis:
     @staticmethod
     @dispatch(int, int, int, float)
     def HandPotential(pocket: int, board: int, numberOfOpponents: int, duration: float):
-        pass
+        ahead = 2
+        tied = 1
+        behind = 0
+
+        if __debug__:
+            if Hand.BitCount(pocket) != 2:
+                raise Exception("Pocket must contain exactly two cards")
+            if Hand.BitCount(board) != 3 and Hand.BitCount(board) != 4:
+                raise Exception("Board must contain 3 or 4 cards")
+        
+        ppot = npot = 0.0
+        hp = [[0] * 3] * 3
+        count = 0
+        ncards = Hand.BitCount(pocket | board)
+        ourBest = 0
+        ourRank = Hand.Evaluate(pocket | board)
+        startTime = timer()
+
+        if numberOfOpponents == 1:
+            while timer() - startTime < duration:
+                opp1Pocket = Hand.RandomHand(0, pocket | board, 2)
+                opp1Rank = Hand.Evaluate(opp1Pocket | board, ncards)
+                index: int
+
+                if ourRank > opp1Rank:
+                    index = ahead
+                elif ourRank >= opp1Rank:
+                    index = tied
+                else:
+                    index = behind
+                
+                boardMask = Hand.RandomHand(board, pocket | opp1Rank, 5)
+                ourBest = Hand.Evaluate(pocket | boardMask, 7)
+                opp1Best = Hand.Evaluate(opp1Pocket | boardMask, 7)
+                if ourBest > opp1Best:
+                    hp[index][ahead] += 1
+                elif ourBest >= opp1Best:
+                    hp[index][tied] += 1
+                else:
+                    hp[index][behind] += 1
+                
+                count += 1
+
+        elif numberOfOpponents == 2:
+            while timer() - startTime < duration:
+                opp1Pocket = Hand.RandomHand(0, pocket | board, 2)
+                opp2Pocket = Hand.RandomHand(0, pocket | board | opp1Pocket, 2)
+                opp1Rank = Hand.Evaluate(opp1Pocket | board)
+                opp2Rank = Hand.Evaluate(opp2Pocket | board)
+                index: int
+
+                if ourRank > opp1Rank and ourRank > opp2Rank:
+                    index = ahead
+                elif ourRank >= opp1Rank and ourRank >= opp2Rank:
+                    index = tied
+                else:
+                    index = behind
+                
+                boardMask = Hand.RandomHand(board, pocket | opp1Rank | opp2Pocket, 5)
+                ourBest = Hand.Evaluate(pocket | boardMask, 7)
+                opp1Best = Hand.Evaluate(opp1Pocket | boardMask, 7)
+                opp2Best = Hand.Evaluate(opp2Pocket | boardMask, 7)
+                if ourBest > opp1Best and ourBest > opp2Best:
+                    hp[index][ahead] += 1
+                elif ourBest >= opp1Best and ourBest >= opp2Best:
+                    hp[index][tied] += 1
+                else:
+                    hp[index][behind] += 1
+                
+                count += 1
+        elif numberOfOpponents == 3:
+            while timer() - startTime < duration:
+                opp1Pocket = Hand.RandomHand(0, pocket | board, 2)
+                opp2Pocket = Hand.RandomHand(0, pocket | board | opp1Pocket, 2)
+                opp3Pocket = Hand.RandomHand(0, pocket | board | opp1Pocket | opp2Pocket, 2)
+                opp1Rank = Hand.Evaluate(opp1Pocket | board)
+                opp2Rank = Hand.Evaluate(opp2Pocket | board)
+                opp3Rank = Hand.Evaluate(opp3Pocket | board)
+
+                index: int
+
+                if ourRank > opp1Rank and ourRank > opp2Rank \
+                    and ourRank > opp3Rank:
+                    index = ahead
+                elif ourRank >= opp1Rank and ourRank >= opp2Rank \
+                    and ourRank >= opp3Rank:
+                    index = tied
+                else:
+                    index = behind
+                
+                boardMask = Hand.RandomHand(board, pocket | opp1Rank | opp2Pocket | opp3Pocket, 5)
+                ourBest = Hand.Evaluate(pocket | boardMask, 7)
+                opp1Best = Hand.Evaluate(opp1Pocket | boardMask, 7)
+                opp2Best = Hand.Evaluate(opp2Pocket | boardMask, 7)
+                opp3Best = Hand.Evaluate(opp3Pocket | boardMask, 7)
+                if ourBest > opp1Best and ourBest > opp2Best \
+                    and ourBest > opp3Best:
+                    hp[index][ahead] += 1
+                elif ourBest >= opp1Best and ourBest >= opp2Best \
+                    and ourBest >= opp3Best:
+                    hp[index][tied] += 1
+                else:
+                    hp[index][behind] += 1
+                
+                count += 1
+        elif numberOfOpponents == 4:
+            while timer() - startTime < duration:
+                opp1Pocket = Hand.RandomHand(0, pocket | board, 2)
+                opp2Pocket = Hand.RandomHand(0, pocket | board | opp1Pocket, 2)
+                opp3Pocket = Hand.RandomHand(0, pocket | board | opp1Pocket | opp2Pocket, 2)
+                opp4Pocket = Hand.RandomHand(0, pocket | board | opp1Pocket | opp2Pocket | opp3Pocket, 2)
+                opp1Rank = Hand.Evaluate(opp1Pocket | board)
+                opp2Rank = Hand.Evaluate(opp2Pocket | board)
+                opp3Rank = Hand.Evaluate(opp3Pocket | board)
+                opp4Rank = Hand.Evaluate(opp4Pocket | board)
+
+                index: int
+
+                if ourRank > opp1Rank and ourRank > opp2Rank \
+                    and ourRank > opp3Rank and ourRank > opp2Rank:
+                    index = ahead
+                elif ourRank >= opp1Rank and ourRank >= opp2Rank \
+                    and ourRank >= opp3Rank and ourRank >= opp4Rank:
+                    index = tied
+                else:
+                    index = behind
+                
+                boardMask = Hand.RandomHand(board, pocket | opp1Rank | opp2Pocket | opp3Pocket | opp4Pocket, 5)
+                ourBest = Hand.Evaluate(pocket | boardMask, 7)
+                opp1Best = Hand.Evaluate(opp1Pocket | boardMask, 7)
+                opp2Best = Hand.Evaluate(opp2Pocket | boardMask, 7)
+                opp3Best = Hand.Evaluate(opp3Pocket | boardMask, 7)
+                opp4Best = Hand.Evaluate(opp4Pocket | boardMask, 7)
+
+                if ourBest > opp1Best and ourBest > opp2Best \
+                    and ourBest > opp3Best and ourBest > opp4Best:
+                    hp[index][ahead] += 1
+                elif ourBest >= opp1Best and ourBest >= opp2Best \
+                    and ourBest >= opp3Best and ourBest >= opp4Best:
+                    hp[index][tied] += 1
+                else:
+                    hp[index][behind] += 1
+                
+                count += 1
+        elif numberOfOpponents == 5:
+            while timer() - startTime < duration:
+                opp1Pocket = Hand.RandomHand(0, pocket | board, 2)
+                opp2Pocket = Hand.RandomHand(0, pocket | board | opp1Pocket, 2)
+                opp3Pocket = Hand.RandomHand(0, pocket | board | opp1Pocket | opp2Pocket, 2)
+                opp4Pocket = Hand.RandomHand(0, pocket | board | opp1Pocket | opp2Pocket | opp3Pocket, 2)
+                opp5Pocket = Hand.RandomHand(0, pocket | board | opp1Pocket | opp2Pocket | opp3Pocket | opp4Pocket, 2)
+                opp1Rank = Hand.Evaluate(opp1Pocket | board)
+                opp2Rank = Hand.Evaluate(opp2Pocket | board)
+                opp3Rank = Hand.Evaluate(opp3Pocket | board)
+                opp4Rank = Hand.Evaluate(opp4Pocket | board)
+                opp5Rank = Hand.Evaluate(opp5Pocket | board)
+
+                index: int
+
+                if ourRank > opp1Rank and ourRank > opp2Rank \
+                    and ourRank > opp3Rank and ourRank > opp2Rank \
+                    and ourRank > opp5Rank:
+                    index = ahead
+                elif ourRank >= opp1Rank and ourRank >= opp2Rank \
+                    and ourRank >= opp3Rank and ourRank >= opp4Rank \
+                    and ourRank >= opp5Rank:
+                    index = tied
+                else:
+                    index = behind
+                
+                boardMask = Hand.RandomHand(board, pocket | opp1Rank | opp2Pocket | opp3Pocket | opp4Pocket | opp5Pocket, 5)
+                ourBest = Hand.Evaluate(pocket | boardMask, 7)
+                opp1Best = Hand.Evaluate(opp1Pocket | boardMask, 7)
+                opp2Best = Hand.Evaluate(opp2Pocket | boardMask, 7)
+                opp3Best = Hand.Evaluate(opp3Pocket | boardMask, 7)
+                opp4Best = Hand.Evaluate(opp4Pocket | boardMask, 7)
+                opp5Best = Hand.Evaluate(opp5Pocket | boardMask, 7)
+
+                if ourBest > opp1Best and ourBest > opp2Best \
+                    and ourBest > opp3Best and ourBest > opp4Best \
+                    and ourBest > opp5Best:
+                    hp[index][ahead] += 1
+                elif ourBest >= opp1Best and ourBest >= opp2Best \
+                    and ourBest >= opp3Best and ourBest >= opp4Best \
+                    and ourBest >= opp5Best:
+                    hp[index][tied] += 1
+                else:
+                    hp[index][behind] += 1
+                
+                count += 1
+        elif numberOfOpponents == 6:
+            while timer() - startTime < duration:
+                opp1Pocket = Hand.RandomHand(0, pocket | board, 2)
+                opp2Pocket = Hand.RandomHand(0, pocket | board | opp1Pocket, 2)
+                opp3Pocket = Hand.RandomHand(0, pocket | board | opp1Pocket | opp2Pocket, 2)
+                opp4Pocket = Hand.RandomHand(0, pocket | board | opp1Pocket | opp2Pocket | opp3Pocket, 2)
+                opp5Pocket = Hand.RandomHand(0, pocket | board | opp1Pocket | opp2Pocket | opp3Pocket | opp4Pocket, 2)
+                opp6Pocket = Hand.RandomHand(0, pocket | board | opp1Pocket | opp2Pocket | opp3Pocket | opp4Pocket | opp5Pocket, 2)
+                opp1Rank = Hand.Evaluate(opp1Pocket | board)
+                opp2Rank = Hand.Evaluate(opp2Pocket | board)
+                opp3Rank = Hand.Evaluate(opp3Pocket | board)
+                opp4Rank = Hand.Evaluate(opp4Pocket | board)
+                opp5Rank = Hand.Evaluate(opp5Pocket | board)
+                opp6Rank = Hand.Evaluate(opp5Pocket | board)
+
+                index: int
+
+                if ourRank > opp1Rank and ourRank > opp2Rank \
+                    and ourRank > opp3Rank and ourRank > opp2Rank \
+                    and ourRank > opp5Rank and ourRank > opp6Rank:
+                    index = ahead
+                elif ourRank >= opp1Rank and ourRank >= opp2Rank \
+                    and ourRank >= opp3Rank and ourRank >= opp4Rank \
+                    and ourRank >= opp5Rank and ourRank >= opp6Rank:
+                    index = tied
+                else:
+                    index = behind
+                
+                # TODO: int64 problem
+                boardMask = Hand.RandomHand(board, pocket | opp1Rank | opp2Pocket | opp3Pocket | opp4Pocket | opp5Pocket | opp6Pocket, 5)
+                ourBest = Hand.Evaluate(pocket | boardMask, 7)
+                opp1Best = Hand.Evaluate(opp1Pocket | boardMask, 7)
+                opp2Best = Hand.Evaluate(opp2Pocket | boardMask, 7)
+                opp3Best = Hand.Evaluate(opp3Pocket | boardMask, 7)
+                opp4Best = Hand.Evaluate(opp4Pocket | boardMask, 7)
+                opp5Best = Hand.Evaluate(opp5Pocket | boardMask, 7)
+                opp6Best = Hand.Evaluate(opp6Pocket | boardMask, 7)
+
+                if ourBest > opp1Best and ourBest > opp2Best \
+                    and ourBest > opp3Best and ourBest > opp4Best \
+                    and ourBest > opp5Best and ourBest > opp6Best:
+                    hp[index][ahead] += 1
+                elif ourBest >= opp1Best and ourBest >= opp2Best \
+                    and ourBest >= opp3Best and ourBest >= opp4Best \
+                    and ourBest >= opp5Best and ourBest >= opp6Best:
+                    hp[index][tied] += 1
+                else:
+                    hp[index][behind] += 1
+                
+                count += 1
+        elif numberOfOpponents == 7:
+            while timer() - startTime < duration:
+                opp1Pocket = Hand.RandomHand(0, pocket | board, 2)
+                opp2Pocket = Hand.RandomHand(0, pocket | board | opp1Pocket, 2)
+                opp3Pocket = Hand.RandomHand(0, pocket | board | opp1Pocket | opp2Pocket, 2)
+                opp4Pocket = Hand.RandomHand(0, pocket | board | opp1Pocket | opp2Pocket | opp3Pocket, 2)
+                opp5Pocket = Hand.RandomHand(0, pocket | board | opp1Pocket | opp2Pocket | opp3Pocket | opp4Pocket, 2)
+                opp6Pocket = Hand.RandomHand(0, pocket | board | opp1Pocket | opp2Pocket | opp3Pocket | opp4Pocket | opp5Pocket, 2)
+                opp7Pocket = Hand.RandomHand(0, pocket | board | opp1Pocket | opp2Pocket | opp3Pocket | opp4Pocket | opp5Pocket | opp6Pocket, 2)
+                opp1Rank = Hand.Evaluate(opp1Pocket | board)
+                opp2Rank = Hand.Evaluate(opp2Pocket | board)
+                opp3Rank = Hand.Evaluate(opp3Pocket | board)
+                opp4Rank = Hand.Evaluate(opp4Pocket | board)
+                opp5Rank = Hand.Evaluate(opp5Pocket | board)
+                opp6Rank = Hand.Evaluate(opp6Pocket | board)
+                opp7Rank = Hand.Evaluate(opp7Pocket | board)
+
+                index: int
+
+                if ourRank > opp1Rank and ourRank > opp2Rank \
+                    and ourRank > opp3Rank and ourRank > opp2Rank \
+                    and ourRank > opp5Rank and ourRank > opp6Rank \
+                    and ourRank > opp7Rank:
+                    index = ahead
+                elif ourRank >= opp1Rank and ourRank >= opp2Rank \
+                    and ourRank >= opp3Rank and ourRank >= opp4Rank \
+                    and ourRank >= opp5Rank and ourRank >= opp6Rank \
+                    and ourRank >= opp7Rank:
+                    index = tied
+                else:
+                    index = behind
+                
+                boardMask = Hand.RandomHand(board, pocket | opp1Rank | opp2Pocket | opp3Pocket | opp4Pocket | opp5Pocket | opp6Pocket | opp7Pocket, 5)
+                ourBest = Hand.Evaluate(pocket | boardMask, 7)
+                opp1Best = Hand.Evaluate(opp1Pocket | boardMask, 7)
+                opp2Best = Hand.Evaluate(opp2Pocket | boardMask, 7)
+                opp3Best = Hand.Evaluate(opp3Pocket | boardMask, 7)
+                opp4Best = Hand.Evaluate(opp4Pocket | boardMask, 7)
+                opp5Best = Hand.Evaluate(opp5Pocket | boardMask, 7)
+                opp6Best = Hand.Evaluate(opp6Pocket | boardMask, 7)
+                opp7Best = Hand.Evaluate(opp7Pocket | boardMask, 7)
+
+                if ourBest > opp1Best and ourBest > opp2Best \
+                    and ourBest > opp3Best and ourBest > opp4Best \
+                    and ourBest > opp5Best and ourBest > opp6Best \
+                    and ourBest > opp7Best:
+                    hp[index][ahead] += 1
+                elif ourBest >= opp1Best and ourBest >= opp2Best \
+                    and ourBest >= opp3Best and ourBest >= opp4Best \
+                    and ourBest >= opp5Best and ourBest >= opp6Best \
+                    and ourBest >= opp7Best:
+                    hp[index][tied] += 1
+                else:
+                    hp[index][behind] += 1
+                
+                count += 1
+        elif numberOfOpponents == 8:
+            while timer() - startTime < duration:
+                opp1Pocket = Hand.RandomHand(0, pocket | board, 2)
+                opp2Pocket = Hand.RandomHand(0, pocket | board | opp1Pocket, 2)
+                opp3Pocket = Hand.RandomHand(0, pocket | board | opp1Pocket | opp2Pocket, 2)
+                opp4Pocket = Hand.RandomHand(0, pocket | board | opp1Pocket | opp2Pocket | opp3Pocket, 2)
+                opp5Pocket = Hand.RandomHand(0, pocket | board | opp1Pocket | opp2Pocket | opp3Pocket | opp4Pocket, 2)
+                opp6Pocket = Hand.RandomHand(0, pocket | board | opp1Pocket | opp2Pocket | opp3Pocket | opp4Pocket | opp5Pocket, 2)
+                opp7Pocket = Hand.RandomHand(0, pocket | board | opp1Pocket | opp2Pocket | opp3Pocket | opp4Pocket | opp5Pocket | opp6Pocket, 2)
+                opp8Pocket = Hand.RandomHand(0, pocket | board | opp1Pocket | opp2Pocket | opp3Pocket | opp4Pocket | opp5Pocket | opp6Pocket | opp7Pocket, 2)
+                opp1Rank = Hand.Evaluate(opp1Pocket | board)
+                opp2Rank = Hand.Evaluate(opp2Pocket | board)
+                opp3Rank = Hand.Evaluate(opp3Pocket | board)
+                opp4Rank = Hand.Evaluate(opp4Pocket | board)
+                opp5Rank = Hand.Evaluate(opp5Pocket | board)
+                opp6Rank = Hand.Evaluate(opp6Pocket | board)
+                opp7Rank = Hand.Evaluate(opp7Pocket | board)
+                opp8Rank = Hand.Evaluate(opp8Pocket | board)
+
+                index: int
+
+                if ourRank > opp1Rank and ourRank > opp2Rank \
+                    and ourRank > opp3Rank and ourRank > opp2Rank \
+                    and ourRank > opp5Rank and ourRank > opp6Rank \
+                    and ourRank > opp7Rank and ourRank > opp8Rank:
+                    index = ahead
+                elif ourRank >= opp1Rank and ourRank >= opp2Rank \
+                    and ourRank >= opp3Rank and ourRank >= opp4Rank \
+                    and ourRank >= opp5Rank and ourRank >= opp6Rank \
+                    and ourRank >= opp7Rank and ourRank >= opp8Rank:
+                    index = tied
+                else:
+                    index = behind
+                
+                boardMask = Hand.RandomHand(board, pocket | opp1Rank | opp2Pocket | opp3Pocket | opp4Pocket | opp5Pocket | opp6Pocket | opp7Pocket | opp8Pocket, 5)
+                ourBest = Hand.Evaluate(pocket | boardMask, 7)
+                opp1Best = Hand.Evaluate(opp1Pocket | boardMask, 7)
+                opp2Best = Hand.Evaluate(opp2Pocket | boardMask, 7)
+                opp3Best = Hand.Evaluate(opp3Pocket | boardMask, 7)
+                opp4Best = Hand.Evaluate(opp4Pocket | boardMask, 7)
+                opp5Best = Hand.Evaluate(opp5Pocket | boardMask, 7)
+                opp6Best = Hand.Evaluate(opp6Pocket | boardMask, 7)
+                opp7Best = Hand.Evaluate(opp7Pocket | boardMask, 7)
+                opp8Best = Hand.Evaluate(opp8Pocket | boardMask, 7)
+
+                if ourBest > opp1Best and ourBest > opp2Best \
+                    and ourBest > opp3Best and ourBest > opp4Best \
+                    and ourBest > opp5Best and ourBest > opp6Best \
+                    and ourBest > opp7Best and ourBest > opp8Best:
+                    hp[index][ahead] += 1
+                elif ourBest >= opp1Best and ourBest >= opp2Best \
+                    and ourBest >= opp3Best and ourBest >= opp4Best \
+                    and ourBest >= opp5Best and ourBest >= opp6Best \
+                    and ourBest >= opp7Best and ourBest >= opp8Best:
+                    hp[index][tied] += 1
+                else:
+                    hp[index][behind] += 1
+                
+                count += 1
+        elif numberOfOpponents == 9:
+            while timer() - startTime < duration:
+                opp1Pocket = Hand.RandomHand(0, pocket | board, 2)
+                opp2Pocket = Hand.RandomHand(0, pocket | board | opp1Pocket, 2)
+                opp3Pocket = Hand.RandomHand(0, pocket | board | opp1Pocket | opp2Pocket, 2)
+                opp4Pocket = Hand.RandomHand(0, pocket | board | opp1Pocket | opp2Pocket | opp3Pocket, 2)
+                opp5Pocket = Hand.RandomHand(0, pocket | board | opp1Pocket | opp2Pocket | opp3Pocket | opp4Pocket, 2)
+                opp6Pocket = Hand.RandomHand(0, pocket | board | opp1Pocket | opp2Pocket | opp3Pocket | opp4Pocket | opp5Pocket, 2)
+                opp7Pocket = Hand.RandomHand(0, pocket | board | opp1Pocket | opp2Pocket | opp3Pocket | opp4Pocket | opp5Pocket | opp6Pocket, 2)
+                opp8Pocket = Hand.RandomHand(0, pocket | board | opp1Pocket | opp2Pocket | opp3Pocket | opp4Pocket | opp5Pocket | opp6Pocket | opp7Pocket, 2)
+                opp9Pocket = Hand.RandomHand(0, pocket | board | opp1Pocket | opp2Pocket | opp3Pocket | opp4Pocket | opp5Pocket | opp6Pocket | opp7Pocket | opp8Pocket, 2)
+                opp1Rank = Hand.Evaluate(opp1Pocket | board)
+                opp2Rank = Hand.Evaluate(opp2Pocket | board)
+                opp3Rank = Hand.Evaluate(opp3Pocket | board)
+                opp4Rank = Hand.Evaluate(opp4Pocket | board)
+                opp5Rank = Hand.Evaluate(opp5Pocket | board)
+                opp6Rank = Hand.Evaluate(opp6Pocket | board)
+                opp7Rank = Hand.Evaluate(opp7Pocket | board)
+                opp8Rank = Hand.Evaluate(opp8Pocket | board)
+                opp9Rank = Hand.Evaluate(opp9Pocket | board)
+
+                index: int
+
+                if ourRank > opp1Rank and ourRank > opp2Rank \
+                    and ourRank > opp3Rank and ourRank > opp2Rank \
+                    and ourRank > opp5Rank and ourRank > opp6Rank \
+                    and ourRank > opp7Rank and ourRank > opp8Rank \
+                    and ourRank > opp9Rank:
+                    index = ahead
+                elif ourRank >= opp1Rank and ourRank >= opp2Rank \
+                    and ourRank >= opp3Rank and ourRank >= opp4Rank \
+                    and ourRank >= opp5Rank and ourRank >= opp6Rank \
+                    and ourRank >= opp7Rank and ourRank >= opp8Rank \
+                    and ourRank >= opp9Rank:
+                    index = tied
+                else:
+                    index = behind
+                
+                boardMask = Hand.RandomHand(board, pocket | opp1Rank | opp2Pocket | opp3Pocket | opp4Pocket | opp5Pocket | opp6Pocket | opp7Pocket | opp8Pocket | opp9Pocket, 5)
+                ourBest = Hand.Evaluate(pocket | boardMask, 7)
+                opp1Best = Hand.Evaluate(opp1Pocket | boardMask, 7)
+                opp2Best = Hand.Evaluate(opp2Pocket | boardMask, 7)
+                opp3Best = Hand.Evaluate(opp3Pocket | boardMask, 7)
+                opp4Best = Hand.Evaluate(opp4Pocket | boardMask, 7)
+                opp5Best = Hand.Evaluate(opp5Pocket | boardMask, 7)
+                opp6Best = Hand.Evaluate(opp6Pocket | boardMask, 7)
+                opp7Best = Hand.Evaluate(opp7Pocket | boardMask, 7)
+                opp8Best = Hand.Evaluate(opp8Pocket | boardMask, 7)
+                opp9Best = Hand.Evaluate(opp9Pocket | boardMask, 7)
+
+                if ourBest > opp1Best and ourBest > opp2Best \
+                    and ourBest > opp3Best and ourBest > opp4Best \
+                    and ourBest > opp5Best and ourBest > opp6Best \
+                    and ourBest > opp7Best and ourBest > opp8Best \
+                    and ourBest > opp9Best:
+                    hp[index][ahead] += 1
+                elif ourBest >= opp1Best and ourBest >= opp2Best \
+                    and ourBest >= opp3Best and ourBest >= opp4Best \
+                    and ourBest >= opp5Best and ourBest >= opp6Best \
+                    and ourBest >= opp7Best and ourBest >= opp8Best \
+                    and ourBest >= opp9Best:
+                    hp[index][tied] += 1
+                else:
+                    hp[index][behind] += 1
+                
+                count += 1
+        
+        if count != 0:
+            ppot = (hp[behind][ahead] + (hp[behind][tied] / 2.0) + (hp[tied, ahead] / 2.0)) / count
+            npot = (hp[ahead][behind] + (hp[ahead][tied] / 2.0) + (hp[tied][behind] / 2.0)) / count
+        
+        return (ppot, npot)
 
 
     # This table is used by HandPlayerOpponentOdds and contains the odds of each type of 

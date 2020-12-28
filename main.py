@@ -165,8 +165,10 @@ print("Opponent Odds: " + str(result[1]))
 result = HandAnalysis.HandWinOdds(["As Ks", "QcQh"], "2s 3c 5d", "7h 7d")
 print(result)
 
-result = HandAnalysis.HandPotential(Hand.ParseHand("As Ks")[0], board)
+result = HandAnalysis.HandPotential(Hand.ParseHand("As Ks")[0], board, 6, 0.5)
 print(result)
+
+
 
 
 # handValue = HoldemHand.Evaluate(mask[0], 5)
