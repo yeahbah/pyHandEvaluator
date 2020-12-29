@@ -2657,6 +2657,168 @@ class HandAnalysis:
         
         return (ppot, npot)
 
+    # returns a Tuple<playerOddsList, opponentOddsList>
+    @staticmethod
+    def HandPlayerMultiOpponentOdds(ourCards: int, board: int, numberOfOpponents: int, duration: float):
+        pass
+    
+    # This method returns the approximate odd for the players mask winning against multiple opponents.
+    # This uses a default time duration of 0.25S (or 250mS) for the time allotment for Monte Carlo analysis.
+    # pocket - The pocket mask of the player
+    # board - The current board cards
+    # dead - Dead cards
+    # numberOfOpponents - The number of oppoents 1-9 are legal values
+    # The approximate odds of winning the passed mask against the number of opponents specified.
+    @staticmethod
+    @dispatch(str, str, int, int)
+    def WinOdds(pocket: str, board: str, dead: int, numberOfOpponents: int):
+        if __debug__:
+            if not Hand.ValidateHand(pocket) or Hand.BitCount(Hand.ParseHand(pocket)[0]) != 2:
+                raise Exception("pocket must contain exactly two cards")
+            if (board != "" and not Hand.ValidateHand(board)) or Hand.BitCount(Hand.ParseHand(board)[0]) > 5:
+                raise Exception("Board must have 0-5 cards")
+
+            return HandAnalysis.WinOdds(Hand.ParseHand(pocket)[0], Hand.ParseHand(board)[0], dead, numberOfOpponents)
+
+    # This method returns the approximate odd for the players mask winning against multiple opponents.
+    # This uses a default time duration of 0.25S (or 250mS) for the time allotment for Monte Carlo analysis.
+    # pocket - The pocket mask of the player
+    # board - The current board cards
+    # numberOfOpponents - The number of oppoents 1-9 are legal values
+    # return The approximate odds of winning the passed mask against the number of opponents specified.
+    @staticmethod
+    @dispatch(str, str, int)
+    def WinOdds(pocket: str, board: str, numberOfOpponents: int):
+        if __debug__:
+            if not Hand.ValidateHand(pocket) or Hand.BitCount(Hand.ParseHand(pocket)[0]) != 2:
+                raise Exception("pocket must contain exactly two cards")
+            if (board != "" and not Hand.ValidateHand(board)) or Hand.BitCount(Hand.ParseHand(board)[0]) > 5:
+                raise Exception("Board must have 0-5 cards")
+            if numberOfOpponents < 0 or numberOfOpponents > 9:
+                raise Exception("numberOfOpponents must be 1-9")
+        
+        return HandAnalysis.WinOdds(Hand.ParseHand(pocket)[0], Hand.ParseHand(board)[0], 0, numberOfOpponents)
+
+    # This method returns the exact odds of the specified mask mask
+    # winning against an average player. It's reasonably fast because it
+    # uses a lookup table when possible.
+    # pocket - The pocket mask
+    # board - The board mask
+    # dead - Dead cards
+    # returns the win odds
+    @staticmethod
+    @dispatch(int, int, int)
+    def WinOdds(pocket: int, board: int, dead: int):
+        # For one player we can lookup the value if the board is empty
+        # and if it's not empty it's probably just faster to calculate the
+        # results exhaustively.
+        if board == 0 and dead == 0:
+            # Use precalculated values
+            retval = 0.0
+            index = Hand.PocketHand169Type(pocket)
+            for value in HandAnalysis.__PreCalcPlayerOdds()[index]:
+                retval += value
+            return retval
+        else:
+            # calculate the results exhaustively
+            win = lose = tie = 0
+            for mask in Hand.Hands(board, pocket | dead, 5):
+                for opp1 in Hand.Hands(0, pocket | board | dead, 2):
+                    playerHandVal = Hand.Evaluate(mask | pocket)
+                    oppHandVal = Hand.Evaluate(mask | opp1)
+
+                    if playerHandVal == oppHandVal:
+                        win += 1
+                    elif playerHandVal == oppHandVal:
+                        tie += 1
+                    else:
+                        lose += 1
+            
+            return (win + tie / 2.0) / (win + tie + lose)
+    
+    # This method returns the approximate odd for the players mask winning against multiple opponents.
+    # This uses a default time duration of 0.1S (or 100mS) for the time allotment for Monte Carlo analysis.
+    # pocket - The pocket mask of the player
+    # board - The current board cards
+    # dead - Dead cards
+    # numberOfOpponents - The number of oppoents 1-9 are legal values
+    # returns The approximate odds of winning the passed mask against the number of opponents specified.
+    @staticmethod
+    @dispatch(int, int, int, int)
+    def WinOdds(pocket: int, board: int, dead: int, numberOfOpponents: int):
+        return HandAnalysis.WinOdds(pocket, board, dead, numberOfOpponents, HandAnalysis.__defaultTimeDuration)
+    
+    # This method returns the approximate odd for the players mask winning against multiple opponents.
+    # pocket - the pocket mask of the player
+    # board - The current board cards
+    # dead - Dead cards
+    # numberOfOpponents - The approximate odds of winning the passed mask against the number of opponents specified.
+    # duration - The period of time (in seconds) to run trials. On my 2.8Ghz laptop 0.1 seconds seems adequate.
+    # returns The approximate odds of winning the passed mask against the number of opponents specified.
+    @staticmethod
+    @dispatch(int, int, int, int, float)
+    def WinOdds(pocket: int, board: int, dead: int, numberOfOpponents: int, duration: float):
+        if __debug__:
+            if Hand.BitCount(pocket) != 2:
+                raise Exception("Pocket must contain exactly two cards")
+            if numberOfOpponents < 1 or numberOfOpponents > 9:
+                raise Exception("numberOfOpponents must be 1-9")
+            if Hand.BitCount(board) > 5:
+                raise Exception("Board must contain 0-5 cards")
+            if duration <= 0.0:
+                raise Exception("Duration must not be 0.0 or negative")
+        
+        # keep track of the stats
+        win = count = 0.0
+        
+        # loop through random boards
+        for boardMask in Hand.RandomHand(board, dead | pocket, 5, duration):
+            deadMask = dead | board | pocket
+            playerHandVal = Hand.Evaluate(pocket | boardMask)
+
+            # comparison results
+            greaterThan = True
+            greaterThanEqual = True
+
+            # Get random component hand values
+            i = 0
+            while i < numberOfOpponents:
+                oppMask = Hand.RandomHand(deadMask, 2)
+                oppHandVal = Hand.Evaluate(oppMask | boardMask)
+                deadMask |= oppMask
+                if playerHandVal < oppHandVal:
+                    greaterThan = greaterThanEqual = False
+                    break
+                elif playerHandVal <= oppHandVal:
+                    greaterThan = False                
+                i += 1
+            
+            if greaterThan:
+                win += 1.0
+            elif greaterThanEqual:
+                win += 0.5
+            
+            count += 1.0
+        
+        if count == 0.0:
+            return 0.0
+        else:
+            return win / count
+
+    # This method returns the approximate odd for the players mask winning against multiple opponents.
+    # pocketQuery - The pocket mask of the player
+    # board - The current board cards
+    # deadCards - dead cards
+    # numberOfOpponents - The approximate odds of winning the passed mask against the number of opponents specified.
+    # duration - The period of time (in seconds) to run trials. On my 2.8Ghz laptop 0.1 seconds seems adequate.
+    # returns The approximate odds of winning the passed mask against the number of opponents specified.
+    # TODO: requires pocket query parser
+    @staticmethod
+    @dispatch(str, str, str, int, float)
+    def WinOdds(pocketQuery: str, board: str, deadCards: str, numberOfOpponents: int, duration: float):
+        pass
+
+    __defaultTimeDuration = 0.25;
 
     # This table is used by HandPlayerOpponentOdds and contains the odds of each type of 
     # mask occuring against a random player when the board is currently empty. This calculation
