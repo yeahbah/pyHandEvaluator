@@ -1,11 +1,9 @@
 from os import stat
-import numpy
-
-from numpy.lib.shape_base import expand_dims
+import numpy as np
+from numpy.core.fromnumeric import shape
 from HandEvaluator import Hand
 from multipledispatch import dispatch
 from timeit import Timer, default_timer as timer
-import random
 
 class HandAnalysis:
     DEFAULT_TIME_DURATION = 0.25
@@ -16,8 +14,8 @@ class HandAnalysis:
     # board - Current board
     # returns hand strength as a percentage of hands won
     @staticmethod
-    @dispatch(int, int)
-    def HandStrength(pocket: int, board: int):
+    @dispatch(np.uint64, np.uint64)
+    def HandStrength(pocket: np.uint64, board: np.uint64):
         win = 0.0
         count = 0.0
 
@@ -28,7 +26,7 @@ class HandAnalysis:
                 raise Exception("Board must have 3, 4, or 5 cards for this calculation")
         
         ourRank = Hand.Evaluate(pocket | board)
-        for opponentHand in Hand.Hands(0, pocket | board, 2):
+        for opponentHand in Hand.Hands(np.uint64(0), pocket | board, 2):
             opponentRank = Hand.Evaluate(opponentHand | board)
             if ourRank > opponentRank:
                 win += 1.0
@@ -44,8 +42,8 @@ class HandAnalysis:
         pass
 
     @staticmethod
-    @dispatch(int, int, int, float)
-    def HandStrength(pocket: int, board: int, numOpponents: int, duration: float):
+    @dispatch(np.uint64, np.uint64, int, float)
+    def HandStrength(pocket: np.uint64, board: np.uint64, numOpponents: int, duration: float):
         win = 0.0
         count = 0.0        
 
@@ -61,7 +59,7 @@ class HandAnalysis:
         ourRank = Hand.Evaluate(pocket | board)
         if numOpponents == 1:
             while timer() - startTime < duration:
-                oppcards = Hand.RandomHand(0, pocket | board, 2)
+                oppcards = Hand.RandomHand(np.uint64(0), pocket | board, 2)
                 opprank = Hand.Evaluate(oppcards | board)
                 if ourRank > opprank:
                     win += 1.0
@@ -71,8 +69,8 @@ class HandAnalysis:
 
         elif numOpponents == 2:
             while timer() - startTime < duration:
-                opp1cards = Hand.RandomHand(0, pocket | board, 2)
-                opp2cards = Hand.RandomHand(0, pocket | board | opp1cards, 2)
+                opp1cards = Hand.RandomHand(np.uint64(0), pocket | board, 2)
+                opp2cards = Hand.RandomHand(np.uint64(0), pocket | board | opp1cards, 2)
                 opp1rank = Hand.Evaluate(opp1cards | board)
                 opp2rank = Hand.Evaluate(opp2cards | board)
 
@@ -84,9 +82,9 @@ class HandAnalysis:
         
         elif numOpponents == 3:
             while timer() - startTime < duration:
-                opp1cards = Hand.RandomHand(0, pocket | board, 2)
-                opp2cards = Hand.RandomHand(0, pocket | board | opp1cards, 2)
-                opp3cards = Hand.RandomHand(0, pocket | board | opp1cards | opp2cards, 2)
+                opp1cards = Hand.RandomHand(np.uint64(0), pocket | board, 2)
+                opp2cards = Hand.RandomHand(np.uint64(0), pocket | board | opp1cards, 2)
+                opp3cards = Hand.RandomHand(np.uint64(0), pocket | board | opp1cards | opp2cards, 2)
                 opp1rank = Hand.Evaluate(opp1cards | board)
                 opp2rank = Hand.Evaluate(opp2cards | board)
                 opp3rank = Hand.Evaluate(opp3cards | board) 
@@ -99,10 +97,10 @@ class HandAnalysis:
         
         elif numOpponents == 4:
             while timer() - startTime < duration:
-                opp1cards = Hand.RandomHand(0, pocket | board, 2)
-                opp2cards = Hand.RandomHand(0, pocket | board | opp1cards, 2)
-                opp3cards = Hand.RandomHand(0, pocket | board | opp1cards | opp2cards, 2)
-                opp4cards = Hand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards, 2)
+                opp1cards = Hand.RandomHand(np.uint64(0), pocket | board, 2)
+                opp2cards = Hand.RandomHand(np.uint64(0), pocket | board | opp1cards, 2)
+                opp3cards = Hand.RandomHand(np.uint64(0), pocket | board | opp1cards | opp2cards, 2)
+                opp4cards = Hand.RandomHand(np.uint64(0), pocket | board | opp1cards | opp2cards | opp3cards, 2)
                 opp1rank = Hand.Evaluate(opp1cards | board)
                 opp2rank = Hand.Evaluate(opp2cards | board)
                 opp3rank = Hand.Evaluate(opp3cards | board)
@@ -118,11 +116,11 @@ class HandAnalysis:
         
         elif numOpponents == 5:
             while timer() - startTime < duration:
-                opp1cards = Hand.RandomHand(0, pocket | board, 2)
-                opp2cards = Hand.RandomHand(0, pocket | board | opp1cards, 2)
-                opp3cards = Hand.RandomHand(0, pocket | board | opp1cards | opp2cards, 2)
-                opp4cards = Hand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards, 2)
-                opp5cards = Hand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards | opp4cards, 2)
+                opp1cards = Hand.RandomHand(np.uint64(0), pocket | board, 2)
+                opp2cards = Hand.RandomHand(np.uint64(0), pocket | board | opp1cards, 2)
+                opp3cards = Hand.RandomHand(np.uint64(0), pocket | board | opp1cards | opp2cards, 2)
+                opp4cards = Hand.RandomHand(np.uint64(0), pocket | board | opp1cards | opp2cards | opp3cards, 2)
+                opp5cards = Hand.RandomHand(np.uint64(0), pocket | board | opp1cards | opp2cards | opp3cards | opp4cards, 2)
                 opp1rank = Hand.Evaluate(opp1cards | board)
                 opp2rank = Hand.Evaluate(opp2cards | board)
                 opp3rank = Hand.Evaluate(opp3cards | board)
@@ -141,12 +139,12 @@ class HandAnalysis:
         
         elif numOpponents == 6:
             while timer() - startTime < duration:
-                opp1cards = Hand.RandomHand(0, pocket | board, 2)
-                opp2cards = Hand.RandomHand(0, pocket | board | opp1cards, 2)
-                opp3cards = Hand.RandomHand(0, pocket | board | opp1cards | opp2cards, 2)
-                opp4cards = Hand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards, 2)
-                opp5cards = Hand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards | opp4cards, 2)
-                opp6cards = Hand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards | opp4cards | opp5cards, 2)
+                opp1cards = Hand.RandomHand(np.uint64(0), pocket | board, 2)
+                opp2cards = Hand.RandomHand(np.uint64(0), pocket | board | opp1cards, 2)
+                opp3cards = Hand.RandomHand(np.uint64(0), pocket | board | opp1cards | opp2cards, 2)
+                opp4cards = Hand.RandomHand(np.uint64(0), pocket | board | opp1cards | opp2cards | opp3cards, 2)
+                opp5cards = Hand.RandomHand(np.uint64(0), pocket | board | opp1cards | opp2cards | opp3cards | opp4cards, 2)
+                opp6cards = Hand.RandomHand(np.uint64(0), pocket | board | opp1cards | opp2cards | opp3cards | opp4cards | opp5cards, 2)
                 opp1rank = Hand.Evaluate(opp1cards | board)
                 opp2rank = Hand.Evaluate(opp2cards | board)
                 opp3rank = Hand.Evaluate(opp3cards | board)
@@ -166,13 +164,13 @@ class HandAnalysis:
         
         elif numOpponents == 7:
             while timer() - startTime < duration:
-                opp1cards = Hand.RandomHand(0, pocket | board, 2)
-                opp2cards = Hand.RandomHand(0, pocket | board | opp1cards, 2)
-                opp3cards = Hand.RandomHand(0, pocket | board | opp1cards | opp2cards, 2)
-                opp4cards = Hand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards, 2)
-                opp5cards = Hand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards | opp4cards, 2)
-                opp6cards = Hand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards | opp4cards | opp5cards, 2)
-                opp7cards = Hand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards | opp4cards | opp5cards | opp6cards, 2)
+                opp1cards = Hand.RandomHand(np.uint64(0), pocket | board, 2)
+                opp2cards = Hand.RandomHand(np.uint64(0), pocket | board | opp1cards, 2)
+                opp3cards = Hand.RandomHand(np.uint64(0), pocket | board | opp1cards | opp2cards, 2)
+                opp4cards = Hand.RandomHand(np.uint64(0), pocket | board | opp1cards | opp2cards | opp3cards, 2)
+                opp5cards = Hand.RandomHand(np.uint64(0), pocket | board | opp1cards | opp2cards | opp3cards | opp4cards, 2)
+                opp6cards = Hand.RandomHand(np.uint64(0), pocket | board | opp1cards | opp2cards | opp3cards | opp4cards | opp5cards, 2)
+                opp7cards = Hand.RandomHand(np.uint64(0), pocket | board | opp1cards | opp2cards | opp3cards | opp4cards | opp5cards | opp6cards, 2)
                 opp1rank = Hand.Evaluate(opp1cards | board)
                 opp2rank = Hand.Evaluate(opp2cards | board)
                 opp3rank = Hand.Evaluate(opp3cards | board)
@@ -195,14 +193,14 @@ class HandAnalysis:
 
         elif numOpponents == 8:
             while timer() - startTime < duration:
-                opp1cards = Hand.RandomHand(0, pocket | board, 2)
-                opp2cards = Hand.RandomHand(0, pocket | board | opp1cards, 2)
-                opp3cards = Hand.RandomHand(0, pocket | board | opp1cards | opp2cards, 2)
-                opp4cards = Hand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards, 2)
-                opp5cards = Hand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards | opp4cards, 2)
-                opp6cards = Hand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards | opp4cards | opp5cards, 2)
-                opp7cards = Hand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards | opp4cards | opp5cards | opp6cards, 2)
-                opp8cards = Hand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards | opp4cards | opp5cards | opp6cards | opp7cards, 2)
+                opp1cards = Hand.RandomHand(np.uint64(0), pocket | board, 2)
+                opp2cards = Hand.RandomHand(np.uint64(0), pocket | board | opp1cards, 2)
+                opp3cards = Hand.RandomHand(np.uint64(0), pocket | board | opp1cards | opp2cards, 2)
+                opp4cards = Hand.RandomHand(np.uint64(0), pocket | board | opp1cards | opp2cards | opp3cards, 2)
+                opp5cards = Hand.RandomHand(np.uint64(0), pocket | board | opp1cards | opp2cards | opp3cards | opp4cards, 2)
+                opp6cards = Hand.RandomHand(np.uint64(0), pocket | board | opp1cards | opp2cards | opp3cards | opp4cards | opp5cards, 2)
+                opp7cards = Hand.RandomHand(np.uint64(0), pocket | board | opp1cards | opp2cards | opp3cards | opp4cards | opp5cards | opp6cards, 2)
+                opp8cards = Hand.RandomHand(np.uint64(0), pocket | board | opp1cards | opp2cards | opp3cards | opp4cards | opp5cards | opp6cards | opp7cards, 2)
                 opp1rank = Hand.Evaluate(opp1cards | board)
                 opp2rank = Hand.Evaluate(opp2cards | board)
                 opp3rank = Hand.Evaluate(opp3cards | board)
@@ -226,15 +224,15 @@ class HandAnalysis:
         
         elif numOpponents == 9:
             while timer() - startTime < duration:
-                opp1cards = Hand.RandomHand(0, pocket | board, 2)
-                opp2cards = Hand.RandomHand(0, pocket | board | opp1cards, 2)
-                opp3cards = Hand.RandomHand(0, pocket | board | opp1cards | opp2cards, 2)
-                opp4cards = Hand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards, 2)
-                opp5cards = Hand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards | opp4cards, 2)
-                opp6cards = Hand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards | opp4cards | opp5cards, 2)
-                opp7cards = Hand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards | opp4cards | opp5cards | opp6cards, 2)
-                opp8cards = Hand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards | opp4cards | opp5cards | opp6cards | opp7cards, 2)
-                opp9cards = Hand.RandomHand(0, pocket | board | opp1cards | opp2cards | opp3cards | opp4cards | opp5cards | opp6cards | opp7cards | opp8cards, 2)
+                opp1cards = Hand.RandomHand(np.uint64(0), pocket | board, 2)
+                opp2cards = Hand.RandomHand(np.uint64(0), pocket | board | opp1cards, 2)
+                opp3cards = Hand.RandomHand(np.uint64(0), pocket | board | opp1cards | opp2cards, 2)
+                opp4cards = Hand.RandomHand(np.uint64(0), pocket | board | opp1cards | opp2cards | opp3cards, 2)
+                opp5cards = Hand.RandomHand(np.uint64(0), pocket | board | opp1cards | opp2cards | opp3cards | opp4cards, 2)
+                opp6cards = Hand.RandomHand(np.uint64(0), pocket | board | opp1cards | opp2cards | opp3cards | opp4cards | opp5cards, 2)
+                opp7cards = Hand.RandomHand(np.uint64(0), pocket | board | opp1cards | opp2cards | opp3cards | opp4cards | opp5cards | opp6cards, 2)
+                opp8cards = Hand.RandomHand(np.uint64(0), pocket | board | opp1cards | opp2cards | opp3cards | opp4cards | opp5cards | opp6cards | opp7cards, 2)
+                opp9cards = Hand.RandomHand(np.uint64(0), pocket | board | opp1cards | opp2cards | opp3cards | opp4cards | opp5cards | opp6cards | opp7cards | opp8cards, 2)
                 opp1rank = Hand.Evaluate(opp1cards | board)
                 opp2rank = Hand.Evaluate(opp2cards | board)
                 opp3rank = Hand.Evaluate(opp3cards | board)
@@ -265,8 +263,8 @@ class HandAnalysis:
     # mask - current hand
     # dead - dead cards
     @staticmethod
-    @dispatch(int, int)
-    def StraightDrawCount(mask: int, dead: int):
+    @dispatch(np.uint64, np.uint64)
+    def StraightDrawCount(mask: np.uint64, dead: np.uint64):
         retval = 0
 
         # Get original mask value
@@ -277,7 +275,7 @@ class HandAnalysis:
             return retval
         
         # look ahead one card
-        for card in Hand.Hands(0, mask | dead, 1):
+        for card in Hand.Hands(np.uint64(0), mask | dead, 1):
 
             # Get new mask value
             newHandType = Hand.EvaluateType(mask | card)[0]
@@ -294,8 +292,8 @@ class HandAnalysis:
     # board - The community cards
     # dead - Dead cards
     @staticmethod
-    @dispatch(int, int, int)
-    def StraightDrawCount(player: int, board: int, dead: int):
+    @dispatch(np.uint64, np.uint64, np.uint64)
+    def StraightDrawCount(player: np.uint64, board: np.uint64, dead: np.uint64):
         retval = 0
         ncards = Hand.BitCount(player | board)
 
@@ -310,7 +308,7 @@ class HandAnalysis:
         if Hand.HandType(playerOrigHandVal) >= Hand.HandTypes.STRAIGHT:
             return retval
         
-        for card in Hand.Hands(0, board | player | dead, 1):
+        for card in Hand.Hands(np.uint64(0), board | player | dead, 1):
             playerNewHandVal = Hand.Evaluate(player | board | card, ncards + 1)
             playerHandType = Hand.HandType(playerNewHandVal);
 
@@ -341,28 +339,28 @@ class HandAnalysis:
     # dead - Dead cards
     # Returns true if the combined mask is an open ended straight draw
     @staticmethod
-    @dispatch(int, int, int)
-    def IsOpenEndedStraightDraw(pocket: int, board: int, dead: int):
+    @dispatch(np.uint64, np.uint64, np.uint64)
+    def IsOpenEndedStraightDraw(pocket: np.uint64, board: np.uint64, dead: np.uint64):
         if __debug__:
             if Hand.BitCount(pocket) != 2:
                 raise Exception("Pocket must have exactly two cards")
             if Hand.BitCount(board) != 3 and Hand.BitCount(board) != 4:
                 raise Exception("Board must have 3 or 4 cards for this calculation")
-        return HandAnalysis.IsOpenEndedStraightDraw(pocket | board, 0) and HandAnalysis.StraightDrawCount(pocket, board, dead) > 0
+        return HandAnalysis.IsOpenEndedStraightDraw(pocket | board, np.uint64(0)) and HandAnalysis.StraightDrawCount(pocket, board, dead) > 0
     
     # Returns true if the combined mask is an open ended straight draw
     # mask - Players pocket cards mask
-    # dead - Communit cards mask
+    # dead - Community cards mask
     # Returns true if the combined mask is an open ended straight draw
     @staticmethod
-    @dispatch(int, int)
-    def IsOpenEndedStraightDraw(mask: int, dead: int):
+    @dispatch(np.uint64, np.uint64)
+    def IsOpenEndedStraightDraw(mask: np.uint64, dead: np.uint64):
         if __debug__:
             if mask and dead != 0:
                 raise Exception("Mask and dead cards must not have any cards in common")
             if Hand.BitCount(mask) < 4 or Hand.BitCount(mask) > 6:
                 raise Exception("Mask must have 4-6 cards")
-        return HandAnalysis.StraightDrawCount(mask, 0) > 4 and HandAnalysis.StraightDrawCount(mask, dead)
+        return HandAnalysis.StraightDrawCount(mask, np.uint64(0)) > 4 and HandAnalysis.StraightDrawCount(mask, dead)
 
     # Returns true if the mask is an open ended straight draw
     # mask - Players pocket cards mask
@@ -378,8 +376,8 @@ class HandAnalysis:
     # board - Communit board mask
     # dead - Dead cards    
     @staticmethod
-    @dispatch(int, int, int)
-    def IsGutShotStraightDraw(pocket: int, board: int, dead: int):
+    @dispatch(np.uint64, np.uint64, np.uint64)
+    def IsGutShotStraightDraw(pocket: np.uint64, board: np.uint64, dead: np.uint64):
         if __debug__:
             if Hand.BitCount(pocket) != 2:
                 raise Exception("Pocket must have exactly two cards")
@@ -392,15 +390,15 @@ class HandAnalysis:
     # mask - Current mask
     # dead - Dead cards
     @staticmethod
-    @dispatch(int, int)
-    def IsGutShotStraightDraw(mask: int, dead: int):
+    @dispatch(np.uint64, np.uint64)
+    def IsGutShotStraightDraw(mask: np.uint64, dead: np.uint64):
         if __debug__:
             if mask & dead != 0:
                 raise Exception("Mask and dead cards must not have any cards in common")
             if Hand.BitCount(mask) < 4 or Hand.BitCount(mask) > 6:
                 raise Exception("mask must have 4-6 cards")
         
-        return HandAnalysis.StraightDrawCount(mask, 0) <= 4 and HandAnalysis.StraightDrawCount(mask, dead) > 0
+        return HandAnalysis.StraightDrawCount(mask, np.uint64(0)) <= 4 and HandAnalysis.StraightDrawCount(mask, dead) > 0
     
     # mask - Current mask
     # dead - Dead cards
@@ -416,13 +414,13 @@ class HandAnalysis:
     # board - Community board
     # dead - Dead cards
     @staticmethod
-    @dispatch(int, int, int)
-    def IsStraightDraw(pocket: int, board: int, dead: int):
+    @dispatch(np.uint64, np.uint64, np.uint64)
+    def IsStraightDraw(pocket: np.uint64, board: np.uint64, dead: np.uint64):
         return HandAnalysis.StraightDrawCount(pocket, board, dead) > 0
     
     @staticmethod
-    @dispatch(int, int)
-    def IsStraightDraw(mask: int, dead: int):
+    @dispatch(np.uint64, np.uint64)
+    def IsStraightDraw(mask: np.uint64, dead: np.uint64):
         return HandAnalysis.StraightDrawCount(mask, dead) > 0
 
     @staticmethod
@@ -447,8 +445,8 @@ class HandAnalysis:
     # pocket - Players pocket cards mask
     # Community card mask
     @staticmethod
-    @dispatch(int, int)
-    def CountContiguous(pocket: int, board: int):
+    @dispatch(np.uint64, np.uint64)
+    def CountContiguous(pocket: np.uint64, board: np.uint64):
         mask = pocket | board
         bf = Hand.CardMask(mask, Hand.CLUBS) | Hand.CardMask(mask, Hand.DIAMONDS) \
                 | Hand.CardMask(mask, Hand.HEARTS) | Hand.CardMask(mask, Hand.SPADES)
@@ -461,16 +459,16 @@ class HandAnalysis:
             masks = [0x7f, 0x3f, 0x1f, 0xf, 0x7, 0x3]
             i = 0
             while i < len(masks):
-                count = Hand.BitCount(masks[i])
+                count = Hand.BitCount(np.uint64(masks[i]))
                 contmask = 0
                 offset = 13 - count
                 while offset >= 0:                    
-                    contmask = masks[i] << offset
+                    contmask = np.uint64(masks[i] << offset)
                     if bf & contmask == contmask:
                         return count
                     offset -= 1
                 
-                contmask = 0x1000 | (masks[i] >> 1)
+                contmask = np.uint64(0x1000 | (masks[i] >> 1))
                 if bf & contmask == contmask:
                     return count
                 i += 1
@@ -482,8 +480,8 @@ class HandAnalysis:
     # Returns the count of adjacent cards
     # mask - current hand    
     @staticmethod
-    @dispatch(int)
-    def CountContiguous(mask: int):
+    @dispatch(np.uint64)
+    def CountContiguous(mask: np.uint64):
         clubs = Hand.CardMask(mask, Hand.CLUBS)
         diamonds = Hand.CardMask(mask, Hand.DIAMONDS)
         hearts = Hand.CardMask(mask, Hand.Hands)
@@ -494,8 +492,8 @@ class HandAnalysis:
     # mask - Hand
     # dead - Cards not allowed to be drawn
     @staticmethod
-    @dispatch(int, int)
-    def FlushDrawCount(mask: int, dead: int):
+    @dispatch(np.uint64, np.uint64)
+    def FlushDrawCount(mask: np.uint64, dead: np.uint64):
         retval = 0
 
         # Get original mask value
@@ -506,7 +504,8 @@ class HandAnalysis:
             return retval
         
         # look ahead one card
-        for card in Hand.Hands(0, mask | dead, 1):
+        shared = np.uint64(0)
+        for card in Hand.Hands(shared, mask | dead, 1):
             handType = Hand.EvaluateType(mask | card)[0]
 
             # include straight flush as this will ensure outs is always the maximum
@@ -521,8 +520,8 @@ class HandAnalysis:
     # board - Board cards
     # dead - Dead cards
     @staticmethod
-    @dispatch(int, int, int)
-    def FlushDrawCount(player: int, board: int, dead: int):
+    @dispatch(np.uint64, np.uint64, np.uint64)
+    def FlushDrawCount(player: np.uint64, board: np.uint64, dead: np.uint64):
         retval = 0
         if __debug__:
             if Hand.BitCount(player) != 2:
@@ -539,7 +538,8 @@ class HandAnalysis:
             return retval
         
         # look ahead one card
-        for card in Hand.Hands(0, board | player | dead, 1):
+        shared = np.uint64(0)
+        for card in Hand.Hands(shared, board | player | dead, 1):
             # get new mask value
             playerNewHandValue = Hand.Evaluate(player | board | card)
             boardNewHandValue = Hand.Evaluate(board | card)
@@ -560,8 +560,8 @@ class HandAnalysis:
     # board - Communit card mask
     # dead - dead cards
     @staticmethod
-    @dispatch(int, int, int)
-    def IsFlushDraw(pocket: int, board: int, dead: int):
+    @dispatch(np.uint64, np.uint64, np.uint64)
+    def IsFlushDraw(pocket: np.uint64, board: np.uint64, dead: np.uint64):
         if __debug__:
             if Hand.BitCount(pocket) != 2:
                 raise Exception("Pocket must have exactly two cards")
@@ -574,8 +574,8 @@ class HandAnalysis:
     # mask - cards
     # dead - dead cards
     @staticmethod
-    @dispatch(int, int)
-    def IsFlushDraw(mask: int, dead: int):
+    @dispatch(np.uint64, np.uint64)
+    def IsFlushDraw(mask: np.uint64, dead: np.uint64):
         return HandAnalysis.FlushDrawCount(mask, dead) > 0    
 
     # Returns if there are 4 cards of the same suit
@@ -599,8 +599,8 @@ class HandAnalysis:
     # board - Community card mask
     # dead - Dead cards
     @staticmethod
-    @dispatch(int, int, int)
-    def IsBackdoorFlushDraw(pocket: int, board: int, dead: int):
+    @dispatch(np.uint64, np.uint64, np.uint64)
+    def IsBackdoorFlushDraw(pocket: np.uint64, board: np.uint64, dead: int):
         if __debug__:
             if Hand.BitCount(pocket) != 2:
                 raise Exception("Pocket must have exactly two cards")
@@ -612,22 +612,23 @@ class HandAnalysis:
         if currentType >= Hand.HandTypes.FLUSH:
             return False
         
-        ss = (mask >> Hand.GetSpadeOffset()) & 0x1FFF
-        sc = (mask >> Hand.GetClubOffset()) & 0x1FFF
-        sd = (mask >> Hand.GetDiamondOffset()) & 0x1FFF
-        sh = (mask >> Hand.GetHeartOffset()) & 0x1FFF
+        x = np.uint64(0x1FFF)
+        ss = (mask >> Hand.GetSpadeOffset()) & x
+        sc = (mask >> Hand.GetClubOffset()) & x
+        sd = (mask >> Hand.GetDiamondOffset()) & x
+        sh = (mask >> Hand.GetHeartOffset()) & x
 
         if Hand.BitCount(ss) == 3:
-            ps = (pocket >> Hand.GetSpadeOffset()) & 0x1fff
+            ps = (pocket >> Hand.GetSpadeOffset()) & x
             return ps != 0
         elif Hand.BitCount(sc) == 3:
-            pc = (pocket >> Hand.GetClubOffset()) & 0x1fff
+            pc = (pocket >> Hand.GetClubOffset()) & x
             return pc != 0
         elif Hand.BitCount(sd) == 3:
-            pd = (pocket >> Hand.GetDiamondOffset()) & 0x1fff
+            pd = (pocket >> Hand.GetDiamondOffset()) & x
             return pd != 0
         elif Hand.BitCount(sh) == 3:
-            ph = (pocket >> Hand.GetHeartOffset()) & 0x1fff
+            ph = (pocket >> Hand.GetHeartOffset()) & x
             return ph != 0
         
         return False
@@ -658,8 +659,8 @@ class HandAnalysis:
     # dead - Dead cards
     # handType - the type of mask to count draws for
     @staticmethod
-    @dispatch(int, int, int, int)
-    def DrawCount(player: int, board: int, dead: int, handType: int):
+    @dispatch(np.uint64, np.uint64, np.uint64, int)
+    def DrawCount(player: np.uint64, board: np.uint64, dead: np.uint64, handType: int):
         retval = 0
         if __debug__:
             if Hand.BitCount(player) != 2:
@@ -676,7 +677,8 @@ class HandAnalysis:
             return 0
         
         # look ahead one card
-        for card in Hand.Hands(0, board | player | dead, 1):
+        shared = np.uint64(0)
+        for card in Hand.Hands(shared, board | player | dead, 1):
             # get new mask value
             playerNewHandVal = Hand.Evaluate(player | board | card)
 
@@ -705,8 +707,8 @@ class HandAnalysis:
     # dead - Dead cards
     # handType - The type of mask to count draws for
     @staticmethod
-    @dispatch(int, int, int)
-    def DrawCount(mask: int, dead: int, handType: int):
+    @dispatch(np.uint64, np.uint64, int)
+    def DrawCount(mask: np.uint64, dead: np.uint64, handType: int):
         retval = 0
         if Hand.BitCount(mask) >=7:
             raise Exception("mask must contain less than 7 cards")
@@ -751,8 +753,8 @@ class HandAnalysis:
     # pocket - The players pocket mask
     # board - The board mask
     @staticmethod
-    @dispatch(int, int)
-    def HandDistance(pocket: int, board: int):
+    @dispatch(np.uint64, np.uint64)
+    def HandDistance(pocket: np.uint64, board: np.uint64):
         if __debug__:
             if Hand.BitCount(pocket) != 2:
                 raise Exception("Player must have exactly two cards")
@@ -761,7 +763,8 @@ class HandAnalysis:
         hv = 0
         handValues = []
         pocketHandVal = Hand.Evaluate(pocket | board)
-        for p in Hand.Hands(0, board, 2):
+        shared = np.uint64(0)
+        for p in Hand.Hands(shared, board, 2):
             hv = Hand.Evaluate(p | board)            
             if hv not in handValues:
                 handValues.append(hv)
@@ -792,7 +795,7 @@ class HandAnalysis:
     # board - board cards so far
     # opponents - Opponents pocket hands
     @staticmethod
-    def OutsDiscounted(player: int, board: int, opponentsList):
+    def OutsDiscounted(player: np.uint64, board: np.uint64, opponentsList):
         return Hand.BitCount(HandAnalysis.OutsMaskDiscounted(player, board, opponentsList))
     
     # Creates a Hand mask with the cards that will improve the specified players hand
@@ -823,9 +826,9 @@ class HandAnalysis:
     # opponents - Opponent pocket hands
     # Returns a mask of cards that are probably outs
     @staticmethod
-    def OutsMaskDiscounted(player: int, board: int, opponentsList):
-        retval = 0
-        dead = 0
+    def OutsMaskDiscounted(player: np.uint64, board: np.uint64, opponentsList):
+        retval = np.uint64(0)
+        dead = np.uint64(0)
         ncards = Hand.BitCount(player | board)
 
         if __debug__:
@@ -842,7 +845,8 @@ class HandAnalysis:
             playerOrigHandType = Hand.HandType(playerOrigHandVal)
             playerOrigTopCard = Hand.TopCard(playerOrigHandVal)
 
-            for card in Hand.Hands(0, dead | board | player, 1):
+            shared = np.uint64(0)
+            for card in Hand.Hands(shared, dead | board | player, 1):
                 bWinFlag = True
                 playerNewHandVal = Hand.Evaluate(player | board | card, ncards + 1)
                 playerNewHandType = Hand.HandType(playerNewHandVal)
@@ -869,10 +873,11 @@ class HandAnalysis:
             playerPocketHandType = Hand.HandType(playerPocketHandVal)
 
             # Separate out by suit
-            sc = (board >> Hand.GetClubOffset()) & 0x1fff
-            sd = (board >> Hand.GetDiamondOffset()) & 0x1fff
-            sh = (board >> Hand.GetHeartOffset()) & 0x1fff
-            ss = (board >> Hand.GetSpadeOffset()) & 0x1fff
+            x = np.uint64(0x1fff)
+            sc = (board >> Hand.GetClubOffset()) & x
+            sd = (board >> Hand.GetDiamondOffset()) & x
+            sh = (board >> Hand.GetHeartOffset()) & x
+            ss = (board >> Hand.GetSpadeOffset()) & x
 
             # Check if board is 3 suited
             discountSuitedBoard = (Hand.nBitsTable[sc] > 2) or (Hand.nBitsTable[sd] > 2) or (Hand.nBitsTable[sh] > 2) or (Hand.nBitsTable[ss] > 2)
@@ -885,24 +890,25 @@ class HandAnalysis:
 
             if boardCardCount == 3:
                 bf = Hand.CardMask(board, Hand.CLUBS) or Hand.CardMask(board, Hand.DIAMONDS) or Hand.CardMask(board, Hand.HEARTS) or Hand.CardMask(board, Hand.SPADES)
-                if Hand.BitCount(0x1800 & bf) == 2: countContiguous += 1
-                if Hand.BitCount(0xc00 & bf) == 2: countContiguous += 1
-                if Hand.BitCount(0x600 & bf) == 2: countContiguous += 1
-                if Hand.BitCount(0x300 & bf) == 2: countContiguous += 1
-                if Hand.BitCount(0x180 & bf) == 2: countContiguous += 1
-                if Hand.BitCount(0xc0 & bf) == 2: countContiguous += 1
-                if Hand.BitCount(0x60 & bf) == 2: countContiguous += 1
-                if Hand.BitCount(0x30 & bf) == 2: countContiguous += 1
-                if Hand.BitCount(0x18 & bf) == 2: countContiguous += 1
-                if Hand.BitCount(0xc & bf) == 2: countContiguous += 1;
-                if Hand.BitCount(0x6 & bf) == 2: countContiguous += 1;
-                if Hand.BitCount(0x3 & bf) == 2: countContiguous += 1;
-                if Hand.BitCount(0x1001 & bf) == 2: countContiguous += 1;
+                if Hand.BitCount(np.uint64(0x1800) & bf) == 2: countContiguous += 1
+                if Hand.BitCount(np.uint64(0xc00) & bf) == 2: countContiguous += 1
+                if Hand.BitCount(np.uint64(0x600) & bf) == 2: countContiguous += 1
+                if Hand.BitCount(np.uint64(0x300) & bf) == 2: countContiguous += 1
+                if Hand.BitCount(np.uint64(0x180) & bf) == 2: countContiguous += 1
+                if Hand.BitCount(np.uint64(0xc0) & bf) == 2: countContiguous += 1
+                if Hand.BitCount(np.uint64(0x60) & bf) == 2: countContiguous += 1
+                if Hand.BitCount(np.uint64(0x30) & bf) == 2: countContiguous += 1
+                if Hand.BitCount(np.uint64(0x18) & bf) == 2: countContiguous += 1
+                if Hand.BitCount(np.uint64(0xc) & bf) == 2: countContiguous += 1;
+                if Hand.BitCount(np.uint64(0x6) & bf) == 2: countContiguous += 1;
+                if Hand.BitCount(np.uint64(0x3) & bf) == 2: countContiguous += 1;
+                if Hand.BitCount(np.uint64(0x1001) & bf) == 2: countContiguous += 1;
             
             discountStraight = countContiguous > 2
 
             # Look ahead one card
-            for card in Hand.Hands(0, dead | board | player, 1):
+            shared = np.uint64(0)
+            for card in Hand.Hands(shared, dead | board | player, 1):
                 boardNewHandVal = Hand.Evaluate(board | card)
                 boardNewHandType = Hand.HandType(boardNewHandVal)
                 boardNewTopCard = Hand.TopCard(boardNewHandVal)
@@ -916,10 +922,11 @@ class HandAnalysis:
                     isOut = False
                     discountSuitedOut = False
                     if not discountSuitedBoard:
-                        cc = (card >> Hand.GetClubOffset()) & 0x1fff
-                        cd = (card >> Hand.GetDiamondOffset()) & 0x1fff
-                        ch = (card >> Hand.GetHeartOffset()) & 0x1fff
-                        cs = (card >> Hand.GetSpadeOffset()) & 0x1fff
+                        x = np.uint64(0x1fff)
+                        cc = (card >> Hand.GetClubOffset()) & x
+                        cd = (card >> Hand.GetDiamondOffset()) & x
+                        ch = (card >> Hand.GetHeartOffset()) & x
+                        cs = (card >> Hand.GetSpadeOffset()) & x
 
                         # Check if card will make a 3 suited board
                         discountSuitedOut = (Hand.nBitsTable[sc] > 1 and Hand.nBitsTable[cc] == 1) \
@@ -940,44 +947,44 @@ class HandAnalysis:
                     bf = Hand.CardMask(board | card, Hand.CLUBS) | Hand.CardMask(board | card, Hand.DIAMONDS) | Hand.CardMask(board | card, Hand.HEARTS) | Hand.CardMask(board | card, Hand.SPADES)
 
                     # AxKx
-                    if Hand.BitCount(0x1800 & bf) == 2:
+                    if Hand.BitCount(np.uint64(0x1800) & bf) == 2:
                         countContiguous += 1
                     
                     # KxQx
-                    if Hand.BitCount(0xc00 & bf) == 2:
+                    if Hand.BitCount(np.uint64(0xc00) & bf) == 2:
                         countContiguous += 1
                     else:
-                        if countContiguous == 1 and Hand.BitCount(0x300 & bf) == 2:
+                        if countContiguous == 1 and Hand.BitCount(np.uint64(0x300) & bf) == 2:
                             # 2 connected with a 1 gap connected in the middle
                             discountStraight = True                            
                         countContiguous = 0
                     
                     # QxJx
-                    if Hand.BitCount(0x600 & bf) == 2:
+                    if Hand.BitCount(np.uint64(0x600) & bf) == 2:
                         countContiguous += 1
                     else:
                         if countContiguous == 1:
-                            if Hand.BitCount(0x100 & bf) == 2:
+                            if Hand.BitCount(np.uint64(0x100) & bf) == 2:
                                 # 2 connected with a 1 gap in the middle
                                 discountStraight = True
                         elif countContiguous == 2:
                             # test for a T
-                            if Hand.BitCount(0x100 & bf) == 1:
+                            if Hand.BitCount(np.uint64(0x100) & bf) == 1:
                                 # 3 in a row with a 1 gap connected
                                 discountStraight = True
                         countContiguous = 0
 
                     # JxTx
-                    if Hand.BitCount(0x300 & bf) == 2:
+                    if Hand.BitCount(np.uint64(0x300) & bf) == 2:
                         countContiguous += 1
                     else:
                         if countContiguous == 1:
-                            if Hand.BitCount(0xc0 & bf) == 2:
+                            if Hand.BitCount(np.uint64(0xc0) & bf) == 2:
                                 # 2 connected with a 1 gap in the middle
                                 discountStraight = True
                         elif countContiguous == 2:
                             # test for 9x
-                            if Hand.BitCount(0x00 & bf) == 1:
+                            if Hand.BitCount(np.uint64(0x00) & bf) == 1:
                                 # 3 in a row with a 1 gap connected
                                 discountStraight = True
                         elif countContiguous == 3: # 4 in a row
@@ -986,16 +993,16 @@ class HandAnalysis:
                         countContiguous = 0
                     
                     # Tx9x
-                    if Hand.BitCount(0x180 & bf) == 2:
+                    if Hand.BitCount(np.uint64(0x180) & bf) == 2:
                         countContiguous += 1
                     else:
                         if countContiguous == 1:
-                            if Hand.BitCount(0x60 & bf) == 2:
+                            if Hand.BitCount(np.uint64(0x60) & bf) == 2:
                                 # 2 connected with a 1 gap in the middle
                                 discountStraight = True
                         elif countContiguous == 2:
                             # test for 8x or Ax
-                            if Hand.BitCount(0x1040 & bf) == 1:
+                            if Hand.BitCount(np.uint64(0x1040) & bf) == 1:
                                 discountStraight = True
                         elif countContiguous == 3:
                             discountStraight = True
@@ -1003,16 +1010,16 @@ class HandAnalysis:
                         countContiguous = 0
                     
                     # 9x8x
-                    if Hand.BitCount(0xc0 & bf) == 2:
+                    if Hand.BitCount(np.uint64(0xc0) & bf) == 2:
                         countContiguous += 1
                     else:
                         if countContiguous == 1:
-                            if Hand.BitCount(0x30 & bf) == 2:
+                            if Hand.BitCount(np.uint64(0x30) & bf) == 2:
                                 # 2 connected with a 1 gap in the middle
                                 discountStraight = True
                         elif countContiguous == 2:
                             # test for 7x or Kx
-                            if Hand.BitCount(0x820 & bf) == 1:
+                            if Hand.BitCount(np.uint64(0x820) & bf) == 1:
                                 # 3 in a row with a 1 gap connected
                                 discountStraight = True
                         elif countContiguous == 3: # 4 in a row
@@ -1021,16 +1028,16 @@ class HandAnalysis:
                         countContiguous = 0
                     
                     # 8x7x
-                    if Hand.BitCount(0x60 & bf) == 2:
+                    if Hand.BitCount(np.uint64(0x60) & bf) == 2:
                         countContiguous += 1
                     else:
                         if countContiguous == 1:
-                            if Hand.BitCount(0x18 & bf) == 2:
+                            if Hand.BitCount(np.uint64(0x18) & bf) == 2:
                                 # 2 connected with a 1 gap in the middle
                                 discountStraight = True
                         elif countContiguous == 2:
                             # test for 6x or Qx
-                            if Hand.BitCount(0x410 & bf) == 1:
+                            if Hand.BitCount(np.uint64(0x410) & bf) == 1:
                                 # 3 in a row with a 1 gap connected
                                 discountStraight = True
                         elif countContiguous == 3: # 4 in a row
@@ -1039,16 +1046,16 @@ class HandAnalysis:
                         countContiguous = 0
                     
                     # 7x6x
-                    if Hand.BitCount(0x30 & bf) == 2:
+                    if Hand.BitCount(np.uint64(0x30) & bf) == 2:
                         countContiguous += 1
                     else:
                         if countContiguous == 1:
-                            if Hand.BitCount(0xc & bf) == 2:
+                            if Hand.BitCount(np.uint64(0xc) & bf) == 2:
                                 # 2 connected with a 1 gap in the middle
                                 discountStraight = True
                         elif countContiguous == 2:
                             # test for 5x or Jx
-                            if Hand.BitCount(0x208 & bf) == 1:
+                            if Hand.BitCount(np.uint64(0x208) & bf) == 1:
                                 # 3 in a row with a gap connected
                                 discountStraight = True
                         elif countContiguous == 3: # 4 in a row
@@ -1057,14 +1064,14 @@ class HandAnalysis:
                         countContiguous = 0
                     
                     # 6x5x
-                    if Hand.BitCount(0x18 & bf) == 2:
+                    if Hand.BitCount(np.uint64(0x18) & bf) == 2:
                         countContiguous += 1
                     else:
                         if countContiguous == 1:
-                            if Hand.BitCount(0x6 & bf) == 2:
+                            if Hand.BitCount(np.uint64(0x6) & bf) == 2:
                                 discountStraight = True
                         elif countContiguous == 2:
-                            if Hand.BitCount(0x104 & bf) == 1:
+                            if Hand.BitCount(np.uint64(0x104) & bf) == 1:
                                 discountStraight = True
                         elif countContiguous == 3:
                             discountStraight = True
@@ -1072,16 +1079,16 @@ class HandAnalysis:
                         countContiguous = 0
                     
                     # 5x4x
-                    if Hand.BitCount(0xc & bf) == 2:
+                    if Hand.BitCount(np.uint64(0xc) & bf) == 2:
                         countContiguous += 1
                     else:
                         if countContiguous == 1:
-                            if Hand.BitCount(0x3 & bf) == 2:
+                            if Hand.BitCount(np.uint64(0x3) & bf) == 2:
                                 # 2 connected with a 1 gap in the middle
                                 discountStraight = True
                         elif countContiguous == 2:
                             # test for 3x or 9x
-                            if Hand.BitCount(0x82 & bf) == 1:
+                            if Hand.BitCount(np.uint64(0x82) & bf) == 1:
                                 # 3 in a row with a 1 gap connected
                                 discountStraight = True
                         elif countContiguous == 3: # 4 in a row
@@ -1090,16 +1097,16 @@ class HandAnalysis:
                         countContiguous = 0
 
                     # 4x3x
-                    if Hand.BitCount(0x6 & bf) == 2:
+                    if Hand.BitCount(np.uint64(0x6) & bf) == 2:
                         countContiguous += 1
                     else:
                         if countContiguous == 1:
-                            if Hand.BitCount(0x1001 & bf) == 2:
+                            if Hand.BitCount(np.uint64(0x1001) & bf) == 2:
                                 # 2 connected with a 1 gap in the middle
                                 discountStraight = True
                         elif countContiguous == 2:
                             # test for 2x or 8x
-                            if Hand.BitCount(0x41 & bf) == 1:
+                            if Hand.BitCount(np.uint64(0x41) & bf) == 1:
                                 # 3 in a row with a 1 gap connected
                                 discountStraight = True
                         elif countContiguous == 3: # 4 in a row
@@ -1108,12 +1115,12 @@ class HandAnalysis:
                         countContiguous = 0
                     
                     # 3x2x
-                    if Hand.BitCount(0x3 & bf) == 2:
+                    if Hand.BitCount(np.uint64(0x3) & bf) == 2:
                         countContiguous += 1
                     else:                            
                         if countContiguous == 2:
                             # test for Ax or 7x
-                            if Hand.BitCount(0x1020 & bf) == 1:
+                            if Hand.BitCount(np.uint64(0x1020) & bf) == 1:
                                 # 3 in a row with a 1 gap connected
                                 discountStraight = True
                         elif countContiguous == 3: # 4 in a row
@@ -1122,12 +1129,12 @@ class HandAnalysis:
                         countContiguous = 0
 
                     # 2xAx
-                    if Hand.BitCount(0x1001 & bf) == 2:
+                    if Hand.BitCount(np.uint64(0x1001) & bf) == 2:
                         countContiguous += 1
                         # check one last time
                         if countContiguous == 2:
                             # test for 5x
-                            if Hand.BitCount(0x8 & bf) == 1:
+                            if Hand.BitCount(np.uint64(0x8) & bf) == 1:
                                 # 3 in a row with a 1 gap connected
                                 discountStraight = True
                         elif countContiguous == 3: # 4 in a row
@@ -1135,7 +1142,7 @@ class HandAnalysis:
                     else:                            
                         if countContiguous == 2:
                             # test for 6x
-                            if Hand.BitCount(0x10 & bf) == 1:
+                            if Hand.BitCount(np.uint64(0x10) & bf) == 1:
                                 # 3 in a row with a 1 gap connected
                                 discountStraight = True
                         elif countContiguous == 3: # 4 in a row
@@ -1222,8 +1229,8 @@ class HandAnalysis:
     # board - The board (must contain either 3 or 4 cards)
     # opponents - A list of zero or more opponent pocket cards
     # Returns a mask of all of the cards that improve the mask
-    def OutsMask(player: int, board: int, opponentsList):
-        retval = 0
+    def OutsMask(player: np.uint64, board: np.uint64, opponentsList):
+        retval = np.uint64(0)
         if __debug__:
             if Hand.BitCount(player) != 2:
                 raise Exception("Player must have exactly two cards")
@@ -1234,7 +1241,8 @@ class HandAnalysis:
         playerOrigHandVal = Hand.Evaluate(player | board)
 
         # Look ahead one card
-        for card in Hand.Hands(0, board | player, 1):
+        shared = np.uint64(0)
+        for card in Hand.Hands(shared, board | player, 1):
             # Get new mask value
             playerNewHandVal = Hand.Evaluate(player | board | card)
 
@@ -1271,7 +1279,7 @@ class HandAnalysis:
     # oponents - A list of zero or more opponent cards.
     # Returns the count of the number of single cards that improve the current mask.
     @staticmethod
-    def Outs(player: int, board: int, opponentsList):
+    def Outs(player: np.uint64, board: np.uint64, opponentsList):
         return Hand.BitCount(HandAnalysis.OutsMask(player, board, opponentsList))
         
     # Creates a Hand mask with the cards that will improve the specified players mask.
@@ -1285,9 +1293,9 @@ class HandAnalysis:
     # dead - dead cards
     # Returns a mask of all of the cards that improve the mask
     @staticmethod
-    @dispatch(int, int, int)
-    def OutsMaskEx(player: int, board: int, dead: int):
-        retval = 0
+    @dispatch(np.uint64, np.uint64, np.uint64)
+    def OutsMaskEx(player: np.uint64, board: np.uint64, dead: np.uint64):
+        retval = np.uint64(0)
         ncards = Hand.BitCount(player | board)
         if __debug__:
             if Hand.BitCount(player) != 2:
@@ -1296,7 +1304,7 @@ class HandAnalysis:
                 raise Exception("Outs only make sense after the flop and before the River")
         
         # Look at the cards that improve the mask
-        playerOrigHandVal = Hand.Evaluate(player | board | ncards)
+        playerOrigHandVal = Hand.Evaluate(player | board | np.uint64(ncards))
         playerOrigHandType = Hand.HandType(playerOrigHandVal)
         playerOrigTopCard = Hand.TopCard(playerOrigHandVal)
         boardOrigHandVal = Hand.Evaluate(board)
@@ -1308,7 +1316,8 @@ class HandAnalysis:
         playerPocketHandType = Hand.HandType(playerPocketHandVal)
 
         # Look ahead one card
-        for card in Hand.Hands(0, dead | board | player, 1):
+        shared = np.uint64(0)
+        for card in Hand.Hands(shared, dead | board | player, 1):
             boardNewHandVal = Hand.Evaluate(board | card)
             boardNewHandType = Hand.HandType(boardNewHandVal)
             boardNewTopCard = Hand.TopCard(boardNewHandVal)
@@ -1338,8 +1347,8 @@ class HandAnalysis:
         return HandAnalysis.OutsMaskEx(Hand.ParseHand(pocket), Hand.ParseHand(board), Hand.ParseHand(dead))
 
     @staticmethod
-    @dispatch(int, int, int)
-    def OutsEx(pocket: int, board: int, dead: int):
+    @dispatch(np.uint64, np.uint64, np.uint64)
+    def OutsEx(pocket: np.uint64, board: np.uint64, dead: np.uint64):
         return Hand.BitCount(HandAnalysis.OutsMaskEx(pocket, board, dead))
     
     @staticmethod
@@ -1354,7 +1363,7 @@ class HandAnalysis:
     # mask - mask to check for "suited-ness"
     # Returns true if all hands are of the same suit, false otherwise
     @staticmethod
-    def IsSuited(mask: int):
+    def IsSuited(mask: np.uint64):
         cards = Hand.BitCount(mask)
         sc = Hand.CardMask(mask, Hand.CLUBS)
         sd = Hand.CardMask(mask, Hand.DIAMONDS)
@@ -1371,7 +1380,7 @@ class HandAnalysis:
     # mask - the mask to check
     # returns true of all the cards are next to each other
     @staticmethod
-    def IsConnected(mask: int):
+    def IsConnected(mask: np.uint64):
         return HandAnalysis.GapCount(mask) == 0
 
     # Counts the number of empty space between adjacent cards. 0 means connected, 1 means a gap
@@ -1382,7 +1391,7 @@ class HandAnalysis:
     # mask - two card mask mask
     # Returns number of spaces between two cards
     @staticmethod
-    def GapCount(mask: int):
+    def GapCount(mask: np.uint64):
         start = end = 0
         if Hand.BitCount(mask) != 2:
             return -1
@@ -1390,17 +1399,20 @@ class HandAnalysis:
         bf = Hand.CardMask(mask, Hand.CLUBS) or Hand.CardMask(mask, Hand.DIAMONDS) \
             or Hand.CardMask(mask, Hand.HEARTS) or Hand.CardMask(mask, Hand.SPADES)
         
-        start = 12
-        while start >= 0:
-            if bf & (1 << start) != 0:
+        i = 12
+        leftShiftOne = np.uint64(1)
+        while i >= 0:
+            start = np.uint64(i)
+            if bf & (leftShiftOne << start) != 0:
                 break
-            start -= 1
+            i -= 1
         
-        end = start - 1
-        while end >= 0:
-            if bf & (1 << end) != 0:
+        i = start - 1
+        while i >= 0:
+            end = np.uint64(i)
+            if bf & (leftShiftOne << end) != 0:
                 break
-            end -= 1
+            i -= 1
         
         if start == 12 and end == 0: return 0
         if start == 12 and end == 1: return 1
@@ -1473,8 +1485,8 @@ class HandAnalysis:
 
     # Returns a Tuple<playerOddsList, oppOddList, isApproximate>
     @staticmethod
-    @dispatch(object, object, int)
-    def HandWinOdds(ourCardsList, oppCardsList, board: int):
+    @dispatch(object, object, np.uint64)
+    def HandWinOdds(ourCardsList, oppCardsList, board: np.uint64):
         count = ourBest = oppBest = 0
         boardCount = Hand.BitCount(board)
         cards = boardCount + 2
@@ -1556,8 +1568,8 @@ class HandAnalysis:
     # board - Board mask for mask
     # Returns a Tuple<playerOddsList, opponentOddsList>
     @staticmethod
-    @dispatch(int, int)
-    def HandWinOdds(ourCards: int, board: int):
+    @dispatch(np.uint64, np.uint64)
+    def HandWinOdds(ourCards: np.uint64, board: np.uint64):
         ourBest = oppBest = 0
         count = 0
         cards = Hand.BitCount(ourCards | board)
@@ -1619,8 +1631,8 @@ class HandAnalysis:
     # duration - The amount of time in seconds to calculate samples
     # Returns a Tuple<playerOddsList, opponentOddsList>
     @staticmethod
-    @dispatch(int, int, int, float)
-    def HandWinOdds(ourCards: int, board: int, numberOfOpponents: int, duration: float):
+    @dispatch(np.uint64, np.uint64, int, float)
+    def HandWinOdds(ourCards: np.uint64, board: np.uint64, numberOfOpponents: int, duration: float):
         count = 0
         podds = [0.0] * 9
         oodds = [0.0] * 9
@@ -1628,8 +1640,9 @@ class HandAnalysis:
         opponent = oodds
 
         if numberOfOpponents == 1:
+            shared = np.uint64(0)
             for boardMask in Hand.RandomHand(board, ourCards, 5, duration):
-                oppCards = Hand.RandomHand(0, boardMask | ourCards, 2)
+                oppCards = Hand.RandomHand(shared, boardMask | ourCards, 2)
                 playerHandVal = Hand.Evaluate(ourCards | boardMask, 7)
                 oppHandVal = Hand.Evaluate(oppCards | boardMask, 7)
 
@@ -1644,9 +1657,10 @@ class HandAnalysis:
                 count += 1
 
         elif numberOfOpponents == 2:
+            shared = np.uint64(0)
             for boardMask in Hand.RandomHand(board, ourCards, 5, duration):
-                opp1cards = Hand.RandomHand(0, boardMask | ourCards, 2)
-                opp2cards = Hand.RandomHand(0, boardMask | ourCards | opp1cards, 2)
+                opp1cards = Hand.RandomHand(shared, boardMask | ourCards, 2)
+                opp2cards = Hand.RandomHand(shared, boardMask | ourCards | opp1cards, 2)
                 playerHandVal = Hand.Evaluate(ourCards | boardMask, 7)
                 opp1HandVal = Hand.Evaluate(opp1cards | boardMask, 7)
                 opp2HandVal = Hand.Evaluate(opp2cards | boardMask, 7)
@@ -1664,10 +1678,11 @@ class HandAnalysis:
                 
                 count += 1
         elif numberOfOpponents == 3:
+            shared = np.uint64(0)
             for boardMask in Hand.RandomHand(board, ourCards, 5, duration):
-                opp1cards = Hand.RandomHand(0, boardMask | ourCards, 2)
-                opp2cards = Hand.RandomHand(0, boardMask | ourCards | opp1cards, 2)
-                opp3cards = Hand.RandomHand(0, boardMask | ourCards | opp1cards | opp2cards, 2)
+                opp1cards = Hand.RandomHand(shared, boardMask | ourCards, 2)
+                opp2cards = Hand.RandomHand(shared, boardMask | ourCards | opp1cards, 2)
+                opp3cards = Hand.RandomHand(shared, boardMask | ourCards | opp1cards | opp2cards, 2)
                 playerHandVal = Hand.Evaluate(ourCards | boardMask, 7)
                 opp1HandVal = Hand.Evaluate(opp1cards | boardMask, 7)
                 opp2HandVal = Hand.Evaluate(opp2cards | boardMask, 7)
@@ -1689,11 +1704,12 @@ class HandAnalysis:
                 count += 1
 
         elif numberOfOpponents == 4:
+            shared = np.uint64(0)
             for boardMask in Hand.RandomHand(board, ourCards, 5, duration):
-                opp1cards = Hand.RandomHand(0, boardMask | ourCards, 2)
-                opp2cards = Hand.RandomHand(0, boardMask | ourCards | opp1cards, 2)
-                opp3cards = Hand.RandomHand(0, boardMask | ourCards | opp1cards | opp2cards, 2)
-                opp4cards = Hand.RandomHand(0, boardMask | ourCards | opp1cards | opp2cards | opp3cards, 2)
+                opp1cards = Hand.RandomHand(shared, boardMask | ourCards, 2)
+                opp2cards = Hand.RandomHand(shared, boardMask | ourCards | opp1cards, 2)
+                opp3cards = Hand.RandomHand(shared, boardMask | ourCards | opp1cards | opp2cards, 2)
+                opp4cards = Hand.RandomHand(shared, boardMask | ourCards | opp1cards | opp2cards | opp3cards, 2)
                 playerHandVal = Hand.Evaluate(ourCards | boardMask, 7)
                 opp1HandVal = Hand.Evaluate(opp1cards | boardMask, 7)
                 opp2HandVal = Hand.Evaluate(opp2cards | boardMask, 7)
@@ -1724,12 +1740,13 @@ class HandAnalysis:
                 count += 1
 
         elif numberOfOpponents == 5:
+            shared = np.uint64(0)
             for boardMask in Hand.RandomHand(board, ourCards, 5, duration):
-                opp1cards = Hand.RandomHand(0, boardMask | ourCards, 2)
-                opp2cards = Hand.RandomHand(0, boardMask | ourCards | opp1cards, 2)
-                opp3cards = Hand.RandomHand(0, boardMask | ourCards | opp1cards | opp2cards, 2)
-                opp4cards = Hand.RandomHand(0, boardMask | ourCards | opp1cards | opp2cards | opp3cards, 2)
-                opp5cards = Hand.RandomHand(0, boardMask | ourCards | opp1cards | opp2cards | opp3cards | opp4cards, 2)
+                opp1cards = Hand.RandomHand(shared, boardMask | ourCards, 2)
+                opp2cards = Hand.RandomHand(shared, boardMask | ourCards | opp1cards, 2)
+                opp3cards = Hand.RandomHand(shared, boardMask | ourCards | opp1cards | opp2cards, 2)
+                opp4cards = Hand.RandomHand(shared, boardMask | ourCards | opp1cards | opp2cards | opp3cards, 2)
+                opp5cards = Hand.RandomHand(shared, boardMask | ourCards | opp1cards | opp2cards | opp3cards | opp4cards, 2)
                 playerHandVal = Hand.Evaluate(ourCards | boardMask, 7)
                 opp1HandVal = Hand.Evaluate(opp1cards | boardMask, 7)
                 opp2HandVal = Hand.Evaluate(opp2cards | boardMask, 7)
@@ -1764,13 +1781,14 @@ class HandAnalysis:
                 
                 count += 1
         elif numberOfOpponents == 6:
+            shared = np.uint64(0)
             for boardMask in Hand.RandomHand(board, ourCards, 5, duration):
-                opp1cards = Hand.RandomHand(0, boardMask | ourCards, 2)
-                opp2cards = Hand.RandomHand(0, boardMask | ourCards | opp1cards, 2)
-                opp3cards = Hand.RandomHand(0, boardMask | ourCards | opp1cards | opp2cards, 2)
-                opp4cards = Hand.RandomHand(0, boardMask | ourCards | opp1cards | opp2cards | opp3cards, 2)
-                opp5cards = Hand.RandomHand(0, boardMask | ourCards | opp1cards | opp2cards | opp3cards | opp4cards, 2)
-                opp6cards = Hand.RandomHand(0, boardMask | ourCards | opp1cards | opp2cards | opp3cards | opp4cards | opp5cards, 2)
+                opp1cards = Hand.RandomHand(shared, boardMask | ourCards, 2)
+                opp2cards = Hand.RandomHand(shared, boardMask | ourCards | opp1cards, 2)
+                opp3cards = Hand.RandomHand(shared, boardMask | ourCards | opp1cards | opp2cards, 2)
+                opp4cards = Hand.RandomHand(shared, boardMask | ourCards | opp1cards | opp2cards | opp3cards, 2)
+                opp5cards = Hand.RandomHand(shared, boardMask | ourCards | opp1cards | opp2cards | opp3cards | opp4cards, 2)
+                opp6cards = Hand.RandomHand(shared, boardMask | ourCards | opp1cards | opp2cards | opp3cards | opp4cards | opp5cards, 2)
                 playerHandVal = Hand.Evaluate(ourCards | boardMask, 7)
                 opp1HandVal = Hand.Evaluate(opp1cards | boardMask, 7)
                 opp2HandVal = Hand.Evaluate(opp2cards | boardMask, 7)
@@ -1816,14 +1834,15 @@ class HandAnalysis:
                 
                 count += 1
         elif numberOfOpponents == 7:
+            shared = np.uint64(0)
             for boardMask in Hand.RandomHand(board, ourCards, 5, duration):
-                opp1cards = Hand.RandomHand(0, boardMask | ourCards, 2)
-                opp2cards = Hand.RandomHand(0, boardMask | ourCards | opp1cards, 2)
-                opp3cards = Hand.RandomHand(0, boardMask | ourCards | opp1cards | opp2cards, 2)
-                opp4cards = Hand.RandomHand(0, boardMask | ourCards | opp1cards | opp2cards | opp3cards, 2)
-                opp5cards = Hand.RandomHand(0, boardMask | ourCards | opp1cards | opp2cards | opp3cards | opp4cards, 2)
-                opp6cards = Hand.RandomHand(0, boardMask | ourCards | opp1cards | opp2cards | opp3cards | opp4cards | opp5cards, 2)
-                opp7cards = Hand.RandomHand(0, boardMask | ourCards | opp1cards | opp2cards | opp3cards | opp4cards | opp5cards | opp6cards, 2)
+                opp1cards = Hand.RandomHand(shared, boardMask | ourCards, 2)
+                opp2cards = Hand.RandomHand(shared, boardMask | ourCards | opp1cards, 2)
+                opp3cards = Hand.RandomHand(shared, boardMask | ourCards | opp1cards | opp2cards, 2)
+                opp4cards = Hand.RandomHand(shared, boardMask | ourCards | opp1cards | opp2cards | opp3cards, 2)
+                opp5cards = Hand.RandomHand(shared, boardMask | ourCards | opp1cards | opp2cards | opp3cards | opp4cards, 2)
+                opp6cards = Hand.RandomHand(shared, boardMask | ourCards | opp1cards | opp2cards | opp3cards | opp4cards | opp5cards, 2)
+                opp7cards = Hand.RandomHand(shared, boardMask | ourCards | opp1cards | opp2cards | opp3cards | opp4cards | opp5cards | opp6cards, 2)
                 playerHandVal = Hand.Evaluate(ourCards | boardMask, 7)
                 opp1HandVal = Hand.Evaluate(opp1cards | boardMask, 7)
                 opp2HandVal = Hand.Evaluate(opp2cards | boardMask, 7)
@@ -1875,15 +1894,16 @@ class HandAnalysis:
                 
                 count += 1
         elif numberOfOpponents == 8:
+            shared = np.uint64(0)
             for boardMask in Hand.RandomHand(board, ourCards, 5, duration):
-                opp1cards = Hand.RandomHand(0, boardMask | ourCards, 2)
-                opp2cards = Hand.RandomHand(0, boardMask | ourCards | opp1cards, 2)
-                opp3cards = Hand.RandomHand(0, boardMask | ourCards | opp1cards | opp2cards, 2)
-                opp4cards = Hand.RandomHand(0, boardMask | ourCards | opp1cards | opp2cards | opp3cards, 2)
-                opp5cards = Hand.RandomHand(0, boardMask | ourCards | opp1cards | opp2cards | opp3cards | opp4cards, 2)
-                opp6cards = Hand.RandomHand(0, boardMask | ourCards | opp1cards | opp2cards | opp3cards | opp4cards | opp5cards, 2)
-                opp7cards = Hand.RandomHand(0, boardMask | ourCards | opp1cards | opp2cards | opp3cards | opp4cards | opp5cards | opp6cards, 2)
-                opp8cards = Hand.RandomHand(0, boardMask | ourCards | opp1cards | opp2cards | opp3cards | opp4cards | opp5cards | opp6cards, 2)
+                opp1cards = Hand.RandomHand(shared, boardMask | ourCards, 2)
+                opp2cards = Hand.RandomHand(shared, boardMask | ourCards | opp1cards, 2)
+                opp3cards = Hand.RandomHand(shared, boardMask | ourCards | opp1cards | opp2cards, 2)
+                opp4cards = Hand.RandomHand(shared, boardMask | ourCards | opp1cards | opp2cards | opp3cards, 2)
+                opp5cards = Hand.RandomHand(shared, boardMask | ourCards | opp1cards | opp2cards | opp3cards | opp4cards, 2)
+                opp6cards = Hand.RandomHand(shared, boardMask | ourCards | opp1cards | opp2cards | opp3cards | opp4cards | opp5cards, 2)
+                opp7cards = Hand.RandomHand(shared, boardMask | ourCards | opp1cards | opp2cards | opp3cards | opp4cards | opp5cards | opp6cards, 2)
+                opp8cards = Hand.RandomHand(shared, boardMask | ourCards | opp1cards | opp2cards | opp3cards | opp4cards | opp5cards | opp6cards, 2)
                 playerHandVal = Hand.Evaluate(ourCards | boardMask, 7)
                 opp1HandVal = Hand.Evaluate(opp1cards | boardMask, 7)
                 opp2HandVal = Hand.Evaluate(opp2cards | boardMask, 7)
@@ -1949,16 +1969,17 @@ class HandAnalysis:
                 
                 count += 1
         elif numberOfOpponents == 9:
+            shared = np.uint64(0)
             for boardMask in Hand.RandomHand(board, ourCards, 5, duration):
-                opp1cards = Hand.RandomHand(0, boardMask | ourCards, 2)
-                opp2cards = Hand.RandomHand(0, boardMask | ourCards | opp1cards, 2)
-                opp3cards = Hand.RandomHand(0, boardMask | ourCards | opp1cards | opp2cards, 2)
-                opp4cards = Hand.RandomHand(0, boardMask | ourCards | opp1cards | opp2cards | opp3cards, 2)
-                opp5cards = Hand.RandomHand(0, boardMask | ourCards | opp1cards | opp2cards | opp3cards | opp4cards, 2)
-                opp6cards = Hand.RandomHand(0, boardMask | ourCards | opp1cards | opp2cards | opp3cards | opp4cards | opp5cards, 2)
-                opp7cards = Hand.RandomHand(0, boardMask | ourCards | opp1cards | opp2cards | opp3cards | opp4cards | opp5cards | opp6cards, 2)
-                opp8cards = Hand.RandomHand(0, boardMask | ourCards | opp1cards | opp2cards | opp3cards | opp4cards | opp5cards | opp6cards | opp7cards, 2)
-                opp9cards = Hand.RandomHand(0, boardMask | ourCards | opp1cards | opp2cards | opp3cards | opp4cards | opp5cards | opp6cards | opp7cards | opp8cards, 2)
+                opp1cards = Hand.RandomHand(shared, boardMask | ourCards, 2)
+                opp2cards = Hand.RandomHand(shared, boardMask | ourCards | opp1cards, 2)
+                opp3cards = Hand.RandomHand(shared, boardMask | ourCards | opp1cards | opp2cards, 2)
+                opp4cards = Hand.RandomHand(shared, boardMask | ourCards | opp1cards | opp2cards | opp3cards, 2)
+                opp5cards = Hand.RandomHand(shared, boardMask | ourCards | opp1cards | opp2cards | opp3cards | opp4cards, 2)
+                opp6cards = Hand.RandomHand(shared, boardMask | ourCards | opp1cards | opp2cards | opp3cards | opp4cards | opp5cards, 2)
+                opp7cards = Hand.RandomHand(shared, boardMask | ourCards | opp1cards | opp2cards | opp3cards | opp4cards | opp5cards | opp6cards, 2)
+                opp8cards = Hand.RandomHand(shared, boardMask | ourCards | opp1cards | opp2cards | opp3cards | opp4cards | opp5cards | opp6cards | opp7cards, 2)
+                opp9cards = Hand.RandomHand(shared, boardMask | ourCards | opp1cards | opp2cards | opp3cards | opp4cards | opp5cards | opp6cards | opp7cards | opp8cards, 2)
                 playerHandVal = Hand.Evaluate(ourCards | boardMask, 7)
                 opp1HandVal = Hand.Evaluate(opp1cards | boardMask, 7)
                 opp2HandVal = Hand.Evaluate(opp2cards | boardMask, 7)
@@ -2067,7 +2088,7 @@ class HandAnalysis:
         pocketHands = [0] * len(pocketList)
         wins = ties = losses = [0] * len(pocketList)        
         count = bestCount = 0
-        boardMask = deadCardsMask = 0
+        boardMask = deadCardsMask = np.uint64(0)
         deadCards = Hand.ParseHand(dead)[0]
 
         totalHands = 0
@@ -2151,8 +2172,8 @@ class HandAnalysis:
     #   ppot - Positive Potential
     #   npot - Negative Potential
     @staticmethod
-    @dispatch(int, int)
-    def HandPotential(pocket: int, board: int):
+    @dispatch(np.uint64, np.uint64)
+    def HandPotential(pocket: np.uint64, board: np.uint64):
         ahead = 2
         tied = 1
         behind = 0
@@ -2227,8 +2248,8 @@ class HandAnalysis:
     #   ppot - The resultant positive potential
     #   npot - The resultant negative potential
     @staticmethod
-    @dispatch(int, int, int, float)
-    def HandPotential(pocket: int, board: int, numberOfOpponents: int, duration: float):
+    @dispatch(np.uint64, np.uint64, int, float)
+    def HandPotential(pocket: np.uint64, board: np.uint64, numberOfOpponents: int, duration: float):
         ahead = 2
         tied = 1
         behind = 0
@@ -2248,8 +2269,9 @@ class HandAnalysis:
         startTime = timer()
 
         if numberOfOpponents == 1:
+            shared = np.uint64(0)
             while timer() - startTime < duration:
-                opp1Pocket = Hand.RandomHand(0, pocket | board, 2)
+                opp1Pocket = Hand.RandomHand(shared, pocket | board, 2)
                 opp1Rank = Hand.Evaluate(opp1Pocket | board, ncards)
                 index: int
 
@@ -2273,9 +2295,10 @@ class HandAnalysis:
                 count += 1
 
         elif numberOfOpponents == 2:
+            shared = np.uint64(0)
             while timer() - startTime < duration:
-                opp1Pocket = Hand.RandomHand(0, pocket | board, 2)
-                opp2Pocket = Hand.RandomHand(0, pocket | board | opp1Pocket, 2)
+                opp1Pocket = Hand.RandomHand(shared, pocket | board, 2)
+                opp2Pocket = Hand.RandomHand(shared, pocket | board | opp1Pocket, 2)
                 opp1Rank = Hand.Evaluate(opp1Pocket | board)
                 opp2Rank = Hand.Evaluate(opp2Pocket | board)
                 index: int
@@ -2300,10 +2323,11 @@ class HandAnalysis:
                 
                 count += 1
         elif numberOfOpponents == 3:
+            shared = np.uint64(0)
             while timer() - startTime < duration:
-                opp1Pocket = Hand.RandomHand(0, pocket | board, 2)
-                opp2Pocket = Hand.RandomHand(0, pocket | board | opp1Pocket, 2)
-                opp3Pocket = Hand.RandomHand(0, pocket | board | opp1Pocket | opp2Pocket, 2)
+                opp1Pocket = Hand.RandomHand(shared, pocket | board, 2)
+                opp2Pocket = Hand.RandomHand(shared, pocket | board | opp1Pocket, 2)
+                opp3Pocket = Hand.RandomHand(shared, pocket | board | opp1Pocket | opp2Pocket, 2)
                 opp1Rank = Hand.Evaluate(opp1Pocket | board)
                 opp2Rank = Hand.Evaluate(opp2Pocket | board)
                 opp3Rank = Hand.Evaluate(opp3Pocket | board)
@@ -2335,11 +2359,12 @@ class HandAnalysis:
                 
                 count += 1
         elif numberOfOpponents == 4:
+            shared = np.uint64(0)
             while timer() - startTime < duration:
-                opp1Pocket = Hand.RandomHand(0, pocket | board, 2)
-                opp2Pocket = Hand.RandomHand(0, pocket | board | opp1Pocket, 2)
-                opp3Pocket = Hand.RandomHand(0, pocket | board | opp1Pocket | opp2Pocket, 2)
-                opp4Pocket = Hand.RandomHand(0, pocket | board | opp1Pocket | opp2Pocket | opp3Pocket, 2)
+                opp1Pocket = Hand.RandomHand(shared, pocket | board, 2)
+                opp2Pocket = Hand.RandomHand(shared, pocket | board | opp1Pocket, 2)
+                opp3Pocket = Hand.RandomHand(shared, pocket | board | opp1Pocket | opp2Pocket, 2)
+                opp4Pocket = Hand.RandomHand(shared, pocket | board | opp1Pocket | opp2Pocket | opp3Pocket, 2)
                 opp1Rank = Hand.Evaluate(opp1Pocket | board)
                 opp2Rank = Hand.Evaluate(opp2Pocket | board)
                 opp3Rank = Hand.Evaluate(opp3Pocket | board)
@@ -2374,12 +2399,13 @@ class HandAnalysis:
                 
                 count += 1
         elif numberOfOpponents == 5:
+            shared = np.uint64(0)
             while timer() - startTime < duration:
-                opp1Pocket = Hand.RandomHand(0, pocket | board, 2)
-                opp2Pocket = Hand.RandomHand(0, pocket | board | opp1Pocket, 2)
-                opp3Pocket = Hand.RandomHand(0, pocket | board | opp1Pocket | opp2Pocket, 2)
-                opp4Pocket = Hand.RandomHand(0, pocket | board | opp1Pocket | opp2Pocket | opp3Pocket, 2)
-                opp5Pocket = Hand.RandomHand(0, pocket | board | opp1Pocket | opp2Pocket | opp3Pocket | opp4Pocket, 2)
+                opp1Pocket = Hand.RandomHand(shared, pocket | board, 2)
+                opp2Pocket = Hand.RandomHand(shared, pocket | board | opp1Pocket, 2)
+                opp3Pocket = Hand.RandomHand(shared, pocket | board | opp1Pocket | opp2Pocket, 2)
+                opp4Pocket = Hand.RandomHand(shared, pocket | board | opp1Pocket | opp2Pocket | opp3Pocket, 2)
+                opp5Pocket = Hand.RandomHand(shared, pocket | board | opp1Pocket | opp2Pocket | opp3Pocket | opp4Pocket, 2)
                 opp1Rank = Hand.Evaluate(opp1Pocket | board)
                 opp2Rank = Hand.Evaluate(opp2Pocket | board)
                 opp3Rank = Hand.Evaluate(opp3Pocket | board)
@@ -2420,19 +2446,20 @@ class HandAnalysis:
                 
                 count += 1
         elif numberOfOpponents == 6:
+            shared = np.uint64(0)
             while timer() - startTime < duration:
-                opp1Pocket = Hand.RandomHand(0, pocket | board, 2)
-                opp2Pocket = Hand.RandomHand(0, pocket | board | opp1Pocket, 2)
-                opp3Pocket = Hand.RandomHand(0, pocket | board | opp1Pocket | opp2Pocket, 2)
-                opp4Pocket = Hand.RandomHand(0, pocket | board | opp1Pocket | opp2Pocket | opp3Pocket, 2)
-                opp5Pocket = Hand.RandomHand(0, pocket | board | opp1Pocket | opp2Pocket | opp3Pocket | opp4Pocket, 2)
-                opp6Pocket = Hand.RandomHand(0, pocket | board | opp1Pocket | opp2Pocket | opp3Pocket | opp4Pocket | opp5Pocket, 2)
-                opp1Rank = Hand.Evaluate(opp1Pocket | board)
-                opp2Rank = Hand.Evaluate(opp2Pocket | board)
-                opp3Rank = Hand.Evaluate(opp3Pocket | board)
-                opp4Rank = Hand.Evaluate(opp4Pocket | board)
-                opp5Rank = Hand.Evaluate(opp5Pocket | board)
-                opp6Rank = Hand.Evaluate(opp5Pocket | board)
+                opp1Pocket = Hand.RandomHand(shared, pocket | board, 2)
+                opp2Pocket = Hand.RandomHand(shared, pocket | board | opp1Pocket, 2)
+                opp3Pocket = Hand.RandomHand(shared, pocket | board | opp1Pocket | opp2Pocket, 2)
+                opp4Pocket = Hand.RandomHand(shared, pocket | board | opp1Pocket | opp2Pocket | opp3Pocket, 2)
+                opp5Pocket = Hand.RandomHand(shared, pocket | board | opp1Pocket | opp2Pocket | opp3Pocket | opp4Pocket, 2)
+                opp6Pocket = Hand.RandomHand(shared, pocket | board | opp1Pocket | opp2Pocket | opp3Pocket | opp4Pocket | opp5Pocket, 2)
+                opp1Rank = np.uint64(Hand.Evaluate(opp1Pocket | board))
+                opp2Rank = np.uint64(Hand.Evaluate(opp2Pocket | board))
+                opp3Rank = np.uint64(Hand.Evaluate(opp3Pocket | board))
+                opp4Rank = np.uint64(Hand.Evaluate(opp4Pocket | board))
+                opp5Rank = np.uint64(Hand.Evaluate(opp5Pocket | board))
+                opp6Rank = np.uint64(Hand.Evaluate(opp5Pocket | board))
 
                 index: int
 
@@ -2446,9 +2473,9 @@ class HandAnalysis:
                     index = tied
                 else:
                     index = behind
-                
-                # TODO: int64 problem
-                boardMask = Hand.RandomHand(board, pocket | opp1Rank | opp2Pocket | opp3Pocket | opp4Pocket | opp5Pocket | opp6Pocket, 5)
+                                
+                dead = pocket | opp1Rank | opp2Pocket | opp3Pocket | opp4Pocket | opp5Pocket | opp6Pocket
+                boardMask = Hand.RandomHand(board, dead, 5)
                 ourBest = Hand.Evaluate(pocket | boardMask, 7)
                 opp1Best = Hand.Evaluate(opp1Pocket | boardMask, 7)
                 opp2Best = Hand.Evaluate(opp2Pocket | boardMask, 7)
@@ -2470,14 +2497,15 @@ class HandAnalysis:
                 
                 count += 1
         elif numberOfOpponents == 7:
+            shared = np.uint64(0)
             while timer() - startTime < duration:
-                opp1Pocket = Hand.RandomHand(0, pocket | board, 2)
-                opp2Pocket = Hand.RandomHand(0, pocket | board | opp1Pocket, 2)
-                opp3Pocket = Hand.RandomHand(0, pocket | board | opp1Pocket | opp2Pocket, 2)
-                opp4Pocket = Hand.RandomHand(0, pocket | board | opp1Pocket | opp2Pocket | opp3Pocket, 2)
-                opp5Pocket = Hand.RandomHand(0, pocket | board | opp1Pocket | opp2Pocket | opp3Pocket | opp4Pocket, 2)
-                opp6Pocket = Hand.RandomHand(0, pocket | board | opp1Pocket | opp2Pocket | opp3Pocket | opp4Pocket | opp5Pocket, 2)
-                opp7Pocket = Hand.RandomHand(0, pocket | board | opp1Pocket | opp2Pocket | opp3Pocket | opp4Pocket | opp5Pocket | opp6Pocket, 2)
+                opp1Pocket = Hand.RandomHand(shared, pocket | board, 2)
+                opp2Pocket = Hand.RandomHand(shared, pocket | board | opp1Pocket, 2)
+                opp3Pocket = Hand.RandomHand(shared, pocket | board | opp1Pocket | opp2Pocket, 2)
+                opp4Pocket = Hand.RandomHand(shared, pocket | board | opp1Pocket | opp2Pocket | opp3Pocket, 2)
+                opp5Pocket = Hand.RandomHand(shared, pocket | board | opp1Pocket | opp2Pocket | opp3Pocket | opp4Pocket, 2)
+                opp6Pocket = Hand.RandomHand(shared, pocket | board | opp1Pocket | opp2Pocket | opp3Pocket | opp4Pocket | opp5Pocket, 2)
+                opp7Pocket = Hand.RandomHand(shared, pocket | board | opp1Pocket | opp2Pocket | opp3Pocket | opp4Pocket | opp5Pocket | opp6Pocket, 2)
                 opp1Rank = Hand.Evaluate(opp1Pocket | board)
                 opp2Rank = Hand.Evaluate(opp2Pocket | board)
                 opp3Rank = Hand.Evaluate(opp3Pocket | board)
@@ -2526,15 +2554,16 @@ class HandAnalysis:
                 
                 count += 1
         elif numberOfOpponents == 8:
+            shared = np.uint64(0)
             while timer() - startTime < duration:
-                opp1Pocket = Hand.RandomHand(0, pocket | board, 2)
-                opp2Pocket = Hand.RandomHand(0, pocket | board | opp1Pocket, 2)
-                opp3Pocket = Hand.RandomHand(0, pocket | board | opp1Pocket | opp2Pocket, 2)
-                opp4Pocket = Hand.RandomHand(0, pocket | board | opp1Pocket | opp2Pocket | opp3Pocket, 2)
-                opp5Pocket = Hand.RandomHand(0, pocket | board | opp1Pocket | opp2Pocket | opp3Pocket | opp4Pocket, 2)
-                opp6Pocket = Hand.RandomHand(0, pocket | board | opp1Pocket | opp2Pocket | opp3Pocket | opp4Pocket | opp5Pocket, 2)
-                opp7Pocket = Hand.RandomHand(0, pocket | board | opp1Pocket | opp2Pocket | opp3Pocket | opp4Pocket | opp5Pocket | opp6Pocket, 2)
-                opp8Pocket = Hand.RandomHand(0, pocket | board | opp1Pocket | opp2Pocket | opp3Pocket | opp4Pocket | opp5Pocket | opp6Pocket | opp7Pocket, 2)
+                opp1Pocket = Hand.RandomHand(shared, pocket | board, 2)
+                opp2Pocket = Hand.RandomHand(shared, pocket | board | opp1Pocket, 2)
+                opp3Pocket = Hand.RandomHand(shared, pocket | board | opp1Pocket | opp2Pocket, 2)
+                opp4Pocket = Hand.RandomHand(shared, pocket | board | opp1Pocket | opp2Pocket | opp3Pocket, 2)
+                opp5Pocket = Hand.RandomHand(shared, pocket | board | opp1Pocket | opp2Pocket | opp3Pocket | opp4Pocket, 2)
+                opp6Pocket = Hand.RandomHand(shared, pocket | board | opp1Pocket | opp2Pocket | opp3Pocket | opp4Pocket | opp5Pocket, 2)
+                opp7Pocket = Hand.RandomHand(shared, pocket | board | opp1Pocket | opp2Pocket | opp3Pocket | opp4Pocket | opp5Pocket | opp6Pocket, 2)
+                opp8Pocket = Hand.RandomHand(shared, pocket | board | opp1Pocket | opp2Pocket | opp3Pocket | opp4Pocket | opp5Pocket | opp6Pocket | opp7Pocket, 2)
                 opp1Rank = Hand.Evaluate(opp1Pocket | board)
                 opp2Rank = Hand.Evaluate(opp2Pocket | board)
                 opp3Rank = Hand.Evaluate(opp3Pocket | board)
@@ -2585,16 +2614,17 @@ class HandAnalysis:
                 
                 count += 1
         elif numberOfOpponents == 9:
+            shared = np.uint64(0)
             while timer() - startTime < duration:
-                opp1Pocket = Hand.RandomHand(0, pocket | board, 2)
-                opp2Pocket = Hand.RandomHand(0, pocket | board | opp1Pocket, 2)
-                opp3Pocket = Hand.RandomHand(0, pocket | board | opp1Pocket | opp2Pocket, 2)
-                opp4Pocket = Hand.RandomHand(0, pocket | board | opp1Pocket | opp2Pocket | opp3Pocket, 2)
-                opp5Pocket = Hand.RandomHand(0, pocket | board | opp1Pocket | opp2Pocket | opp3Pocket | opp4Pocket, 2)
-                opp6Pocket = Hand.RandomHand(0, pocket | board | opp1Pocket | opp2Pocket | opp3Pocket | opp4Pocket | opp5Pocket, 2)
-                opp7Pocket = Hand.RandomHand(0, pocket | board | opp1Pocket | opp2Pocket | opp3Pocket | opp4Pocket | opp5Pocket | opp6Pocket, 2)
-                opp8Pocket = Hand.RandomHand(0, pocket | board | opp1Pocket | opp2Pocket | opp3Pocket | opp4Pocket | opp5Pocket | opp6Pocket | opp7Pocket, 2)
-                opp9Pocket = Hand.RandomHand(0, pocket | board | opp1Pocket | opp2Pocket | opp3Pocket | opp4Pocket | opp5Pocket | opp6Pocket | opp7Pocket | opp8Pocket, 2)
+                opp1Pocket = Hand.RandomHand(shared, pocket | board, 2)
+                opp2Pocket = Hand.RandomHand(shared, pocket | board | opp1Pocket, 2)
+                opp3Pocket = Hand.RandomHand(shared, pocket | board | opp1Pocket | opp2Pocket, 2)
+                opp4Pocket = Hand.RandomHand(shared, pocket | board | opp1Pocket | opp2Pocket | opp3Pocket, 2)
+                opp5Pocket = Hand.RandomHand(shared, pocket | board | opp1Pocket | opp2Pocket | opp3Pocket | opp4Pocket, 2)
+                opp6Pocket = Hand.RandomHand(shared, pocket | board | opp1Pocket | opp2Pocket | opp3Pocket | opp4Pocket | opp5Pocket, 2)
+                opp7Pocket = Hand.RandomHand(shared, pocket | board | opp1Pocket | opp2Pocket | opp3Pocket | opp4Pocket | opp5Pocket | opp6Pocket, 2)
+                opp8Pocket = Hand.RandomHand(shared, pocket | board | opp1Pocket | opp2Pocket | opp3Pocket | opp4Pocket | opp5Pocket | opp6Pocket | opp7Pocket, 2)
+                opp9Pocket = Hand.RandomHand(shared, pocket | board | opp1Pocket | opp2Pocket | opp3Pocket | opp4Pocket | opp5Pocket | opp6Pocket | opp7Pocket | opp8Pocket, 2)
                 opp1Rank = Hand.Evaluate(opp1Pocket | board)
                 opp2Rank = Hand.Evaluate(opp2Pocket | board)
                 opp3Rank = Hand.Evaluate(opp3Pocket | board)
@@ -2652,7 +2682,7 @@ class HandAnalysis:
                 count += 1
         
         if count != 0:
-            ppot = (hp[behind][ahead] + (hp[behind][tied] / 2.0) + (hp[tied, ahead] / 2.0)) / count
+            ppot = (hp[behind][ahead] + (hp[behind][tied] / 2.0) + (hp[tied][ahead] / 2.0)) / count
             npot = (hp[ahead][behind] + (hp[ahead][tied] / 2.0) + (hp[tied][behind] / 2.0)) / count
         
         return (ppot, npot)
@@ -2670,8 +2700,8 @@ class HandAnalysis:
     # numberOfOpponents - The number of oppoents 1-9 are legal values
     # The approximate odds of winning the passed mask against the number of opponents specified.
     @staticmethod
-    @dispatch(str, str, int, int)
-    def WinOdds(pocket: str, board: str, dead: int, numberOfOpponents: int):
+    @dispatch(str, str, np.uint64, int)
+    def WinOdds(pocket: str, board: str, dead: np.uint64, numberOfOpponents: int):
         if __debug__:
             if not Hand.ValidateHand(pocket) or Hand.BitCount(Hand.ParseHand(pocket)[0]) != 2:
                 raise Exception("pocket must contain exactly two cards")
@@ -2707,8 +2737,8 @@ class HandAnalysis:
     # dead - Dead cards
     # returns the win odds
     @staticmethod
-    @dispatch(int, int, int)
-    def WinOdds(pocket: int, board: int, dead: int):
+    @dispatch(np.uint64, np.uint64, np.uint64)
+    def WinOdds(pocket: np.uint64, board: np.uint64, dead: np.uint64):
         # For one player we can lookup the value if the board is empty
         # and if it's not empty it's probably just faster to calculate the
         # results exhaustively.
@@ -2744,8 +2774,8 @@ class HandAnalysis:
     # numberOfOpponents - The number of oppoents 1-9 are legal values
     # returns The approximate odds of winning the passed mask against the number of opponents specified.
     @staticmethod
-    @dispatch(int, int, int, int)
-    def WinOdds(pocket: int, board: int, dead: int, numberOfOpponents: int):
+    @dispatch(np.uint64, np.uint64, np.uint64, int)
+    def WinOdds(pocket: np.uint64, board: np.uint64, dead: np.uint64, numberOfOpponents: int):
         return HandAnalysis.WinOdds(pocket, board, dead, numberOfOpponents, HandAnalysis.__defaultTimeDuration)
     
     # This method returns the approximate odd for the players mask winning against multiple opponents.
@@ -2756,8 +2786,8 @@ class HandAnalysis:
     # duration - The period of time (in seconds) to run trials. On my 2.8Ghz laptop 0.1 seconds seems adequate.
     # returns The approximate odds of winning the passed mask against the number of opponents specified.
     @staticmethod
-    @dispatch(int, int, int, int, float)
-    def WinOdds(pocket: int, board: int, dead: int, numberOfOpponents: int, duration: float):
+    @dispatch(np.uint64, np.uint64, np.uint64, int, float)
+    def WinOdds(pocket: np.uint64, board: np.uint64, dead: np.uint64, numberOfOpponents: int, duration: float):
         if __debug__:
             if Hand.BitCount(pocket) != 2:
                 raise Exception("Pocket must contain exactly two cards")

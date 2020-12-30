@@ -1,6 +1,7 @@
 from HandAnalysis import HandAnalysis
 import unittest
 from HandEvaluator import Hand
+import numpy as np
 
 class HandEvaluatorTest(unittest.TestCase):
 
@@ -35,9 +36,9 @@ class HandEvaluatorTest(unittest.TestCase):
         # open ended straight draw
         board = Hand.ParseHand("7s 8c Qh")
         pocket = Hand.ParseHand("9d Td")
-        outs = HandAnalysis.StraightDrawCount(pocket[0], board[0], 0)
+        outs = HandAnalysis.StraightDrawCount(pocket[0], board[0], np.uint64(0))
         self.assertTrue(outs == 8)
-        self.assertTrue(HandAnalysis.IsOpenEndedStraightDraw(pocket[0], board[0], 0))
+        self.assertTrue(HandAnalysis.IsOpenEndedStraightDraw(pocket[0], board[0], np.uint64(0)))
 
         dead = Hand.ParseHand("Ac Js")
         outs = HandAnalysis.StraightDrawCount(pocket[0], board[0], dead[0])
@@ -45,10 +46,10 @@ class HandEvaluatorTest(unittest.TestCase):
 
         # gut shot
         pocket = Hand.ParseHand("Jd 9d")
-        outs = HandAnalysis.StraightDrawCount(pocket[0], board[0], 0)
+        outs = HandAnalysis.StraightDrawCount(pocket[0], board[0], np.uint64(0))
         self.assertTrue(outs == 4)
-        self.assertFalse(HandAnalysis.IsOpenEndedStraightDraw(pocket[0], board[0], 0))
-        self.assertTrue(HandAnalysis.IsGutShotStraightDraw(pocket[0], board[0], 0))
+        self.assertFalse(HandAnalysis.IsOpenEndedStraightDraw(pocket[0], board[0], np.uint64(0)))
+        self.assertTrue(HandAnalysis.IsGutShotStraightDraw(pocket[0], board[0], np.uint64(0)))
     
     def test_IsStraightDraw(self):
         pocket = "2c3d"
@@ -58,7 +59,7 @@ class HandEvaluatorTest(unittest.TestCase):
 
         pocketMask = Hand.ParseHand(pocket)[0]
         boardMask = Hand.ParseHand(board)[0]
-        self.assertTrue(HandAnalysis.IsStraightDraw(pocketMask | boardMask, 0))
+        self.assertTrue(HandAnalysis.IsStraightDraw(pocketMask | boardMask, np.uint64(0)))
 
     def test_FlushDraw(self):
         pocket = "Th 2h"
@@ -69,17 +70,17 @@ class HandEvaluatorTest(unittest.TestCase):
         self.assertTrue(outs == 8)
 
         # expected 9 outs
-        outs = HandAnalysis.FlushDrawCount(Hand.ParseHand(pocket)[0] | Hand.ParseHand(board)[0], 0)
+        outs = HandAnalysis.FlushDrawCount(Hand.ParseHand(pocket)[0] | Hand.ParseHand(board)[0], np.uint64(0))
         self.assertTrue(outs == 9)
 
         # expected 0 outs
         board = "9h Qh 7h"
-        outs = HandAnalysis.FlushDrawCount(Hand.ParseHand(pocket)[0] | Hand.ParseHand(board)[0], 0)
+        outs = HandAnalysis.FlushDrawCount(Hand.ParseHand(pocket)[0] | Hand.ParseHand(board)[0], np.uint64(0))
         self.assertTrue(outs == 0)
 
         pocket = Hand.ParseHand("6d 7d")[0]
         board = Hand.ParseHand("8d Tc 9d")[0]
-        self.assertTrue(HandAnalysis.IsFlushDraw(pocket, board, 0))
+        self.assertTrue(HandAnalysis.IsFlushDraw(pocket, board, np.uint64(0)))
 
         pocket = "7c 2d"
         board = "Ac 2h Tc"
@@ -97,7 +98,7 @@ class HandEvaluatorTest(unittest.TestCase):
         board = Hand.ParseHand("Kd Qc 5c 7s")[0]
         # draw to a full house
         # expected outs = 4
-        outs = HandAnalysis.DrawCount(pocket, board, 0, Hand.HandTypes.FULLHOUSE)
+        outs = HandAnalysis.DrawCount(pocket, board, np.uint64(0), Hand.HandTypes.FULLHOUSE)
         self.assertTrue(outs == 4)
 
         # quad draw, outs = 1

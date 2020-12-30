@@ -1,4 +1,4 @@
-import numpy
+import numpy as np
 import random
 from enum import Enum
 from multipledispatch import dispatch
@@ -49,23 +49,23 @@ class Hand:
     TOP_CARD_SHIFT = 16
     TOP_CARD_MASK = 0x000F0000
     SECOND_CARD_SHIFT = 12
-    SECOND_CARD_MASK: numpy.uint32 = 0x0000F000
+    SECOND_CARD_MASK: np.uint32 = 0x0000F000
     THIRD_CARD_SHIFT = 8
     FOURTH_CARD_SHIFT = 4
     FIFT_CARD_SHIFT = 0
-    FIFTH_CARD_MASK: numpy.uint32 = 0x0000000F
+    FIFTH_CARD_MASK: np.uint32 = 0x0000000F
 
     CARD_WIDTH = 4
-    CARD_MASK: numpy.uint32 = 0x0F
+    CARD_MASK: np.uint32 = 0x0F
 
     # Hand mask for the current card set
-    __handMask: numpy.uint64
+    __handMask: np.uint64
 
     __pocket: str = ""
 
     __board: str = ""
 
-    __handVal: numpy.uint32
+    __handVal: np.uint32
 
     def set_PocketCards(self, pocketHand: str):
         if __debug__:
@@ -128,7 +128,7 @@ class Hand:
         if __debug__:
             if not hand: return False
 
-        handmask: numpy.uint64 = 0        
+        handmask: np.uint64 = 0        
         cards = 0
         try:
             card = Hand.__NextCard(hand, 0) # return tuple(card, handIteratorIndex)
@@ -241,11 +241,11 @@ class Hand:
     
     # Parse hand
     # hand - hand string
-    # returns a tuple, (numpy.uint64, numberOfCards)
+    # returns a tuple, (np.uint64, numberOfCards)
     @staticmethod
     @dispatch(str)    
     def ParseHand(hand: str):
-        handmask: numpy.uint64 = 0
+        handmask: np.uint64 = 0
 
         if __debug__:
             if not hand: 
@@ -266,7 +266,7 @@ class Hand:
             cards += 1
             card = Hand.__NextCard(hand, card[1])
         
-        return (handmask, cards)
+        return (np.uint64(handmask), cards)
     #end ParseHand
 
     # This static method parses the passed pocket cards and board and produces
@@ -312,7 +312,7 @@ class Hand:
         return handValue >> Hand.HANDTYPE_SHIFT
 
     @staticmethod
-    def DescriptionFromMask(cards: int):
+    def DescriptionFromMask(cards: np.uint64):
         numberOfCards = Hand.BitCount(cards)
 
         # This function support 1-7 cards
@@ -321,10 +321,11 @@ class Hand:
                 raise Exception("Invalid number of cards")
 
         # separate out by suit
-        sc = numpy.uint32(cards >> Hand.GetClubOffset()) & numpy.uint64(0x1FFF)
-        sd = numpy.uint32(cards >> Hand.GetDiamondOffset()) & numpy.uint64(0x1FFF)
-        sh = numpy.uint32(cards >> Hand.GetHeartOffset()) & numpy.uint64(0x1FFF)
-        ss = numpy.uint32(cards >> Hand.GetSpadeOffset()) & numpy.uint64(0x1FFF)
+        x = np.uint64(0x1FFF)
+        sc = np.uint32(cards >> Hand.GetClubOffset()) & x
+        sd = np.uint32(cards >> Hand.GetDiamondOffset()) & x
+        sh = np.uint32(cards >> Hand.GetHeartOffset()) & x
+        ss = np.uint32(cards >> Hand.GetSpadeOffset()) & x
 
         handValue = Hand.Evaluate(cards, numberOfCards)
         handType = Hand.HandType(handValue)
@@ -451,12 +452,12 @@ class Hand:
         return Hand.__CardMasksTable[index]
     
     @staticmethod
-    def CardMask(cards: int, suit: int):
-        return (cards >> (13 * suit)) & 0x1FFF
+    def CardMask(cards: np.uint64, suit: int):
+        return (cards >> np.uint64((13 * suit))) & np.uint64(0x1FFF)
 
     @staticmethod
-    @dispatch(int, int)
-    def Evaluate(cards: int, numberOfCards: int):
+    @dispatch(np.uint64, int)
+    def Evaluate(cards: np.uint64, numberOfCards: int):
         retval = 0
         four_mask = 0
         three_mask = 0
@@ -467,14 +468,15 @@ class Hand:
                 raise Exception("Invalid number of cards")
 
         # separate out by suit
-        sc = numpy.uint32(cards >> Hand.GetClubOffset()) & numpy.uint64(0x1FFF)
-        sd = numpy.uint32(cards >> Hand.GetDiamondOffset()) & numpy.uint64(0x1FFF)
-        sh = numpy.uint32(cards >> Hand.GetHeartOffset()) & numpy.uint64(0x1FFF)
-        ss = numpy.uint32(cards >> Hand.GetSpadeOffset()) & numpy.uint64(0x1FFF)
+        x = np.uint64(0x1FFF)
+        sc = np.uint32(cards >> Hand.GetClubOffset()) & x
+        sd = np.uint32(cards >> Hand.GetDiamondOffset()) & x
+        sh = np.uint32(cards >> Hand.GetHeartOffset()) & x
+        ss = np.uint32(cards >> Hand.GetSpadeOffset()) & x
 
         ranks = sc | sd | sh | ss
         n_ranks = Hand.nBitsTable[ranks]
-        n_dups = numpy.uint32(numberOfCards - n_ranks)
+        n_dups = np.uint32(numberOfCards - n_ranks)
 
         # Check for straight, flush, or straight flush, and return if we can
         # determine immediately that this is the best possible mask 
@@ -504,7 +506,7 @@ class Hand:
                     retval = Hand.__HandTypeValueFlush() + Hand.__TopFiveCardsTable[sh]
 
             else:
-                st: numpy.uint32 = Hand.__StraightTable[ranks]
+                st: np.uint32 = Hand.__StraightTable[ranks]
                 if st != 0:
                     retval = Hand.__HandTypeValueStraight() + (st << Hand.TOP_CARD_SHIFT)
 
@@ -523,11 +525,11 @@ class Hand:
         if n_dups == 0:
             return Hand.__HandTypeValueHighCard() + Hand.__TopFiveCardsTable[ranks]    
         elif n_dups == 1:
-            kickers: numpy.uint32
-            t: numpy.uint32
+            kickers: np.uint32
+            t: np.uint32
 
             two_mask = ranks ^ (sc ^ sd ^ sh ^ ss)
-            retval = numpy.uint32(Hand.__HandTypeValuePair() + (Hand.__TopCardTable[two_mask] << Hand.TOP_CARD_SHIFT))
+            retval = np.uint32(Hand.__HandTypeValuePair() + (Hand.__TopCardTable[two_mask] << Hand.TOP_CARD_SHIFT))
             t = ranks ^ two_mask # Only one bit set in two_mask
             # Get the top five cards in what is left, drop all but the top three
             # cards, and shift them by one to get the three desired kickers
@@ -540,21 +542,21 @@ class Hand:
             two_mask = ranks ^ (sc ^ sd ^ sh ^ ss)
             if two_mask != 0:
                 t = ranks ^ two_mask # exactly two bits set in two_mask
-                retval = numpy.uint32(Hand.__HandTypeValueTwoPair() \
+                retval = np.uint32(Hand.__HandTypeValueTwoPair() \
                     + (Hand.__TopFiveCardsTable[two_mask] \
                     & (Hand.TOP_CARD_MASK | Hand.SECOND_CARD_MASK)) \
                     + (Hand.__TopCardTable[t] << Hand.THIRD_CARD_SHIFT))
                 
                 return retval
             else:
-                t: numpy.uint32
-                second: numpy.uint32
+                t: np.uint32
+                second: np.uint32
                 three_mask = ((sc & sd) | (sh & ss)) & ((sc & sh) | (sd & ss))
                 retval = Hand.__HandTypeValueTrips() + (Hand.__TopCardTable[three_mask] << Hand.TOP_CARD_SHIFT)
                 t = ranks ^ three_mask # Only one bit set in three_mask
-                second = numpy.uint32(Hand.__TopCardTable[t])
+                second = np.uint32(Hand.__TopCardTable[t])
                 retval += (second << Hand.SECOND_CARD_SHIFT)
-                t ^= (numpy.uint32(1) << second)
+                t ^= (np.uint32(1) << second)
                 retval += Hand.__TopCardTable[t] << Hand.THIRD_CARD_SHIFT
                 return retval
         else:
@@ -562,9 +564,9 @@ class Hand:
             four_mask = sh & sd & sc & ss
             if four_mask != 0:
                 tc = Hand.__TopCardTable[four_mask]
-                retval = numpy.uint32(Hand.__HandTypeValueFourOfAKind() \
+                retval = np.uint32(Hand.__HandTypeValueFourOfAKind() \
                     + (tc << Hand.TOP_CARD_SHIFT) \
-                    + ((Hand.__TopCardTable[ranks ^ (numpy.uint64(1) << numpy.uint32(tc)) ]) << Hand.SECOND_CARD_SHIFT))
+                    + ((Hand.__TopCardTable[ranks ^ (np.uint64(1) << np.uint32(tc)) ]) << Hand.SECOND_CARD_SHIFT))
                 return retval
             
             # Technically, three_mask as defined below is really the set of
@@ -577,14 +579,14 @@ class Hand:
             if Hand.nBitsTable[two_mask] != n_dups:
                 # Must be some trips then, which really means there is a 
                 # full house since n_dups >= 3 
-                tc: numpy.uint32
-                t: numpy.uint32
+                tc: np.uint32
+                t: np.uint32
                 three_mask = ((sc & sd) | (sh & ss)) & ((sc & sh) | (sd & ss))
                 retval = Hand.__HandTypeValueFullhouse()
                 tc = Hand.__TopCardTable[three_mask]
                 retval += (tc << Hand.TOP_CARD_SHIFT)
-                t = (two_mask | three_mask) ^ (numpy.uint64(1) << numpy.uint32(tc))
-                retval += numpy.uint32(Hand.__TopCardTable[t] << Hand.SECOND_CARD_SHIFT)
+                t = (two_mask | three_mask) ^ (np.uint64(1) << np.uint32(tc))
+                retval += np.uint32(Hand.__TopCardTable[t] << Hand.SECOND_CARD_SHIFT)
                 
                 return retval
             
@@ -592,15 +594,15 @@ class Hand:
                 return retval
             else:
                 # Must be two pair
-                top: numpy.uint32
-                second: numpy.uint32
+                top: np.uint32
+                second: np.uint32
 
                 retval = Hand.__HandTypeValueTwoPair()
                 top = Hand.__TopCardTable[two_mask]
                 retval += (top << Hand.TOP_CARD_SHIFT)
-                second = Hand.__TopCardTable[two_mask ^ (numpy.uint64(1) << numpy.uint32(top))]
+                second = Hand.__TopCardTable[two_mask ^ (np.uint64(1) << np.uint32(top))]
                 retval += (second << Hand.SECOND_CARD_SHIFT)
-                retval += numpy.uint32( (Hand.__TopCardTable[ranks ^ ( numpy.uint64(1) << numpy.uint32(top) ) ^ (numpy.uint64(1) << numpy.uint32(second) )]) << Hand.THIRD_CARD_SHIFT )
+                retval += np.uint32( (Hand.__TopCardTable[ranks ^ ( np.uint64(1) << np.uint32(top) ) ^ (np.uint64(1) << np.uint32(second) )]) << Hand.THIRD_CARD_SHIFT )
                 return retval
             
     #end Evaluate()
@@ -618,8 +620,8 @@ class Hand:
     # A mask value can be compared against another mask value to
     # determine which has the higher value.
     @staticmethod
-    @dispatch(int)
-    def Evaluate(cards: int):
+    @dispatch(np.uint64)
+    def Evaluate(cards: np.uint64):
         return Hand.Evaluate(cards, Hand.BitCount(cards))
     
     # Evaluates the card mask and returns the type of mask it is. This function is
@@ -627,8 +629,8 @@ class Hand:
     # mask - card mask
     # returns hand type
     @staticmethod
-    @dispatch(int)
-    def EvaluateType(mask: int):
+    @dispatch(np.uint64)
+    def EvaluateType(mask: np.uint64):
         numberOfCards = Hand.BitCount(mask)
         if __debug__:            
             if numberOfCards <= 0 or numberOfCards > 7:
@@ -640,13 +642,14 @@ class Hand:
     # numberOfCards - number of cards in mask
     # returns the tuple: (hand type, description)
     @staticmethod
-    @dispatch(int, int)
-    def EvaluateType(mask: int, numberOfCards: int):
+    @dispatch(np.uint64, int)
+    def EvaluateType(mask: np.uint64, numberOfCards: int):
         is_st_or_fl = Hand.HandTypes.HIGH_CARD
-        ss = (mask >> Hand.GetSpadeOffset()) & 0x1fff
-        sc = (mask >> Hand.GetClubOffset()) & 0x1fff
-        sd = (mask >> Hand.GetDiamondOffset()) & 0x1fff
-        sh = (mask >> Hand.GetHeartOffset()) & 0x1fff
+        x = np.uint64(0x1fff)
+        ss = (mask >> Hand.GetSpadeOffset()) & x
+        sc = (mask >> Hand.GetClubOffset()) & x
+        sd = (mask >> Hand.GetDiamondOffset()) & x
+        sh = (mask >> Hand.GetHeartOffset()) & x
 
         ranks = sc | sd | sh | ss
         rankinfo = Hand.__nBitsAndStrTable[ranks]
@@ -687,7 +690,7 @@ class Hand:
     #end EvaluateType    
     
     @staticmethod
-    def __DescriptionFromHandValueInternal(handValue: numpy.uint32):
+    def __DescriptionFromHandValueInternal(handValue: np.uint32):
         result = []
         handType = Hand.HandType(handValue)
         if handType == Hand.HandTypes.HIGH_CARD:
@@ -749,38 +752,41 @@ class Hand:
 
     # Count bits. Optimized for cards so only works with 52 bits
     @staticmethod
-    def BitCount(bitField: numpy.uint64):
-        return Hand.nBitsTable[bitField & 0x1FFF] + \
-            Hand.nBitsTable[(bitField >> 13) & 0x1FFF] + \
-            Hand.nBitsTable[(bitField >> 26) & 0x1FFF] + \
-            Hand.nBitsTable[(bitField >> 39) & 0x1FFF]
+    def BitCount(bitField: np.uint64):
+        if bitField == 0: 
+            return 0
+        x = np.uint64(0x1FFF)
+        return Hand.nBitsTable[bitField & x] + \
+            Hand.nBitsTable[(bitField >> np.uint64(13)) & x] + \
+            Hand.nBitsTable[(bitField >> np.uint64(26)) & x] + \
+            Hand.nBitsTable[(bitField >> np.uint64(39)) & x]
 
     
     # returns uint32
     @staticmethod
-    def TopCard(handValue: numpy.uint32):
+    def TopCard(handValue: np.uint32):
         return (handValue >> Hand.TOP_CARD_SHIFT) & Hand.CARD_MASK
     
     @staticmethod
-    def SecondCard(handValue: numpy.uint32):
+    def SecondCard(handValue: np.uint32):
         return (handValue >> Hand.SECOND_CARD_SHIFT) & Hand.CARD_MASK
 
     @staticmethod
-    def ThirdCard(handValue: numpy.uint32):
+    def ThirdCard(handValue: np.uint32):
         return (handValue >> Hand.THIRD_CARD_SHIFT) & Hand.CARD_MASK
     
     @staticmethod
-    def FourthCard(handValue: numpy.uint32):
+    def FourthCard(handValue: np.uint32):
         return (handValue >> Hand.FOURTH_CARD_SHIFT) & Hand.CARD_MASK
     
     @staticmethod
-    def FifthCard(handValue: numpy.uint32):
+    def FifthCard(handValue: np.uint32):
         return (handValue >> Hand.FIFT_CARD_SHIFT) & Hand.CARD_MASK
     
     @staticmethod
     @dispatch(int)
     def HandTypeValue(handType: int):
-        return numpy.uint32(handType) << Hand.HANDTYPE_SHIFT
+        return np.uint32(handType) << Hand.HANDTYPE_SHIFT
 
     # Converts card number into the card rank text string    
     __RankTable = ["Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Jack", "Queen", "King", "Ace",
@@ -794,52 +800,52 @@ class Hand:
     
     @staticmethod
     def __HandTypeValueStraight():
-        return numpy.uint32(Hand.HandTypes.STRAIGHT) << Hand.HANDTYPE_SHIFT
+        return np.uint32(Hand.HandTypes.STRAIGHT) << Hand.HANDTYPE_SHIFT
 
     @staticmethod
     def __HandTypeValueFlush():
-        return numpy.uint32(Hand.HandTypes.FLUSH) << Hand.HANDTYPE_SHIFT
+        return np.uint32(Hand.HandTypes.FLUSH) << Hand.HANDTYPE_SHIFT
 
     @staticmethod
     def __HandTypeValueFullhouse():
-        return numpy.uint32(Hand.HandTypes.FULLHOUSE) << Hand.HANDTYPE_SHIFT
+        return np.uint32(Hand.HandTypes.FULLHOUSE) << Hand.HANDTYPE_SHIFT
 
     @staticmethod
     def __HandTypeValueFourOfAKind():
-        return numpy.uint32(Hand.HandTypes.FOUR_OF_A_KIND) << Hand.HANDTYPE_SHIFT
+        return np.uint32(Hand.HandTypes.FOUR_OF_A_KIND) << Hand.HANDTYPE_SHIFT
 
     @staticmethod
     def __HandTypeValueTrips():
-        return numpy.uint32(Hand.HandTypes.TRIPS) << Hand.HANDTYPE_SHIFT
+        return np.uint32(Hand.HandTypes.TRIPS) << Hand.HANDTYPE_SHIFT
 
     @staticmethod
     def __HandTypeValueTwoPair():
-        return numpy.uint32(Hand.HandTypes.TWO_PAIR) << Hand.HANDTYPE_SHIFT
+        return np.uint32(Hand.HandTypes.TWO_PAIR) << Hand.HANDTYPE_SHIFT
     
     @staticmethod
     def __HandTypeValuePair():
-        return numpy.uint32(Hand.HandTypes.PAIR) << Hand.HANDTYPE_SHIFT
+        return np.uint32(Hand.HandTypes.PAIR) << Hand.HANDTYPE_SHIFT
     
 
     @staticmethod
     def __HandTypeValueHighCard():
-        return numpy.uint32(Hand.HandTypes.HIGH_CARD) << Hand.HANDTYPE_SHIFT
+        return np.uint32(Hand.HandTypes.HIGH_CARD) << Hand.HANDTYPE_SHIFT
 
     @staticmethod
     def GetSpadeOffset():
-        return 13 * Hand.SPADES
+        return np.uint64(13 * Hand.SPADES)
     
     @staticmethod
     def GetClubOffset():
-        return 13 * Hand.CLUBS
+        return np.uint64(13 * Hand.CLUBS)
     
     @staticmethod
     def GetDiamondOffset():
-        return 13 * Hand.DIAMONDS
+        return np.uint64(13 * Hand.DIAMONDS)
     
     @staticmethod
     def GetHeartOffset():
-        return 13 * Hand.HEARTS    
+        return np.uint64(13 * Hand.HEARTS)
 
     __nBitsAndStrTable = [0x0, 0x4, 0x4, 0x8, 0x4, 0x8, 0x8, 0xc, 0x4, 0x8, 0x8, 0xc, 0x8, 0xc, 0xc, 0x10, 0x4, 0x8, 0x8, 0xc, 
             0x8, 0xc, 0xc, 0x10, 0x8, 0xc, 0xc, 0x10, 0xc, 0x10, 0x10, 0x17, 0x4, 0x8, 0x8, 0xc, 0x8, 0xc, 0xc, 0x10, 
@@ -3857,7 +3863,8 @@ class Hand:
     
     # This table is equivalent to 1UL left shifted by the index
     # The lookup is faster than the left shift operator
-    __CardMasksTable = [0x1,
+    def __CardMasksTable(index: int): 
+        values = [0x1,
 			0x2,
 			0x4,
 			0x8,
@@ -3909,7 +3916,8 @@ class Hand:
 			0x2000000000000,
 			0x4000000000000,
 			0x8000000000000]
-        
+        return np.uint64(values[index])
+
     CARD_MASKS_TABLE_SIZE = 52
 
     # converts card number into the equivalent text string
@@ -4759,7 +4767,7 @@ class Hand:
     # Given a pocket pair mask, the PocketHand169Enum cooresponding to this mask
     # will be returned. 
     @staticmethod
-    def PocketHand169Type(mask: numpy.uint64):
+    def PocketHand169Type(mask: np.uint64):
         if __debug__:
             if (Hand.BitCount(mask) != 2):
                 raise Exception("Invalid mask")
@@ -4769,7 +4777,7 @@ class Hand:
             i = 0
             while i < len(Hand.Pocket169Table):
                 for tmask in Hand.Pocket169Table[i]:
-                    Hand.pocketdict[numpy.uint64(tmask)] = Hand.PocketHand169(i)
+                    Hand.pocketdict[np.uint64(tmask)] = Hand.PocketHand169(i)
                 i += 1
         
         result = Hand.pocketdict[mask]
@@ -4784,7 +4792,7 @@ class Hand:
     @dispatch(int)
     def Hands(numberOfCards: int):
         a = b = c = d = e = f = g = 0
-        _card1 = _n2 = _n3 = _n4 = _n5 = _n6 = numpy.uint32(0)
+        _card1 = _n2 = _n3 = _n4 = _n5 = _n6 = np.uint32(0)
 
         if __debug__:
             if numberOfCards < 0 or numberOfCards > 7:
@@ -4939,8 +4947,8 @@ class Hand:
     # dead - a bitfield containing the cards that must not be in the enumerated hands
     # numberOfCards - the number of cards in the mask (must be between 1 and 7)
     @staticmethod
-    @dispatch(int, int, int)
-    def Hands(shared: int, dead: int, numberOfCards: int):
+    @dispatch(np.uint64, np.uint64, int)
+    def Hands(shared: np.uint64, dead: np.uint64, numberOfCards: int):
         a = b = c = d = e = f = g = 0
         _card1 = _card2 = _card3 = _card4 = _card5 = _card6 = _card7 = 0
         _n2 = _n3 = _n4 = _n5 = _n6 = 0
@@ -4950,34 +4958,34 @@ class Hand:
         numberOfCards -= Hand.BitCount(shared)
         if numberOfCards == 7:
             while a < Hand.CARD_MASKS_TABLE_SIZE - 6:
-                _card1 = Hand.__CardMasksTable[a]
+                _card1 = Hand.__CardMasksTable(a)
                 if (dead & _card1) != 0: 
                     a += 1
                     continue
                 b = a + 1
                 while b < Hand.CARD_MASKS_TABLE_SIZE - 5:
-                    _card2 = Hand.__CardMasksTable[b]
+                    _card2 = Hand.__CardMasksTable(b)
                     if (dead & _card2) != 0:                        
                         b += 1
                         continue
                     _n2 = _card1 | _card2
                     c = b + 1
                     while c < Hand.CARD_MASKS_TABLE_SIZE - 4:
-                        _card3 = Hand.__CardMasksTable[c]
+                        _card3 = Hand.__CardMasksTable(c)
                         if (dead & _card3) != 0:
                             c += 1
                             continue
                         _n3 = _n2 | _card3
                         d = c + 1
                         while d < Hand.CARD_MASKS_TABLE_SIZE - 3:
-                            _card4 = Hand.__CardMasksTable[d]
+                            _card4 = Hand.__CardMasksTable(d)
                             if (dead & _card4) != 0:
                                 d += 1
                                 continue
                             _n4 = _n3 | _card4
                             e = d + 1
                             while e < Hand.CARD_MASKS_TABLE_SIZE - 2:
-                                _card5 = Hand.__CardMasksTable[e]
+                                _card5 = Hand.__CardMasksTable(e)
                                 if (dead & _card5) != 0: 
                                     e += 1
                                     continue
@@ -4985,14 +4993,14 @@ class Hand:
 
                                 f = e + 1
                                 while f < Hand.CARD_MASKS_TABLE_SIZE - 1:
-                                    _card6 = Hand.__CardMasksTable[f]
+                                    _card6 = Hand.__CardMasksTable(f)
                                     if (dead & _card6) != 0:
                                         f += 1
                                         continue
                                     _n6 = _n5 | _card6
                                     g = f + 1
                                     while g < Hand.CARD_MASKS_TABLE_SIZE:
-                                        _card7 = Hand.__CardMasksTable[g]
+                                        _card7 = Hand.__CardMasksTable(g)
                                         if (dead & _card7) != 0:
                                             g += 1
                                             continue
@@ -5008,34 +5016,34 @@ class Hand:
         elif numberOfCards == 6:
             a = 0
             while a < Hand.CARD_MASKS_TABLE_SIZE - 5:
-                _card1 = Hand.__CardMasksTable[a]
+                _card1 = Hand.__CardMasksTable(a)
                 if (dead & _card1) != 0: 
                     a += 1
                     continue
                 b = a + 1
                 while b < Hand.CARD_MASKS_TABLE_SIZE - 4:
-                    _card2 = Hand.__CardMasksTable[b]
+                    _card2 = Hand.__CardMasksTable(b)
                     if (dead & _card2) != 0:                        
                         b += 1
                         continue
                     _n2 = _card1 | _card2
                     c = b + 1
                     while c < Hand.CARD_MASKS_TABLE_SIZE - 3:
-                        _card3 = Hand.__CardMasksTable[c]
+                        _card3 = Hand.__CardMasksTable(c)
                         if (dead & _card3) != 0:
                             c += 1
                             continue
                         _n3 = _n2 | _card3
                         d = c + 1
                         while d < Hand.CARD_MASKS_TABLE_SIZE - 2:
-                            _card4 = Hand.__CardMasksTable[d]
+                            _card4 = Hand.__CardMasksTable(d)
                             if (dead & _card4) != 0:
                                 d += 1
                                 continue
                             _n4 = _n3 | _card4
                             e = d + 1
                             while e < Hand.CARD_MASKS_TABLE_SIZE - 1:
-                                _card5 = Hand.__CardMasksTable[e]
+                                _card5 = Hand.__CardMasksTable(e)
                                 if (dead & _card5) != 0: 
                                     e += 1
                                     continue
@@ -5043,7 +5051,7 @@ class Hand:
 
                                 f = e + 1
                                 while f < Hand.CARD_MASKS_TABLE_SIZE:
-                                    _card6 = Hand.__CardMasksTable[f]
+                                    _card6 = Hand.__CardMasksTable(f)
                                     if (dead & _card6) != 0:
                                         f += 1
                                         continue
@@ -5059,34 +5067,34 @@ class Hand:
         elif numberOfCards == 5:
             a = 0
             while a < Hand.CARD_MASKS_TABLE_SIZE - 4:
-                _card1 = Hand.__CardMasksTable[a]
+                _card1 = Hand.__CardMasksTable(a)
                 if (dead & _card1) != 0: 
                     a += 1
                     continue
                 b = a + 1
                 while b < Hand.CARD_MASKS_TABLE_SIZE - 3:
-                    _card2 = Hand.__CardMasksTable[b]
+                    _card2 = Hand.__CardMasksTable(b)
                     if (dead & _card2) != 0:                        
                         b += 1
                         continue
                     _n2 = _card1 | _card2
                     c = b + 1
                     while c < Hand.CARD_MASKS_TABLE_SIZE - 2:
-                        _card3 = Hand.__CardMasksTable[c]
+                        _card3 = Hand.__CardMasksTable(c)
                         if (dead & _card3) != 0:
                             c += 1
                             continue
                         _n3 = _n2 | _card3
                         d = c + 1
                         while d < Hand.CARD_MASKS_TABLE_SIZE - 1:
-                            _card4 = Hand.__CardMasksTable[d]
+                            _card4 = Hand.__CardMasksTable(d)
                             if (dead & _card4) != 0:
                                 d += 1
                                 continue
                             _n4 = _n3 | _card4
                             e = d + 1
                             while e < Hand.CARD_MASKS_TABLE_SIZE:
-                                _card5 = Hand.__CardMasksTable[e]
+                                _card5 = Hand.__CardMasksTable(e)
                                 if (dead & _card5) != 0: 
                                     e += 1
                                     continue
@@ -5101,27 +5109,27 @@ class Hand:
         elif numberOfCards == 4:
             a = 0
             while a < Hand.CARD_MASKS_TABLE_SIZE - 3:
-                _card1 = Hand.__CardMasksTable[a]
+                _card1 = Hand.__CardMasksTable(a)
                 if (dead & _card1) != 0: 
                     a += 1
                     continue
                 b = a + 1
                 while b < Hand.CARD_MASKS_TABLE_SIZE - 2:
-                    _card2 = Hand.__CardMasksTable[b]
+                    _card2 = Hand.__CardMasksTable(b)
                     if (dead & _card2) != 0:                        
                         b += 1
                         continue
                     _n2 = _card1 | _card2
                     c = b + 1
                     while c < Hand.CARD_MASKS_TABLE_SIZE - 1:
-                        _card3 = Hand.__CardMasksTable[c]
+                        _card3 = Hand.__CardMasksTable(c)
                         if (dead & _card3) != 0:
                             c += 1
                             continue
                         _n3 = _n2 | _card3
                         d = c + 1
                         while d < Hand.CARD_MASKS_TABLE_SIZE:
-                            _card4 = Hand.__CardMasksTable[d]
+                            _card4 = Hand.__CardMasksTable(d)
                             if (dead & _card4) != 0:
                                 d += 1
                                 continue
@@ -5135,20 +5143,20 @@ class Hand:
         elif numberOfCards == 3:
             a = 0
             while a < Hand.CARD_MASKS_TABLE_SIZE - 2:
-                _card1 = Hand.__CardMasksTable[a]
+                _card1 = Hand.__CardMasksTable(a)
                 if (dead & _card1) != 0: 
                     a += 1
                     continue
                 b = a + 1
                 while b < Hand.CARD_MASKS_TABLE_SIZE - 1:
-                    _card2 = Hand.__CardMasksTable[b]
+                    _card2 = Hand.__CardMasksTable(b)
                     if (dead & _card2) != 0:                        
                         b += 1
                         continue
                     _n2 = _card1 | _card2
                     c = b + 1
                     while c < Hand.CARD_MASKS_TABLE_SIZE:
-                        _card3 = Hand.__CardMasksTable[c]
+                        _card3 = Hand.__CardMasksTable(c)
                         if (dead & _card3) != 0:
                             c += 1
                             continue
@@ -5161,13 +5169,13 @@ class Hand:
         elif numberOfCards == 2:
             a = 0
             while a < Hand.CARD_MASKS_TABLE_SIZE - 1:
-                _card1 = Hand.__CardMasksTable[a]
+                _card1 = Hand.__CardMasksTable(a)
                 if (dead & _card1) != 0:
                     a += 1
                     continue
                 b = a + 1
                 while b < Hand.CARD_MASKS_TABLE_SIZE:
-                    _card2 = Hand.__CardMasksTable[b]
+                    _card2 = Hand.__CardMasksTable(b)
                     if (dead & _card2) != 0:
                         b += 1
                         continue
@@ -5178,7 +5186,7 @@ class Hand:
         elif numberOfCards == 1:
             a = 0
             while a < Hand.CARD_MASKS_TABLE_SIZE:
-                _card1 = Hand.__CardMasksTable[a]
+                _card1 = Hand.__CardMasksTable(a)
                 if (dead & _card1) != 0:
                     a += 1
                     continue
@@ -5192,10 +5200,12 @@ class Hand:
     # This method allows a foreach statement to iterate through each 
     # card in a card mask
     @staticmethod
-    def Cards(mask: int):
+    def Cards(mask: np.uint64):
         i = 51
+        one = np.uint64(1)
         while i >= 0:
-            if ((1 << i) & mask) != 0:
+            shiftLeftValue = np.uint64(i)
+            if ((one << shiftLeftValue) & mask) != 0:
                 yield Hand.__CardTable[i]
             i -= 1
         
@@ -5230,17 +5240,17 @@ class Hand:
     # dead - Mask for the cards that must not be returned
     # ncards - The number of cards to return in this mask    
     @staticmethod
-    @dispatch(int, int, int)
-    def RandomHand(shared: int, dead: int, ncards: int):
+    @dispatch(np.uint64, np.uint64, int)
+    def RandomHand(shared: np.uint64, dead: np.uint64, ncards: int):
         mask = shared
         card = 0
         count = ncards - Hand.BitCount(shared)
 
         i = 0
         while i < count:
-            card = 1 << random.randint(1, 52)
+            card = np.uint64(1 << random.randint(1, 52))
             while ((dead | mask) & card) != 0:
-                card = 1 << random.randint(1, 52)
+                card = np.uint64(1 << random.randint(1, 52))
             mask |= card
             i += 1
         
@@ -5251,9 +5261,9 @@ class Hand:
     # dead - The mask of cards that may not be used in the generated mask
     # ncards - The number of cards to return in the generated mask
     @staticmethod
-    @dispatch(int, int)
-    def RandomHand(dead: int, ncards: int):
-        return Hand.RandomHand(0, dead, ncards)
+    @dispatch(np.uint64, int)
+    def RandomHand(dead: np.uint64, ncards: int):
+        return Hand.RandomHand(np.uint64(0), dead, ncards)
 
     # Iterates through random hands that meets the specified requirements until the specified
     # time duration has elapse. 
@@ -5268,8 +5278,8 @@ class Hand:
     #           When elapsed, the iterator will terminate
     # returns a random hand mask
     @staticmethod
-    @dispatch(int, int, int, float)
-    def RandomHand(shared: int, dead: int, ncards: int, duration: float):
+    @dispatch(np.uint64, np.uint64, int, float)
+    def RandomHand(shared: np.uint64, dead: np.uint64, ncards: int, duration: float):
         start = timer()
         if __debug__:
             if ncards < 0 or ncards > 7:
@@ -5294,4 +5304,4 @@ class Hand:
     @staticmethod
     @dispatch(int, float)
     def RandomHand(ncards: int, duration: float):
-        return Hand.RandomHand(0, 0, ncards, duration)
+        return Hand.RandomHand(np.uint64(0), np.uint64(0), ncards, duration)

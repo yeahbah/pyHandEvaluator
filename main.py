@@ -1,7 +1,7 @@
 from inspect import Parameter
 from HandEvaluator import Hand
 from HandAnalysis import HandAnalysis
-import numpy
+import numpy as np
 
 #print(HoldemHand.ValidateHand("As Ks"))
 #print(HoldemHand.ValidateHand("2d 3c", "Ad 5d 4c"))
@@ -74,14 +74,14 @@ for hand in hands:
     x.append(hand)
 print(len(x))
 
-hands = Hand.Hands(3, 0, 5)
+hands = Hand.Hands(Hand.ParseHand("5s 6c 7s")[0], np.uint64(0), 5)
 y = []
 for hand in hands:
     y.append(hand)
 print(len(y))
 
 
-hand = Hand.RandomHand(0, 2)
+hand = Hand.RandomHand(np.uint64(0), 2)
 print(hand)
 print(Hand.DescriptionFromMask(hand))
 print(Hand.MaskToString(hand))
@@ -96,14 +96,14 @@ hand = Hand.ParseHand("QsTs")
 board = Hand.ParseHand("Ks Js 2c")
 handStrength = HandAnalysis.HandStrength(hand[0], board[0])
 print(handStrength)
-print(HandAnalysis.StraightDrawCount(Hand.ParseHand("AsKsQsTs")[0], 0))
+print(HandAnalysis.StraightDrawCount(Hand.ParseHand("AsKsQsTs")[0], np.uint64(0)))
 
 # strength vs 9 opponents
 handStrength = HandAnalysis.HandStrength(hand[0], board[0], 9, 1.0)
 print(handStrength)
 
 # opponent = HoldemHand.ParseHand("Js Jc")
-print(HandAnalysis.StraightDrawCount(hand[0], board[0], 0))
+print(HandAnalysis.StraightDrawCount(hand[0], board[0], np.uint64(0)))
 
 print(HandAnalysis.CountContiguous(hand[0], board[0]))
 
@@ -124,6 +124,11 @@ outs = HandAnalysis.OutsMaskDiscounted(pocket, board, opponents)
 # should print out Ks 8s Kh 8h Kd 8d
 print(Hand.MaskToString(outs))
 
+pocket = Hand.ParseHand("Qs Js")[0]
+board = Hand.ParseHand("9c Ts 7d")[0]
+opponents = []
+outs = HandAnalysis.OutsMaskDiscounted(pocket, board, opponents)
+
 pocket = Hand.ParseHand("As Ks")[0]
 board = Hand.ParseHand("2s 3s 5c 6d")[0]
 opponents = [Hand.ParseHand("5s 6c")[0]]
@@ -134,9 +139,9 @@ cards =  HandAnalysis.OutCards("As Ks", "2s 3s 5c 6d", ["5s 6c"])
 print(cards)
 
 board = Hand.ParseHand("2s 3s 5c")[0]
-print(HandAnalysis.OutsEx(pocket, board, 0))
+print(HandAnalysis.OutsEx(pocket, board, np.uint64(0)))
 
-mask = HandAnalysis.OutsMaskEx(pocket, board, 0)
+mask = HandAnalysis.OutsMaskEx(pocket, board, np.uint64(0))
 print(Hand.MaskToString(mask))
 
 ourCards = [Hand.ParseHand("Ad Kd")[0]]
@@ -148,7 +153,7 @@ print("Opponent odds: " + str(result[1]))
 print("Is approximate: " + str(result[2]))
 
 # versus random opponent - no board
-result = HandAnalysis.HandWinOdds(Hand.ParseHand("As Ks")[0], 0)
+result = HandAnalysis.HandWinOdds(Hand.ParseHand("As Ks")[0], np.uint64(0))
 print("Player Odds: " + str(result[0]))
 print("Opponent Odds: " + str(result[1]))
 
@@ -165,11 +170,10 @@ print("Opponent Odds: " + str(result[1]))
 result = HandAnalysis.HandWinOdds(["As Ks", "QcQh"], "2s 3c 5d", "7h 7d")
 print(result)
 
-# TODO: int64 problem
-# result = HandAnalysis.HandPotential(Hand.ParseHand("As Ks")[0], board, 6, 0.5)
-# print(result)
+result = HandAnalysis.HandPotential(Hand.ParseHand("As Ks")[0], board, 6, 0.5)
+print(result)
 
-result = HandAnalysis.WinOdds("As Ks", "2s 3c 5d", 0, 6)
+result = HandAnalysis.WinOdds("As Ks", "2s 3c 5d", np.uint64(0), 6)
 print(result)
 
 
