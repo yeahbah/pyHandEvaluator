@@ -686,7 +686,7 @@ class Hand:
             elif (is_st_or_fl != 0): 
                 return (is_st_or_fl, Hand.GetHandTypeDescription(is_st_or_fl));
             else: 
-                return (Hand.HandTypes.TwoPair, Hand.GetHandTypeDescription(Hand.HandTypes.TWO_PAIR));    
+                return (Hand.HandTypes.TWO_PAIR, Hand.GetHandTypeDescription(Hand.HandTypes.TWO_PAIR));    
     #end EvaluateType    
     
     @staticmethod
@@ -3921,7 +3921,7 @@ class Hand:
     CARD_MASKS_TABLE_SIZE = 52
 
     # converts card number into the equivalent text string
-    __CardTable = [
+    CardTable = [
             "2c", "3c", "4c", "5c", "6c", "7c", "8c", "9c", "Tc", "Jc", "Qc", "Kc", "Ac",
 			"2d", "3d", "4d", "5d", "6d", "7d", "8d", "9d", "Td", "Jd", "Qd", "Kd", "Ad",
 			"2h", "3h", "4h", "5h", "6h", "7h", "8h", "9h", "Th", "Jh", "Qh", "Kh", "Ah",
@@ -4800,25 +4800,25 @@ class Hand:
         
         if numberOfCards == 7:
             while a < Hand.CARD_MASKS_TABLE_SIZE - 6:
-                _card1 = Hand.__CardMasksTable[a]
+                _card1 = Hand.__CardMasksTable(a)
                 b = a + 1
                 while b < Hand.CARD_MASKS_TABLE_SIZE - 5:
-                    _n2 = _card1 | Hand.__CardMasksTable[b]
+                    _n2 = _card1 | Hand.__CardMasksTable(b)
                     c = b + 1
                     while c < Hand.CARD_MASKS_TABLE_SIZE - 4:
-                        _n3 = _n2 | Hand.__CardMasksTable[c]
+                        _n3 = _n2 | Hand.__CardMasksTable(c)
                         d = c + 1
                         while d < Hand.CARD_MASKS_TABLE_SIZE - 3:
-                            _n4 = _n3 | Hand.__CardMasksTable[d]
+                            _n4 = _n3 | Hand.__CardMasksTable(d)
                             e = d + 1
                             while e < Hand.CARD_MASKS_TABLE_SIZE - 2:
-                                _n5 = _n4 | Hand.__CardMasksTable[e]
+                                _n5 = _n4 | Hand.__CardMasksTable(e)
                                 f = e + 1
                                 while f < Hand.CARD_MASKS_TABLE_SIZE - 1:
-                                    _n6 = _n5 | Hand.__CardMasksTable[f]
+                                    _n6 = _n5 | Hand.__CardMasksTable(f)
                                     g = f + 1
                                     while g < Hand.CARD_MASKS_TABLE_SIZE:
-                                        yield _n6 | Hand.__CardMasksTable[g]
+                                        yield _n6 | Hand.__CardMasksTable(g)
                                         g += 1
 
                                     f += 1
@@ -4836,22 +4836,22 @@ class Hand:
         elif numberOfCards == 6:
             a = 0
             while a < Hand.CARD_MASKS_TABLE_SIZE - 5:
-                _card1 = Hand.__CardMasksTable[a]
+                _card1 = Hand.__CardMasksTable(a)
                 b = a + 1
                 while b < Hand.CARD_MASKS_TABLE_SIZE - 4:
-                    _n2 = _card1 | Hand.__CardMasksTable[b]
+                    _n2 = _card1 | Hand.__CardMasksTable(b)
                     c = b + 1
                     while c < Hand.CARD_MASKS_TABLE_SIZE - 3:
-                        _n3 = _n2 | Hand.__CardMasksTable[c]
+                        _n3 = _n2 | Hand.__CardMasksTable(c)
                         d = c + 1
                         while d < Hand.CARD_MASKS_TABLE_SIZE - 2:
-                            _n4 = _n3 | Hand.__CardMasksTable[d]
+                            _n4 = _n3 | Hand.__CardMasksTable(d)
                             e = d + 1
                             while e < Hand.CARD_MASKS_TABLE_SIZE - 1:
-                                _n5 = _n4 | Hand.__CardMasksTable[e]
+                                _n5 = _n4 | Hand.__CardMasksTable(e)
                                 f = e + 1
                                 while f < Hand.CARD_MASKS_TABLE_SIZE:                                    
-                                    yield _n5 | Hand.__CardMasksTable[f]
+                                    yield _n5 | Hand.__CardMasksTable(f)
                                     f += 1
 
                                 e += 1
@@ -4867,19 +4867,19 @@ class Hand:
         elif numberOfCards == 5:
             a = 0
             while a < Hand.CARD_MASKS_TABLE_SIZE - 4:
-                _card1 = Hand.__CardMasksTable[a]
+                _card1 = Hand.__CardMasksTable(a)
                 b = a + 1
                 while b < Hand.CARD_MASKS_TABLE_SIZE - 3:
-                    _n2 = _card1 | Hand.__CardMasksTable[b]
+                    _n2 = _card1 | Hand.__CardMasksTable(b)
                     c = b + 1
                     while c < Hand.CARD_MASKS_TABLE_SIZE - 2:
-                        _n3 = _n2 | Hand.__CardMasksTable[c]
+                        _n3 = _n2 | Hand.__CardMasksTable(c)
                         d = c + 1
                         while d < Hand.CARD_MASKS_TABLE_SIZE - 1:
-                            _n4 = _n3 | Hand.__CardMasksTable[d]
+                            _n4 = _n3 | Hand.__CardMasksTable(d)
                             e = d + 1
                             while e < Hand.CARD_MASKS_TABLE_SIZE:                                
-                                yield _n4 | Hand.__CardMasksTable[e]
+                                yield _n4 | Hand.__CardMasksTable(e)
                                 e += 1
 
                             d += 1
@@ -4893,16 +4893,16 @@ class Hand:
         elif numberOfCards == 4:
             a = 0
             while a < Hand.CARD_MASKS_TABLE_SIZE - 3:
-                _card1 = Hand.__CardMasksTable[a]
+                _card1 = Hand.__CardMasksTable(a)
                 b = a + 1
                 while b < Hand.CARD_MASKS_TABLE_SIZE - 2:
-                    _n2 = _card1 | Hand.__CardMasksTable[b]
+                    _n2 = _card1 | Hand.__CardMasksTable(b)
                     c = b + 1
                     while c < Hand.CARD_MASKS_TABLE_SIZE - 1:
-                        _n3 = _n2 | Hand.__CardMasksTable[c]
+                        _n3 = _n2 | Hand.__CardMasksTable(c)
                         d = c + 1
                         while d < Hand.CARD_MASKS_TABLE_SIZE:                            
-                            yield _n3 | Hand.__CardMasksTable[d]
+                            yield _n3 | Hand.__CardMasksTable(d)
                             d += 1
 
                         c += 1
@@ -4914,13 +4914,13 @@ class Hand:
         elif numberOfCards == 3:
             a = 0
             while a < Hand.CARD_MASKS_TABLE_SIZE - 2:
-                _card1 = Hand.__CardMasksTable[a]
+                _card1 = Hand.__CardMasksTable(a)
                 b = a + 1
                 while b < Hand.CARD_MASKS_TABLE_SIZE - 1:
-                    _n2 = _card1 | Hand.__CardMasksTable[b]
+                    _n2 = _card1 | Hand.__CardMasksTable(b)
                     c = b + 1
                     while c < Hand.CARD_MASKS_TABLE_SIZE:
-                        yield _n2 | Hand.__CardMasksTable[c]
+                        yield _n2 | Hand.__CardMasksTable(c)
                         c += 1
 
                     b += 1
@@ -4936,7 +4936,7 @@ class Hand:
         elif numberOfCards == 1:
             a = 0
             while a < Hand.CARD_MASKS_TABLE_SIZE:
-                yield Hand.__CardMasksTable[a]
+                yield Hand.__CardMasksTable(a)
                 a += 1
         
         else:
@@ -5206,7 +5206,7 @@ class Hand:
         while i >= 0:
             shiftLeftValue = np.uint64(i)
             if ((one << shiftLeftValue) & mask) != 0:
-                yield Hand.__CardTable[i]
+                yield Hand.CardTable[i]
             i -= 1
         
     # This method randomly picks from a list of possible masks
@@ -5232,7 +5232,7 @@ class Hand:
             if Hand.BitCount(mask) > ncards:
                 raise Exception("Invalid ncards")
         
-        return Hand.RandomHand(mask, dead, ncards)
+        return Hand.RandomHands(mask, dead, ncards)
     
     # Returns a random mask with the specified number of cards and constrained
     # to not contain any of the passed dead cards
@@ -5241,7 +5241,7 @@ class Hand:
     # ncards - The number of cards to return in this mask    
     @staticmethod
     @dispatch(np.uint64, np.uint64, int)
-    def RandomHand(shared: np.uint64, dead: np.uint64, ncards: int):
+    def RandomHands(shared: np.uint64, dead: np.uint64, ncards: int):
         mask = shared
         card = 0
         count = ncards - Hand.BitCount(shared)
@@ -5262,8 +5262,8 @@ class Hand:
     # ncards - The number of cards to return in the generated mask
     @staticmethod
     @dispatch(np.uint64, int)
-    def RandomHand(dead: np.uint64, ncards: int):
-        return Hand.RandomHand(np.uint64(0), dead, ncards)
+    def RandomHands(dead: np.uint64, ncards: int):
+        return Hand.RandomHands(np.uint64(0), dead, ncards)
 
     # Iterates through random hands that meets the specified requirements until the specified
     # time duration has elapse. 
@@ -5279,7 +5279,7 @@ class Hand:
     # returns a random hand mask
     @staticmethod
     @dispatch(np.uint64, np.uint64, int, float)
-    def RandomHand(shared: np.uint64, dead: np.uint64, ncards: int, duration: float):
+    def RandomHands(shared: np.uint64, dead: np.uint64, ncards: int, duration: float):
         start = timer()
         if __debug__:
             if ncards < 0 or ncards > 7:
@@ -5287,9 +5287,12 @@ class Hand:
             if duration < 0:
                 raise Exception("Duration must not be negative")
         
-        yield Hand.RandomHand(shared, dead, ncards)
+        #cardCount = ncards - Hand.BitCount(shared)
+        deadMask = dead | shared
+        #yield Hand.RandomHands(shared, dead, ncards)
+        yield Hand.__GetRandomHand(deadMask, ncards) | shared
         while (timer() - start) < duration:
-            yield Hand.RandomHand(shared, dead, ncards)
+            yield Hand.__GetRandomHand(deadMask, ncards) | shared
     
     # Iterates through random hands that meets the specified requirements until the specified
     # time duration has elapse. 
@@ -5303,5 +5306,49 @@ class Hand:
     # returns a random hand mask
     @staticmethod
     @dispatch(int, float)
-    def RandomHand(ncards: int, duration: float):
-        return Hand.RandomHand(np.uint64(0), np.uint64(0), ncards, duration)
+    def RandomHands(ncards: int, duration: float):
+        return Hand.RandomHands(np.uint64(0), np.uint64(0), ncards, duration)
+    
+    # This function iterates through random hands returning the number of random hands specified
+    # in trials. Please note that a mask can be repeated.
+    # shared - Cards that must be in the hand
+    # dead - Cards that must not be in the hand
+    # ncards - The total number of cards in the hand
+    # trials - The total number of random hands to return
+    # Returns a random hand mask meeting the input specifications
+    @staticmethod
+    @dispatch(np.uint64, np.uint64, int, int)
+    def RandomHands(shared: np.uint64, dead: np.uint64, ncards: int, trials: int):
+        if __debug__:
+            if ncards < 0 or ncards > 7:
+                raise Exception("Invalid number of cards")
+        
+        deadMask = dead | shared
+        cardCount = ncards - Hand.BitCount(shared)
+
+        count = 0
+        while count < trials:
+            yield Hand.__GetRandomHand(deadMask, cardCount) | shared
+            count += 1
+    
+    @staticmethod
+    @dispatch(int, int)
+    def RandomHands(ncards: int, trials: int):
+        return Hand.RandomHands(np.uint64(0), np.uint64(0), ncards, trials)
+    
+    # Returns a rand hand with the specified number of cards and constrained
+    # to not contain any of the passed dead cards.
+    # dead - Mask for the cards that must not be returned
+    # ncards - The number of cards to return in this hand.
+    @staticmethod
+    def __GetRandomHand(dead: np.uint64, ncards: int):
+        mask = card = np.uint64(0)
+        i = 0
+        while i < ncards:
+            card = Hand.__CardMasksTable(random.randint(0, 51))
+            while (dead | mask) & card != 0:
+                card = Hand.__CardMasksTable(random.randint(0, 51))
+            mask |= card
+            i += 1
+        
+        return mask

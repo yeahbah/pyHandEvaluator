@@ -2,6 +2,8 @@ from HandAnalysis import HandAnalysis
 import unittest
 from HandEvaluator import Hand
 import numpy as np
+from timeit import Timer, default_timer as timer
+import time
 
 class HandEvaluatorTest(unittest.TestCase):
 
@@ -171,7 +173,108 @@ class HandEvaluatorTest(unittest.TestCase):
 
         pocket = Hand.ParseHand("6h Th")[0]      
         self.assertTrue(HandAnalysis.GapCount(pocket) == 3)
+    
+    # This function evaluates all possible 5 card poker hands and tallies the
+    # results. The results should come up with know values. If not there is either
+    # and error in the iterator function Hands() or the EvaluateType() function.
+    def test_5CardHands(self):
+        handTypes = [0] * 9
+        count = 0
 
+        # iterate through all possible 5 card hands
+        for mask in Hand.Hands(5):
+            handTypes[Hand.EvaluateType(mask, 5)[0]] += 1
+            count += 1
+        
+        self.assertTrue(1302540 == handTypes[Hand.HandTypes.HIGH_CARD]);
+        self.assertTrue(1098240 == handTypes[Hand.HandTypes.PAIR]);
+        self.assertTrue(123552 == handTypes[Hand.HandTypes.TWO_PAIR]);
+        self.assertTrue(54912 == handTypes[Hand.HandTypes.TRIPS]);
+        self.assertTrue(10200 == handTypes[Hand.HandTypes.STRAIGHT]);
+        self.assertTrue(5108 == handTypes[Hand.HandTypes.FLUSH]);
+        self.assertTrue(3744 == handTypes[Hand.HandTypes.FULLHOUSE]);
+        self.assertTrue(624, handTypes[Hand.HandTypes.FOUR_OF_A_KIND]);
+        self.assertTrue(40 == handTypes[Hand.HandTypes.STRAIGHT_FLUSH]);
+        self.assertTrue(2598960 == count);
+    
+    # This function evaluates all possible 7 card poker hands and tallies the
+    # results. The results should come up with know values. If not there is either
+    # and error in the iterator function Hands() or the EvaluateType() function.
+    # THIS PASSED THE FIRST RUN. TOOK 17 MINUTES TO FINISH.
+    # def test_7CardsHands(self):
+    #     handTypes = [0] * 9
+    #     count = 0
+
+    #     # iterate through all possible 7 card hands
+    #     for mask in Hand.Hands(7):
+    #         handTypes[Hand.EvaluateType(mask, 7)[0]] += 1
+    #         count += 1
+        
+    #     #self.assertTrue(58627800 == handTypes[Hand.HandTypes.HIGH_CARD]);
+    #     self.assertTrue(58627800 == handTypes[Hand.HandTypes.PAIR]);
+    #     self.assertTrue(31433400 == handTypes[Hand.HandTypes.TWO_PAIR]);
+    #     self.assertTrue(6461620 == handTypes[Hand.HandTypes.TRIPS]);
+    #     self.assertTrue(6180020 == handTypes[Hand.HandTypes.STRAIGHT]);
+    #     self.assertTrue(4047644 == handTypes[Hand.HandTypes.FLUSH]);
+    #     self.assertTrue(3473184 == handTypes[Hand.HandTypes.FULLHOUSE]);
+    #     self.assertTrue(224848, handTypes[Hand.HandTypes.FOUR_OF_A_KIND]);
+    #     self.assertTrue(41584 == handTypes[Hand.HandTypes.STRAIGHT_FLUSH]);
+    #     self.assertTrue(133784560 == count);
+    
+    # Tests the Parser and the ToString for masks.
+    def test_ParseWith5Cards(self):
+        count = 0
+        i = 0
+        while i < 52:
+            card = Hand.CardTable[i]
+            self.assertTrue(Hand.ParseCard(card) == i)
+            i += 1
+        
+        for mask in Hand.Hands(5):
+            hand = Hand.MaskToString(mask)
+            testMask = Hand.ParseHand(hand)[0]
+            self.assertTrue(Hand.BitCount(testMask) == 5)
+            self.assertTrue(mask == testMask)
+            count += 1
+    
+    # Tests the parser and the ToString for masks.
+    def test_ParserWith7Cards(self):
+        for mask in Hand.RandomHands(7, 20.0):
+            hand = Hand.MaskToString(mask)
+            testMask = Hand.ParseHand(hand)[0]
+            self.assertTrue(Hand.BitCount(testMask) == 7)
+            self.assertTrue(mask == testMask)
+    
+    def test_RandomIterators(self):
+        count = 0
+        for mask in Hand.RandomHands(7, 20000):
+            count += 1
+        self.assertTrue(count == 20000)
+        
+        # startTime = time.perf_counter()
+        # count = 0
+        # for mask in Hand.RandomHands(7, 2.5):
+        #     count += 1
+        # endTime = time.perf_counter()
+        # self.assertGreater(endTime - startTime, 2.5)
+    
+    def test_SuitConsistency(self):
+        x = np.uint64(0x1fff)
+        mask = Hand.ParseHand("Ac Tc 2c 3c 4c")[0]
+        sc = (mask >> Hand.GetClubOffset()) & x
+        self.assertTrue(Hand.BitCount(sc) == 5)
+
+        mask = Hand.ParseHand("Ad Td 2d 3d 4d")[0]
+        sd = (mask >> Hand.GetDiamondOffset()) & x
+        self.assertTrue(Hand.BitCount(sd) == 5)
+
+        mask = Hand.ParseHand("Ah Th 2h 3h 4h")[0]
+        sh = (mask >> Hand.GetHeartOffset()) & x
+        self.assertTrue(Hand.BitCount(sh) == 5)
+
+        mask = Hand.ParseHand("As Ts 2s 3s 4s")[0]
+        ss = (mask >> Hand.GetSpadeOffset()) & x
+        self.assertTrue(Hand.BitCount(ss) == 5)
 
 if __name__ == '__main__':
     unittest.main()

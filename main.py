@@ -81,7 +81,7 @@ for hand in hands:
 print(len(y))
 
 
-hand = Hand.RandomHand(np.uint64(0), 2)
+hand = Hand.RandomHands(np.uint64(0), 2)
 print(hand)
 print(Hand.DescriptionFromMask(hand))
 print(Hand.MaskToString(hand))
@@ -175,6 +175,9 @@ print(result)
 
 result = HandAnalysis.WinOdds("As Ks", "2s 3c 5d", np.uint64(0), 6)
 print(result)
+
+hand = Hand.ParseHand("2c")[0]
+print(hand)
 
 
 
