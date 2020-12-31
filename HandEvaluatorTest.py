@@ -148,13 +148,13 @@ class HandEvaluatorTest(unittest.TestCase):
         pocket = "As Ks"
         board = "2s 3s 5c 6d"
         opponents = [Hand.ParseHand("5s 6c")[0]]
-        expectedOuts = 8 # because 6s does not improve our heroe's hand
+        expectedOuts = 7 # because 6s does not improve our heroe's hand
         self.assertTrue(expectedOuts == HandAnalysis.Outs(Hand.ParseHand(pocket)[0], Hand.ParseHand(board)[0], opponents))
-        expectedOuts = "Qs Js Ts 9s 8s 7s 5s 4s"
-        self.assertTrue(expectedOuts, HandAnalysis.OutCards(pocket, board, ["5s 6c"]))
+        expectedOuts = "Qs Js Ts 9s 8s 7s 4s"
+        self.assertTrue(expectedOuts == HandAnalysis.OutCards(pocket, board, ["5s 6c"]))
 
         opponents = [Hand.ParseHand("6s 7s")[0]]
-        expectedOuts = 15 # opponent out is not discounted
+        expectedOuts = 13
         self.assertTrue(expectedOuts == HandAnalysis.Outs(Hand.ParseHand(pocket)[0], Hand.ParseHand(board)[0], opponents))
     
     def test_Suitedness(self):
@@ -253,7 +253,7 @@ class HandEvaluatorTest(unittest.TestCase):
         
         # startTime = time.perf_counter()
         # count = 0
-        # for mask in Hand.RandomHands(7, 2.5):
+        # for mask in Hand.RandomHandss(7, 2.5):
         #     count += 1
         # endTime = time.perf_counter()
         # self.assertGreater(endTime - startTime, 2.5)
@@ -275,6 +275,58 @@ class HandEvaluatorTest(unittest.TestCase):
         mask = Hand.ParseHand("As Ts 2s 3s 4s")[0]
         ss = (mask >> Hand.GetSpadeOffset()) & x
         self.assertTrue(Hand.BitCount(ss) == 5)
+    
+    def test_BasicIterators(self):
+        count = 0
+        for mask in Hand.Hands(1):
+            count += 1
+        self.assertTrue(count == 52)
+
+        count = 0
+        for mask in Hand.Hands(2):
+            count += 1
+        self.assertTrue(count == 1326)
+
+        count = 0
+        for mask in Hand.Hands(3):
+            count += 1
+        self.assertTrue(count == 22100)
+
+        count = 0
+        for mask in Hand.Hands(4):
+            count += 1
+        self.assertTrue(count == 270725)
+
+        count = 0
+        for mask in Hand.Hands(5):
+            count += 1
+        self.assertTrue(count == 2598960)
+
+        count = 0
+        for mask in Hand.Hands(6):
+            count += 1
+        self.assertTrue(count == 20358520)
+
+    def test_Analysis(self):
+        # The outs are: Aces (1), Queens (4), Kinds (3), Jacks (3), Tens (3), Spades (9)
+        outs = HandAnalysis.Outs(Hand.ParseHand("As Ks")[0], Hand.ParseHand("Js Ts Ad")[0], [])
+        self.assertTrue(outs == 23)
+
+        # The only outs are the remaining spades, but not the 5 of spades (7)
+        outs = HandAnalysis.Outs(Hand.ParseHand("As Kd")[0], Hand.ParseHand("2s 3s 4s")[0], [Hand.ParseHand("6s 5d")[0]])
+        self.assertTrue(outs == 7)
+
+        # The outs are the remaining spades, aces, and kings (15)
+        outs = HandAnalysis.Outs(Hand.ParseHand("As Ks")[0], Hand.ParseHand("2s 3s 4d")[0], [Hand.ParseHand("2d 6c")[0]])
+        self.assertTrue(outs == 15)
+
+        # for mask in Hand.Hands(2):
+        #     sum = 0
+        #     player = [0.0] * 9
+        #     opponent = [0.0] * 9
+        #     result = HandAnalysis.HandPlayerMultiOpponentOdds(mask, 0)
+        # pass
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -5232,7 +5232,7 @@ class Hand:
             if Hand.BitCount(mask) > ncards:
                 raise Exception("Invalid ncards")
         
-        return Hand.RandomHands(mask, dead, ncards)
+        return Hand.RandomHand(mask, dead, ncards)
     
     # Returns a random mask with the specified number of cards and constrained
     # to not contain any of the passed dead cards
@@ -5241,16 +5241,16 @@ class Hand:
     # ncards - The number of cards to return in this mask    
     @staticmethod
     @dispatch(np.uint64, np.uint64, int)
-    def RandomHands(shared: np.uint64, dead: np.uint64, ncards: int):
+    def RandomHand(shared: np.uint64, dead: np.uint64, ncards: int):
         mask = shared
         card = 0
         count = ncards - Hand.BitCount(shared)
 
         i = 0
         while i < count:
-            card = np.uint64(1 << random.randint(1, 52))
+            card = np.uint64(1 << random.randint(0, 51))
             while ((dead | mask) & card) != 0:
-                card = np.uint64(1 << random.randint(1, 52))
+                card = np.uint64(1 << random.randint(0, 51))
             mask |= card
             i += 1
         
@@ -5262,8 +5262,8 @@ class Hand:
     # ncards - The number of cards to return in the generated mask
     @staticmethod
     @dispatch(np.uint64, int)
-    def RandomHands(dead: np.uint64, ncards: int):
-        return Hand.RandomHands(np.uint64(0), dead, ncards)
+    def RandomHand(dead: np.uint64, ncards: int):
+        return Hand.RandomHand(np.uint64(0), dead, ncards)
 
     # Iterates through random hands that meets the specified requirements until the specified
     # time duration has elapse. 
@@ -5287,12 +5287,16 @@ class Hand:
             if duration < 0:
                 raise Exception("Duration must not be negative")
         
-        #cardCount = ncards - Hand.BitCount(shared)
-        deadMask = dead | shared
-        #yield Hand.RandomHands(shared, dead, ncards)
-        yield Hand.__GetRandomHand(deadMask, ncards) | shared
+        yield Hand.RandomHand(shared, dead, ncards)
         while (timer() - start) < duration:
-            yield Hand.__GetRandomHand(deadMask, ncards) | shared
+            yield Hand.RandomHand(shared, dead, ncards)
+
+        #cardCount = ncards - Hand.BitCount(shared)
+        #deadMask = dead | shared
+        #yield Hand.RandomHands(shared, dead, ncards)
+        # yield Hand.__GetRandomHand(deadMask, ncards) | shared
+        # while (timer() - start) < duration:
+        #     yield Hand.__GetRandomHand(deadMask, ncards) | shared
     
     # Iterates through random hands that meets the specified requirements until the specified
     # time duration has elapse. 

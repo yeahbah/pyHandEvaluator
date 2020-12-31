@@ -81,7 +81,7 @@ for hand in hands:
 print(len(y))
 
 
-hand = Hand.RandomHands(np.uint64(0), 2)
+hand = Hand.RandomHand(np.uint64(0), 2)
 print(hand)
 print(Hand.DescriptionFromMask(hand))
 print(Hand.MaskToString(hand))
@@ -179,6 +179,35 @@ print(result)
 hand = Hand.ParseHand("2c")[0]
 print(hand)
 
+outs = HandAnalysis.Outs(Hand.ParseHand("As Kd")[0], Hand.ParseHand("2s 3s 4s")[0], [Hand.ParseHand("6s 5d")[0]])
+print(outs)
+
+pocket = Hand.ParseHand("Qs Js")[0]
+board = Hand.ParseHand("9c Ts 7d 3c")[0]
+opponents = [Hand.ParseHand("8s 9s")[0], Hand.ParseHand("Ac Kc")[0]]
+outs = HandAnalysis.OutsMaskDiscounted(pocket, board, opponents)
+print(outs)
+expected = "Ks Kh Qh 8h Kd Qd 8d"
+print(Hand.MaskToString(outs))
+
+pocket = Hand.ParseHand("As Ks")[0]
+board = Hand.ParseHand("2s 3s 4d")[0]
+opponents = [Hand.ParseHand("2d 6c")[0]]
+outs = HandAnalysis.Outs(pocket, board, opponents)
+print(outs)
+
+
+pocket = "As Ks"
+board = "2s 3s 5c 6d"
+opponents = [Hand.ParseHand("5s 6c")[0]]
+expectedOuts = 7 # because 6s does not improve our heroe's hand
+print(HandAnalysis.Outs(Hand.ParseHand(pocket)[0], Hand.ParseHand(board)[0], opponents))
+expectedOuts = "Qs Js Ts 9s 8s 7s 4s"
+print(HandAnalysis.OutCards(pocket, board, ["5s 6c"]))
+
+opponents = [Hand.ParseHand("6s 7s")[0]]
+expectedOuts = 15 # opponent out is not discounted
+print(HandAnalysis.Outs(Hand.ParseHand(pocket)[0], Hand.ParseHand(board)[0], opponents))
 
 
 # handValue = HoldemHand.Evaluate(mask[0], 5)
