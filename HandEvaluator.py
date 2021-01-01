@@ -5290,13 +5290,6 @@ class Hand:
         yield Hand.RandomHand(shared, dead, ncards)
         while (timer() - start) < duration:
             yield Hand.RandomHand(shared, dead, ncards)
-
-        #cardCount = ncards - Hand.BitCount(shared)
-        #deadMask = dead | shared
-        #yield Hand.RandomHands(shared, dead, ncards)
-        # yield Hand.__GetRandomHand(deadMask, ncards) | shared
-        # while (timer() - start) < duration:
-        #     yield Hand.__GetRandomHand(deadMask, ncards) | shared
     
     # Iterates through random hands that meets the specified requirements until the specified
     # time duration has elapse. 

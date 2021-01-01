@@ -2707,38 +2707,373 @@ class HandAnalysis:
             if duration <= 0.0:
                 raise Exception("Duratioin must not be 0.0 or negative")
             
-            if numberOfOpponents == 1:
-                for boardMask in Hand.RandomHands(board, ourCards, 5, duration):
-                    opp1 = Hand.RandomHand(np.uint64(0), ourCards | boardMask, 2)
-                    playerHandVal = Hand.Evaluate(ourCards | boardMask, 7)
-                    opp1HandVal = Hand.Evaluate(opp1 | boardMask, 7)
+        if numberOfOpponents == 1:
+            for boardMask in Hand.RandomHands(board, ourCards, 5, duration):
+                opp1 = Hand.RandomHand(np.uint64(0), ourCards | boardMask, 2)
+                playerHandVal = Hand.Evaluate(ourCards | boardMask, 7)
+                opp1HandVal = Hand.Evaluate(opp1 | boardMask, 7)
 
-                    if playerHandVal >= opp1HandVal:
-                        player[Hand.HandType(playerHandVal)] += 1.0
-                    else:
-                        opponent[Hand.HandType(opp1HandVal)] += 1.0
-                    playerCount += 1
-                    opponentCount += 1
-                                
-            elif numberOfOpponents == 2:
-                pass
-            elif numberOfOpponents == 3:
-                pass
-            elif numberOfOpponents == 4:
-                pass
-            elif numberOfOpponents == 5:
-                pass
-            elif numberOfOpponents == 6:
-                pass
-            elif numberOfOpponents == 7:
-                pass
-            elif numberOfOpponents == 8:
-                pass
-            elif numberOfOpponents == 9:
-                pass
+                if playerHandVal >= opp1HandVal:
+                    player[Hand.HandType(playerHandVal)] += 1.0
+                else:
+                    opponent[Hand.HandType(opp1HandVal)] += 1.0
+                playerCount += 1
+                opponentCount += 1
+                            
+        elif numberOfOpponents == 2:
+            shared = np.uint64(0)
+            for boardMask in Hand.RandomHands(board, ourCards, 5, duration):
+                opp1 = Hand.RandomHand(shared, ourCards | boardMask, 2)
+                opp2 = Hand.RandomHand(shared, ourCards | boardMask | opp1, 2)
+                playerHandVal = Hand.Evaluate(ourCards | boardMask, 7)
+                opp1HandVal = Hand.Evaluate(opp1 | boardMask, 7)
+                opp2HandVal = Hand.Evaluate(opp2 | boardMask, 7)
 
-        pass
+                if playerHandVal >= opp1HandVal and playerHandVal >= opp2HandVal:
+                    player[Hand.HandType(playerHandVal)] += 1.0
+                playerCount += 1
 
+                if opp1HandVal >= playerHandVal:
+                    opponent[Hand.HandType(opp1HandVal)] += 1.0
+                opponentCount += 1
+
+                if opp2HandVal >= playerHandVal:
+                    opponent[Hand.HandType(opp2HandVal)] += 1.0
+                opponentCount += 1
+
+        elif numberOfOpponents == 3:
+            shared = np.uint64(0)
+            for boardMask in Hand.RandomHands(board, ourCards, 5, duration):
+                opp1 = Hand.RandomHand(shared, ourCards | boardMask, 2)
+                opp2 = Hand.RandomHand(shared, ourCards | boardMask | opp1, 2)
+                opp3 = Hand.RandomHand(shared, ourCards | boardMask | opp1 | opp2, 2)
+                playerHandVal = Hand.Evaluate(ourCards | boardMask, 7)
+                opp1HandVal = Hand.Evaluate(opp1 | boardMask, 7)
+                opp2HandVal = Hand.Evaluate(opp2 | boardMask, 7)
+                opp3HandVal = Hand.Evaluate(opp3 | boardMask, 7)
+
+                if playerHandVal >= opp1HandVal and playerHandVal >= opp2HandVal \
+                    and playerHandVal >= opp3HandVal:
+                    player[Hand.HandType(playerHandVal)] += 1.0
+                playerCount += 1
+
+                if opp1HandVal >= playerHandVal:
+                    opponent[Hand.HandType(opp1HandVal)] += 1.0
+                opponentCount += 1
+
+                if opp2HandVal >= playerHandVal:
+                    opponent[Hand.HandType(opp2HandVal)] += 1.0
+                opponentCount += 1
+
+                if opp3HandVal >= playerHandVal:
+                    opponent[Hand.HandType(opp3HandVal)] += 1.0
+                opponentCount += 1
+
+        elif numberOfOpponents == 4:
+            shared = np.uint64(0)
+            for boardMask in Hand.RandomHands(board, ourCards, 5, duration):
+                opp1 = Hand.RandomHand(shared, ourCards | boardMask, 2)
+                opp2 = Hand.RandomHand(shared, ourCards | boardMask | opp1, 2)
+                opp3 = Hand.RandomHand(shared, ourCards | boardMask | opp1 | opp2, 2)
+                opp4 = Hand.RandomHand(shared, ourCards | boardMask | opp1 | opp2 | opp3, 2)
+                playerHandVal = Hand.Evaluate(ourCards | boardMask, 7)
+                opp1HandVal = Hand.Evaluate(opp1 | boardMask, 7)
+                opp2HandVal = Hand.Evaluate(opp2 | boardMask, 7)
+                opp3HandVal = Hand.Evaluate(opp3 | boardMask, 7)
+                opp4HandVal = Hand.Evaluate(opp4 | boardMask, 7)
+
+                if playerHandVal >= opp1HandVal and playerHandVal >= opp2HandVal \
+                    and playerHandVal >= opp3HandVal and playerHandVal >= opp4HandVal:
+                    player[Hand.HandType(playerHandVal)] += 1.0
+                playerCount += 1
+
+                if opp1HandVal >= playerHandVal:
+                    opponent[Hand.HandType(opp1HandVal)] += 1.0
+                opponentCount += 1
+
+                if opp2HandVal >= playerHandVal:
+                    opponent[Hand.HandType(opp2HandVal)] += 1.0
+                opponentCount += 1
+
+                if opp3HandVal >= playerHandVal:
+                    opponent[Hand.HandType(opp3HandVal)] += 1.0
+                opponentCount += 1
+
+                if opp4HandVal >= playerHandVal:
+                    opponent[Hand.HandType(opp4HandVal)] += 1.0
+                opponentCount += 1
+        elif numberOfOpponents == 5:
+            shared = np.uint64(0)
+            for boardMask in Hand.RandomHands(board, ourCards, 5, duration):
+                opp1 = Hand.RandomHand(shared, ourCards | boardMask, 2)
+                opp2 = Hand.RandomHand(shared, ourCards | boardMask | opp1, 2)
+                opp3 = Hand.RandomHand(shared, ourCards | boardMask | opp1 | opp2, 2)
+                opp4 = Hand.RandomHand(shared, ourCards | boardMask | opp1 | opp2 | opp3, 2)
+                opp5 = Hand.RandomHand(shared, ourCards | boardMask | opp1 | opp2 | opp3 | opp4, 2)
+                playerHandVal = Hand.Evaluate(ourCards | boardMask, 7)
+                opp1HandVal = Hand.Evaluate(opp1 | boardMask, 7)
+                opp2HandVal = Hand.Evaluate(opp2 | boardMask, 7)
+                opp3HandVal = Hand.Evaluate(opp3 | boardMask, 7)
+                opp4HandVal = Hand.Evaluate(opp4 | boardMask, 7)
+                opp5HandVal = Hand.Evaluate(opp5 | boardMask, 7)
+
+                if playerHandVal >= opp1HandVal and playerHandVal >= opp2HandVal \
+                    and playerHandVal >= opp3HandVal and playerHandVal >= opp4HandVal \
+                    and playerHandVal >= opp5HandVal:
+                    player[Hand.HandType(playerHandVal)] += 1.0
+                playerCount += 1
+
+                if opp1HandVal >= playerHandVal:
+                    opponent[Hand.HandType(opp1HandVal)] += 1.0
+                opponentCount += 1
+
+                if opp2HandVal >= playerHandVal:
+                    opponent[Hand.HandType(opp2HandVal)] += 1.0
+                opponentCount += 1
+
+                if opp3HandVal >= playerHandVal:
+                    opponent[Hand.HandType(opp3HandVal)] += 1.0
+                opponentCount += 1
+
+                if opp4HandVal >= playerHandVal:
+                    opponent[Hand.HandType(opp4HandVal)] += 1.0
+                opponentCount += 1
+
+                if opp5HandVal >= playerHandVal:
+                    opponent[Hand.HandType(opp5HandVal)] += 1.0
+                opponentCount += 1
+        elif numberOfOpponents == 6:
+            shared = np.uint64(0)
+            for boardMask in Hand.RandomHands(board, ourCards, 5, duration):
+                opp1 = Hand.RandomHand(shared, ourCards | boardMask, 2)
+                opp2 = Hand.RandomHand(shared, ourCards | boardMask | opp1, 2)
+                opp3 = Hand.RandomHand(shared, ourCards | boardMask | opp1 | opp2, 2)
+                opp4 = Hand.RandomHand(shared, ourCards | boardMask | opp1 | opp2 | opp3, 2)
+                opp5 = Hand.RandomHand(shared, ourCards | boardMask | opp1 | opp2 | opp3 | opp4, 2)
+                opp6 = Hand.RandomHand(shared, ourCards | boardMask | opp1 | opp2 | opp3 | opp4 | opp5, 2)
+                playerHandVal = Hand.Evaluate(ourCards | boardMask, 7)
+                opp1HandVal = Hand.Evaluate(opp1 | boardMask, 7)
+                opp2HandVal = Hand.Evaluate(opp2 | boardMask, 7)
+                opp3HandVal = Hand.Evaluate(opp3 | boardMask, 7)
+                opp4HandVal = Hand.Evaluate(opp4 | boardMask, 7)
+                opp5HandVal = Hand.Evaluate(opp5 | boardMask, 7)
+                opp6HandVal = Hand.Evaluate(opp6 | boardMask, 7)
+
+                if playerHandVal >= opp1HandVal and playerHandVal >= opp2HandVal \
+                    and playerHandVal >= opp3HandVal and playerHandVal >= opp4HandVal \
+                    and playerHandVal >= opp5HandVal and playerHandVal >= opp6HandVal:
+                    player[Hand.HandType(playerHandVal)] += 1.0
+                playerCount += 1
+
+                if opp1HandVal >= playerHandVal:
+                    opponent[Hand.HandType(opp1HandVal)] += 1.0
+                opponentCount += 1
+
+                if opp2HandVal >= playerHandVal:
+                    opponent[Hand.HandType(opp2HandVal)] += 1.0
+                opponentCount += 1
+
+                if opp3HandVal >= playerHandVal:
+                    opponent[Hand.HandType(opp3HandVal)] += 1.0
+                opponentCount += 1
+
+                if opp4HandVal >= playerHandVal:
+                    opponent[Hand.HandType(opp4HandVal)] += 1.0
+                opponentCount += 1
+
+                if opp5HandVal >= playerHandVal:
+                    opponent[Hand.HandType(opp5HandVal)] += 1.0
+                opponentCount += 1
+
+                if opp6HandVal >= playerHandVal:
+                    opponent[Hand.HandType(opp6HandVal)] += 1.0
+                opponentCount += 1
+        elif numberOfOpponents == 7:
+            shared = np.uint64(0)
+            for boardMask in Hand.RandomHands(board, ourCards, 5, duration):
+                opp1 = Hand.RandomHand(shared, ourCards | boardMask, 2)
+                opp2 = Hand.RandomHand(shared, ourCards | boardMask | opp1, 2)
+                opp3 = Hand.RandomHand(shared, ourCards | boardMask | opp1 | opp2, 2)
+                opp4 = Hand.RandomHand(shared, ourCards | boardMask | opp1 | opp2 | opp3, 2)
+                opp5 = Hand.RandomHand(shared, ourCards | boardMask | opp1 | opp2 | opp3 | opp4, 2)
+                opp6 = Hand.RandomHand(shared, ourCards | boardMask | opp1 | opp2 | opp3 | opp4 | opp5, 2)
+                opp7 = Hand.RandomHand(shared, ourCards | boardMask | opp1 | opp2 | opp3 | opp4 | opp5 | opp6, 2)
+                playerHandVal = Hand.Evaluate(ourCards | boardMask, 7)
+                opp1HandVal = Hand.Evaluate(opp1 | boardMask, 7)
+                opp2HandVal = Hand.Evaluate(opp2 | boardMask, 7)
+                opp3HandVal = Hand.Evaluate(opp3 | boardMask, 7)
+                opp4HandVal = Hand.Evaluate(opp4 | boardMask, 7)
+                opp5HandVal = Hand.Evaluate(opp5 | boardMask, 7)
+                opp6HandVal = Hand.Evaluate(opp6 | boardMask, 7)
+                opp7HandVal = Hand.Evaluate(opp7 | boardMask, 7)
+
+                if playerHandVal >= opp1HandVal and playerHandVal >= opp2HandVal \
+                    and playerHandVal >= opp3HandVal and playerHandVal >= opp4HandVal \
+                    and playerHandVal >= opp5HandVal and playerHandVal >= opp6HandVal \
+                    and playerHandVal >= opp7HandVal:
+                    player[Hand.HandType(playerHandVal)] += 1.0
+                playerCount += 1
+
+                if opp1HandVal >= playerHandVal:
+                    opponent[Hand.HandType(opp1HandVal)] += 1.0
+                opponentCount += 1
+
+                if opp2HandVal >= playerHandVal:
+                    opponent[Hand.HandType(opp2HandVal)] += 1.0
+                opponentCount += 1
+
+                if opp3HandVal >= playerHandVal:
+                    opponent[Hand.HandType(opp3HandVal)] += 1.0
+                opponentCount += 1
+
+                if opp4HandVal >= playerHandVal:
+                    opponent[Hand.HandType(opp4HandVal)] += 1.0
+                opponentCount += 1
+
+                if opp5HandVal >= playerHandVal:
+                    opponent[Hand.HandType(opp5HandVal)] += 1.0
+                opponentCount += 1
+
+                if opp6HandVal >= playerHandVal:
+                    opponent[Hand.HandType(opp6HandVal)] += 1.0
+                opponentCount += 1
+
+                if opp7HandVal >= playerHandVal:
+                    opponent[Hand.HandType(opp7HandVal)] += 1.0
+                opponentCount += 1
+        elif numberOfOpponents == 8:
+            shared = np.uint64(0)
+            for boardMask in Hand.RandomHands(board, ourCards, 5, duration):
+                opp1 = Hand.RandomHand(shared, ourCards | boardMask, 2)
+                opp2 = Hand.RandomHand(shared, ourCards | boardMask | opp1, 2)
+                opp3 = Hand.RandomHand(shared, ourCards | boardMask | opp1 | opp2, 2)
+                opp4 = Hand.RandomHand(shared, ourCards | boardMask | opp1 | opp2 | opp3, 2)
+                opp5 = Hand.RandomHand(shared, ourCards | boardMask | opp1 | opp2 | opp3 | opp4, 2)
+                opp6 = Hand.RandomHand(shared, ourCards | boardMask | opp1 | opp2 | opp3 | opp4 | opp5, 2)
+                opp7 = Hand.RandomHand(shared, ourCards | boardMask | opp1 | opp2 | opp3 | opp4 | opp5 | opp6, 2)
+                opp8 = Hand.RandomHand(shared, ourCards | boardMask | opp1 | opp2 | opp3 | opp4 | opp5 | opp6 | opp7, 2)
+                playerHandVal = Hand.Evaluate(ourCards | boardMask, 7)
+                opp1HandVal = Hand.Evaluate(opp1 | boardMask, 7)
+                opp2HandVal = Hand.Evaluate(opp2 | boardMask, 7)
+                opp3HandVal = Hand.Evaluate(opp3 | boardMask, 7)
+                opp4HandVal = Hand.Evaluate(opp4 | boardMask, 7)
+                opp5HandVal = Hand.Evaluate(opp5 | boardMask, 7)
+                opp6HandVal = Hand.Evaluate(opp6 | boardMask, 7)
+                opp7HandVal = Hand.Evaluate(opp7 | boardMask, 7)
+                opp8HandVal = Hand.Evaluate(opp8 | boardMask, 7)
+
+                if playerHandVal >= opp1HandVal and playerHandVal >= opp2HandVal \
+                    and playerHandVal >= opp3HandVal and playerHandVal >= opp4HandVal \
+                    and playerHandVal >= opp5HandVal and playerHandVal >= opp6HandVal \
+                    and playerHandVal >= opp7HandVal and playerHandVal >= opp8HandVal:
+                    player[Hand.HandType(playerHandVal)] += 1.0
+                playerCount += 1
+
+                if opp1HandVal >= playerHandVal:
+                    opponent[Hand.HandType(opp1HandVal)] += 1.0
+                opponentCount += 1
+
+                if opp2HandVal >= playerHandVal:
+                    opponent[Hand.HandType(opp2HandVal)] += 1.0
+                opponentCount += 1
+
+                if opp3HandVal >= playerHandVal:
+                    opponent[Hand.HandType(opp3HandVal)] += 1.0
+                opponentCount += 1
+
+                if opp4HandVal >= playerHandVal:
+                    opponent[Hand.HandType(opp4HandVal)] += 1.0
+                opponentCount += 1
+
+                if opp5HandVal >= playerHandVal:
+                    opponent[Hand.HandType(opp5HandVal)] += 1.0
+                opponentCount += 1
+
+                if opp6HandVal >= playerHandVal:
+                    opponent[Hand.HandType(opp6HandVal)] += 1.0
+                opponentCount += 1
+
+                if opp7HandVal >= playerHandVal:
+                    opponent[Hand.HandType(opp7HandVal)] += 1.0
+                opponentCount += 1
+
+                if opp8HandVal >= playerHandVal:
+                    opponent[Hand.HandType(opp8HandVal)] += 1.0
+                opponentCount += 1
+        elif numberOfOpponents == 9:
+            shared = np.uint64(0)
+            for boardMask in Hand.RandomHands(board, ourCards, 5, duration):
+                opp1 = Hand.RandomHand(shared, ourCards | boardMask, 2)
+                opp2 = Hand.RandomHand(shared, ourCards | boardMask | opp1, 2)
+                opp3 = Hand.RandomHand(shared, ourCards | boardMask | opp1 | opp2, 2)
+                opp4 = Hand.RandomHand(shared, ourCards | boardMask | opp1 | opp2 | opp3, 2)
+                opp5 = Hand.RandomHand(shared, ourCards | boardMask | opp1 | opp2 | opp3 | opp4, 2)
+                opp6 = Hand.RandomHand(shared, ourCards | boardMask | opp1 | opp2 | opp3 | opp4 | opp5, 2)
+                opp7 = Hand.RandomHand(shared, ourCards | boardMask | opp1 | opp2 | opp3 | opp4 | opp5 | opp6, 2)
+                opp8 = Hand.RandomHand(shared, ourCards | boardMask | opp1 | opp2 | opp3 | opp4 | opp5 | opp6 | opp7, 2)
+                opp9 = Hand.RandomHand(shared, ourCards | boardMask | opp1 | opp2 | opp3 | opp4 | opp5 | opp6 | opp7 | opp8, 2)
+                playerHandVal = Hand.Evaluate(ourCards | boardMask, 7)
+                opp1HandVal = Hand.Evaluate(opp1 | boardMask, 7)
+                opp2HandVal = Hand.Evaluate(opp2 | boardMask, 7)
+                opp3HandVal = Hand.Evaluate(opp3 | boardMask, 7)
+                opp4HandVal = Hand.Evaluate(opp4 | boardMask, 7)
+                opp5HandVal = Hand.Evaluate(opp5 | boardMask, 7)
+                opp6HandVal = Hand.Evaluate(opp6 | boardMask, 7)
+                opp7HandVal = Hand.Evaluate(opp7 | boardMask, 7)
+                opp8HandVal = Hand.Evaluate(opp8 | boardMask, 7)
+                opp9HandVal = Hand.Evaluate(opp9 | boardMask, 7)
+
+                if playerHandVal >= opp1HandVal and playerHandVal >= opp2HandVal \
+                    and playerHandVal >= opp3HandVal and playerHandVal >= opp4HandVal \
+                    and playerHandVal >= opp5HandVal and playerHandVal >= opp6HandVal \
+                    and playerHandVal >= opp7HandVal and playerHandVal >= opp8HandVal \
+                    and playerHandVal >= opp9HandVal:
+                    player[Hand.HandType(playerHandVal)] += 1.0
+                playerCount += 1
+
+                if opp1HandVal >= playerHandVal:
+                    opponent[Hand.HandType(opp1HandVal)] += 1.0
+                opponentCount += 1
+
+                if opp2HandVal >= playerHandVal:
+                    opponent[Hand.HandType(opp2HandVal)] += 1.0
+                opponentCount += 1
+
+                if opp3HandVal >= playerHandVal:
+                    opponent[Hand.HandType(opp3HandVal)] += 1.0
+                opponentCount += 1
+
+                if opp4HandVal >= playerHandVal:
+                    opponent[Hand.HandType(opp4HandVal)] += 1.0
+                opponentCount += 1
+
+                if opp5HandVal >= playerHandVal:
+                    opponent[Hand.HandType(opp5HandVal)] += 1.0
+                opponentCount += 1
+
+                if opp6HandVal >= playerHandVal:
+                    opponent[Hand.HandType(opp6HandVal)] += 1.0
+                opponentCount += 1
+
+                if opp7HandVal >= playerHandVal:
+                    opponent[Hand.HandType(opp7HandVal)] += 1.0
+                opponentCount += 1
+
+                if opp8HandVal >= playerHandVal:
+                    opponent[Hand.HandType(opp8HandVal)] += 1.0
+                opponentCount += 1
+
+                if opp9HandVal >= playerHandVal:
+                    opponent[Hand.HandType(opp9HandVal)] += 1.0
+                opponentCount += 1
+
+        i = 0
+        while i < 9:
+            player[i] = player[i] / playerCount
+            opponent[i] = opponent[i] / opponentCount
+            i += 1
+
+        return (player, opponent)
     
     # This method returns the approximate odd for the players mask winning against multiple opponents.
     # This uses a default time duration of 0.25S (or 250mS) for the time allotment for Monte Carlo analysis.

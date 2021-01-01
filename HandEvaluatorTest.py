@@ -320,12 +320,12 @@ class HandEvaluatorTest(unittest.TestCase):
         outs = HandAnalysis.Outs(Hand.ParseHand("As Ks")[0], Hand.ParseHand("2s 3s 4d")[0], [Hand.ParseHand("2d 6c")[0]])
         self.assertTrue(outs == 15)
 
-        # for mask in Hand.Hands(2):
-        #     sum = 0
-        #     player = [0.0] * 9
-        #     opponent = [0.0] * 9
-        #     result = HandAnalysis.HandPlayerMultiOpponentOdds(mask, 0)
-        # pass
+        for mask in Hand.Hands(2):
+            sum = 0
+            player = [0.0] * 9
+            opponent = [0.0] * 9
+            result = HandAnalysis.HandPlayerMultiOpponentOdds(mask, 0)
+        pass
 
 
 if __name__ == '__main__':
