@@ -111,11 +111,20 @@ class Hand:
     def __eq__(self, other):        
         return self.HandValue() == other.HandValue()
     
+    def __ne__(self, other):
+        return self.HandValue() != other.HandValue()
+    
     def __lt__(self, other):
         return self.HandValue() < other.HandValue()
     
+    def __le__(self, other):
+        return self.HandValue() <= other.HandValue()
+    
     def __gt__(self, other):
         return self.HandValue() > other.HandValue()
+    
+    def __ge__(self, other):
+        return self.HandValue() >= other.HandValue()    
         
     # This function takes a string representing a full or partial holdem mask 
     # and validates that the text represents valid cards and that no card is

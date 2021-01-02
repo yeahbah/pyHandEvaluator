@@ -1,3 +1,4 @@
+from numpy.core.defchararray import less
 from HandAnalysis import HandAnalysis
 import unittest
 from HandEvaluator import Hand
@@ -320,13 +321,36 @@ class HandEvaluatorTest(unittest.TestCase):
         outs = HandAnalysis.Outs(Hand.ParseHand("As Ks")[0], Hand.ParseHand("2s 3s 4d")[0], [Hand.ParseHand("2d 6c")[0]])
         self.assertTrue(outs == 15)
 
-        for mask in Hand.Hands(2):
-            sum = 0
-            player = [0.0] * 9
-            opponent = [0.0] * 9
-            result = HandAnalysis.HandPlayerMultiOpponentOdds(mask, 0)
-        pass
+        # for mask in Hand.Hands(2):
+        #     sum = 0
+        #     player = [0.0] * 9
+        #     opponent = [0.0] * 9
+        #     result = HandAnalysis.HandPlayerMultiOpponentOdds(mask, 0)
+        
+        #     player = result[0]
+        #     opponent = result[1]
+        #     self.assertTrue(len(player) == len(player))
+        #     self.assertTrue(len(player) == 9)
+        #     self.assertTrue(len(opponent) == 9)
 
+        #     i = 0
+        #     while i < 9:
+        #         sum += player[i]
+        #         sum += opponent[i]
+        #         i += 1
+            
+        #     self.assertLess(abs(sum - 1.0), 0.00001)
+
+    def test_InstanceOperators(self):
+        board = "2d Kh Qh 3h Qc"
+        h1 = Hand("Ad Kd", board)
+        h2 = Hand("2h 3d", board)
+
+        self.assertTrue(h1 > h2)
+        self.assertTrue(h1 >= h2)
+        self.assertTrue(h2 <= h1)
+        self.assertTrue(h2 < h1)
+        self.assertTrue(h1 != h2)
 
 if __name__ == '__main__':
     unittest.main()

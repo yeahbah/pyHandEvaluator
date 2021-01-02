@@ -210,6 +210,16 @@ expectedOuts = 15 # opponent out is not discounted
 print(HandAnalysis.Outs(Hand.ParseHand(pocket)[0], Hand.ParseHand(board)[0], opponents))
 
 
+board = "2d Kh Qh 3h Qc"
+h1 = Hand("Ad Kd", board)
+h2 = Hand("2h 3d", board)
+
+print(h1 > h2)
+print(h1 >= h2)
+print(h2 <= h1)
+print(h2 < h1)
+print(h1 != h2)
+
 # handValue = HoldemHand.Evaluate(mask[0], 5)
 # print(handValue)
 
